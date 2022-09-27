@@ -1,0 +1,24 @@
+{
+    "gem_name": "RGL",
+    "display_name": "RobotecGPULidar",
+    "license": "Apache-2.0",
+    "license_url": "https://opensource.org/licenses/Apache-2.0",
+    "origin": "RobotecAI",
+    "origin_url": "",
+    "type": "Code",
+    "summary": "Extension to the ROS2 Gem that provides it with the RobotecGPULidar lidar implementation.",
+    "canonical_tags": [
+        "Gem"
+    ],
+    "user_tags": [
+        "RobotecGPULidar",
+        "ROS2"
+    ],
+    "icon_path": "preview.png",
+    "requirements": "Requires a CUDA-capable GPU and installation of both the CUDA Toolkit 11.2+ and NVidia OptiX 7.2.",
+    "documentation_url": "Link to any documentation of RobotecGPULidar goes here: i.e. https://o3de.org/docs/user-guide/gems/reference/design/white-box/",
+    "dependencies": [
+        "ROS2"
+    ],
+    "restricted": "RGL"
+}
