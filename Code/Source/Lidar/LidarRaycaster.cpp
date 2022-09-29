@@ -60,13 +60,13 @@ namespace RGL
 
         std::vector<rgl_mat3x4f> rayTransforms;
         rayTransforms.reserve(rotations.size());
-        for (auto rotation = rotations.begin(); rotation != rotations.end(); ++rotation)
+        for (AZ::Vector3 rotation : rotations)
         {
             // Computed by hand since the O3DE built - in conversion don't seem to work as intended.
-            const float sinY = AZ::Sin(rotation->GetY() + (AZ::Constants::Pi / 2.0f));
-            const float sinZ = AZ::Sin(rotation->GetZ());
-            const float cosY = AZ::Cos(rotation->GetY() + (AZ::Constants::Pi / 2.0f));
-            const float cosZ = AZ::Cos(rotation->GetZ());
+            const float sinY = AZ::Sin(rotation.GetY() + (AZ::Constants::Pi / 2.0f));
+            const float sinZ = AZ::Sin(rotation.GetZ());
+            const float cosY = AZ::Cos(rotation.GetY() + (AZ::Constants::Pi / 2.0f));
+            const float cosZ = AZ::Cos(rotation.GetZ());
 
             rayTransforms.push_back({
                 {
@@ -112,12 +112,10 @@ namespace RGL
         };
 
         ErrorCheck(rgl_lidar_set_pose(m_lidar, &rglLidarPose));
-        int rglRaycastResultsSize = -1;
-        {
-            ErrorCheck(rgl_lidar_raytrace_async(nullptr, m_lidar));
-            ErrorCheck(rgl_lidar_get_output_size(m_lidar, &rglRaycastResultsSize));
-        }
+        ErrorCheck(rgl_lidar_raytrace_async(nullptr, m_lidar));
 
+        int rglRaycastResultsSize = -1;
+        ErrorCheck(rgl_lidar_get_output_size(m_lidar, &rglRaycastResultsSize));
         if (rglRaycastResultsSize <= 0)
         {
             return {};
@@ -128,7 +126,7 @@ namespace RGL
 
         AZStd::vector<AZ::Vector3> raycastResults;
         raycastResults.reserve(rglRaycastResultsSize);
-        for (auto& point : rglRaycastResults)
+        for (rgl_vec3f point : rglRaycastResults)
         {
             raycastResults.push_back({ point.value[0], point.value[1], point.value[2] });
         }

@@ -14,4 +14,6 @@ set(FILES
         Source/Lidar/LidarSystem.h
         Source/Entity/EntityManager.cpp
         Source/Entity/EntityManager.h
+        Source/Mesh/MeshLibrary.cpp
+        Source/Mesh/MeshLibrary.h
 )
