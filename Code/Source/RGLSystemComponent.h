@@ -9,6 +9,7 @@
 
 #include "Entity//EntityManager.h"
 #include "Lidar/LidarSystem.h"
+#include "Mesh/MeshLibrary.h"
 #include "RGLBus.h"
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
@@ -66,7 +67,7 @@ namespace RGL
 
     private:
         LidarSystem m_lidarSystem;
-        AzFramework::EntityContextId m_gameEntityContextId;
+        MeshLibrary m_meshLibrary;
         AZStd::set<AZ::EntityId> m_excludedEntities;
         AZStd::unordered_map<AZ::EntityId, EntityManager> m_entityManagers;
     };

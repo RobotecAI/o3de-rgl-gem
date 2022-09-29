@@ -64,7 +64,6 @@ namespace RGL
     }
 
     RGLSystemComponent::RGLSystemComponent()
-        : m_gameEntityContextId{ AzFramework::EntityContextId::CreateNull() }
     {
         ErrorCheck(rgl_configure_logging(RGL_LOG_LEVEL_OFF, nullptr, true));
         if (RGLInterface::Get() == nullptr)
@@ -85,11 +84,12 @@ namespace RGL
     {
         AZ::TickBus::Handler::BusConnect();
 
+        AzFramework::EntityContextId gameEntityContextId;
         AzFramework::GameEntityContextRequestBus::BroadcastResult(
-            m_gameEntityContextId, &AzFramework::GameEntityContextRequestBus::Events::GetGameEntityContextId);
-        AZ_Assert(!m_gameEntityContextId.IsNull(), "Invalid GameEntityContextId");
+            gameEntityContextId, &AzFramework::GameEntityContextRequestBus::Events::GetGameEntityContextId);
+        AZ_Assert(!gameEntityContextId.IsNull(), "Invalid GameEntityContextId");
 
-        AzFramework::EntityContextEventBus::Handler::BusConnect(m_gameEntityContextId);
+        AzFramework::EntityContextEventBus::Handler::BusConnect(gameEntityContextId);
 
         auto* ros2Interface = ROS2::ROS2Interface::Get();
         AZ_Assert(ros2Interface != nullptr, "The ROS2 interface was inaccessable.");
@@ -99,7 +99,7 @@ namespace RGL
     void RGLSystemComponent::Deactivate()
     {
         m_lidarSystem.Deactivate();
-        AzFramework::EntityContextEventBus::Handler::BusDisconnect(m_gameEntityContextId);
+        AzFramework::EntityContextEventBus::Handler::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
 
         m_entityManagers.clear();

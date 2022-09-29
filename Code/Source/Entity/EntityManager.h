@@ -45,6 +45,6 @@ namespace RGL
     private:
         bool m_isStatic;
         AZ::EntityId m_entityId;
-        AZStd::vector<AZStd::pair<rgl_entity_t, rgl_mesh_t>> m_meshes;
+        AZStd::vector<rgl_entity_t> m_entities;
     };
 } // namespace RGL

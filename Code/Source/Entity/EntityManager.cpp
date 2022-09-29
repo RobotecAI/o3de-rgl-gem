@@ -7,6 +7,7 @@
  */
 
 #include "EntityManager.h"
+#include "Mesh/MeshLibraryBus.h"
 
 namespace RGL
 {
@@ -23,10 +24,9 @@ namespace RGL
         AZ::EntityBus::Handler::BusDisconnect();
         AZ::Render::MeshComponentNotificationBus::Handler::BusDisconnect();
 
-        for (auto mesh = m_meshes.begin(); mesh != m_meshes.end(); ++mesh)
+        for (rgl_entity_t entity : m_entities)
         {
-            ErrorCheck(rgl_mesh_destroy(mesh->second));
-            ErrorCheck(rgl_entity_destroy(mesh->first));
+            ErrorCheck(rgl_entity_destroy(entity));
         }
     }
 
@@ -49,31 +49,25 @@ namespace RGL
             },
         };
 
-        for (auto mesh = m_meshes.begin(); mesh != m_meshes.end(); ++mesh)
+        for (rgl_entity_t entity : m_entities)
         {
-            ErrorCheck(rgl_entity_set_pose(mesh->first, &entityPose));
+            ErrorCheck(rgl_entity_set_pose(entity, &entityPose));
         }
     }
 
     void EntityManager::OnModelReady(
         const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset, [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model)
     {
-        auto lodAssets = modelAsset->GetLodAssets();
-        auto modelLodAsset = lodAssets.begin()->Get();
+        AZ_Assert(m_entities.empty(), "Entity Manager has an invalid state.");
+        auto meshes = MeshLibraryInterface::Get()->GetMeshPointers(modelAsset);
 
-        auto meshes = modelLodAsset->GetMeshes();
-        m_meshes.reserve(meshes.size());
-        for (auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh)
+        m_entities.reserve(meshes.size());
+        for (Mesh* meshPtr : meshes)
         {
-            AZStd::pair<rgl_entity_t, rgl_mesh_t> meshEntry;
+            rgl_entity_t entity = nullptr;
+            ErrorCheck(rgl_entity_create(&entity, nullptr, meshPtr));
 
-            AZStd::span<const rgl_vec3f> vertices = mesh->GetSemanticBufferTyped<rgl_vec3f>(AZ::Name("POSITION"));
-            AZStd::span<const rgl_vec3i> indices = mesh->GetIndexBufferTyped<rgl_vec3i>();
-
-            ErrorCheck(rgl_mesh_create(&meshEntry.second, vertices.data(), vertices.size(), indices.data(), indices.size()));
-            ErrorCheck(rgl_entity_create(&meshEntry.first, nullptr, meshEntry.second));
-
-            m_meshes.emplace_back(std::move(meshEntry));
+            m_entities.emplace_back(entity);
         }
 
         UpdatePose();
