@@ -49,11 +49,6 @@ namespace RGL
         }
     }
 
-    void LidarRaycaster::ExcludeEntity(const AZ::EntityId& excludedEntityId)
-    {
-        RGLInterface::Get()->ExcludeEntity(excludedEntityId);
-    }
-
     void LidarRaycaster::ConfigureRays(const AZStd::vector<AZ::Vector3>& rotations, float distance)
     {
         ErrorCheck(rgl_lidar_destroy(m_lidar));

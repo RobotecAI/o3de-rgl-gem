@@ -49,11 +49,6 @@ namespace RGL
         ////////////////////////////////////////////////////////////////////////
 
         ////////////////////////////////////////////////////////////////////////
-        // RGLRequestBus::Handler implementation
-        void ExcludeEntity(const AZ::EntityId& excludedEntityId) override;
-        ////////////////////////////////////////////////////////////////////////
-
-        ////////////////////////////////////////////////////////////////////////
         // AzFramework::EntityContextEventBus::Handler interface implementation
         void OnEntityContextCreateEntity(AZ::Entity& entity) override;
         void OnEntityContextDestroyEntity(const AZ::EntityId& id) override;
@@ -68,7 +63,6 @@ namespace RGL
     private:
         LidarSystem m_lidarSystem;
         MeshLibrary m_meshLibrary;
-        AZStd::set<AZ::EntityId> m_excludedEntities;
         AZStd::unordered_map<AZ::EntityId, EntityManager> m_entityManagers;
     };
 } // namespace RGL

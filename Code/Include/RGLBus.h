@@ -19,10 +19,6 @@ namespace RGL
     public:
         AZ_RTTI(RGLRequests, "{f301342c-3b17-11ed-a261-0242ac120002}");
         virtual ~RGLRequests() = default;
-
-        //! Excludes entity from raycasts.
-        //! @param excludedEntityId EntityId of the excluded entity.
-        virtual void ExcludeEntity(const AZ::EntityId& excludedEntityId) = 0;
     };
 
     class RGLBusTraits : public AZ::EBusTraits

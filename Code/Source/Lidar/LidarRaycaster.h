@@ -24,7 +24,6 @@ namespace RGL
     protected:
         ////////////////////////////////////////////////////////////////////////
         // LidarRaycasterRequestBus::Handler interface implementation
-        void ExcludeEntity(const AZ::EntityId& excludedEntityId) override;
         void ConfigureRays(const AZStd::vector<AZ::Vector3>& rotations, float distance) override;
         void ConfigureNoiseParameters(
             float angularNoiseStdDev, float distanceNoiseStdDevBase, float distanceNoiseStdDevRisePerMeter) override;

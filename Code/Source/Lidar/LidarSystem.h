@@ -27,7 +27,7 @@ namespace RGL
         ////////////////////////////////////////////////////////////////////////
         // LidarSystemRequestBus::Handler interface implementation
         AZ::Uuid CreateLidar([[maybe_unused]] const AZ::EntityId& lidarEntityId) override;
-        bool IsNoiseSupported() override;
+        ROS2::LidarImplementationFeatures GetSupportedFeatures() override;
         ////////////////////////////////////////////////////////////////////////
     private:
         AZStd::vector<LidarRaycaster> m_lidars;
