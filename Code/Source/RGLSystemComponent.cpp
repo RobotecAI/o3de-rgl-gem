@@ -106,19 +106,10 @@ namespace RGL
         ErrorCheck(rgl_cleanup());
     }
 
-    void RGLSystemComponent::ExcludeEntity(const AZ::EntityId& excludedEntityId)
-    {
-        size_t erased = m_entityManagers.erase(excludedEntityId);
-        if (erased == 0UL)
-        {
-            m_excludedEntities.insert(excludedEntityId);
-        }
-    }
-
     // TODO - implement the rest of visible components (if needed)
     void RGLSystemComponent::OnEntityContextCreateEntity(AZ::Entity& entity)
     {
-        if (entity.FindComponent(AZ::Render::MeshComponentTypeId) == nullptr || m_excludedEntities.contains(entity.GetId()))
+        if (entity.FindComponent(AZ::Render::MeshComponentTypeId) == nullptr) // TODO - Add entity exclusion
         {
             return;
         }

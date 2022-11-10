@@ -26,8 +26,14 @@ namespace RGL
         return lidarUuid;
     }
 
-    bool LidarSystem::IsNoiseSupported()
+    ROS2::LidarImplementationFeatures LidarSystem::GetSupportedFeatures()
     {
-        return true;
+        static ROS2::LidarImplementationFeatures supportedFeatures = {
+            /* .m_noise =                   */ true,
+            /* .m_collisionLayers =         */ false,
+            /* .m_MaxRangeHitPointConfig =  */ false, // TODO - Implement and change to true
+        };
+
+        return supportedFeatures;
     }
 } // namespace RGL
