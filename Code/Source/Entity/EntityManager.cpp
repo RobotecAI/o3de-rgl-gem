@@ -12,11 +12,19 @@
 namespace RGL
 {
     EntityManager::EntityManager(AZ::EntityId entityId)
-        : m_isStatic{ false }
-        , m_entityId{ entityId }
+        : m_entityId{ entityId }
     {
         AZ::Render::MeshComponentNotificationBus::Handler::BusConnect(entityId);
         AZ::EntityBus::Handler::BusConnect(entityId);
+    }
+
+    EntityManager::EntityManager(EntityManager&& entityManager)
+        : m_isStatic{ entityManager.m_isStatic }
+        , m_entityId{ entityManager.m_entityId }
+        , m_entities{ AZStd::move(entityManager.m_entities) }
+    {
+        AZ::Render::MeshComponentNotificationBus::Handler::BusConnect(m_entityId);
+        AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
 
     EntityManager::~EntityManager()
@@ -26,11 +34,11 @@ namespace RGL
 
         for (rgl_entity_t entity : m_entities)
         {
-            ErrorCheck(rgl_entity_destroy(entity));
+            RglUtils::ErrorCheck(rgl_entity_destroy(entity));
         }
     }
 
-    bool EntityManager::IsStatic()
+    bool EntityManager::IsStatic() const
     {
         return m_isStatic;
     }
@@ -51,7 +59,7 @@ namespace RGL
 
         for (rgl_entity_t entity : m_entities)
         {
-            ErrorCheck(rgl_entity_set_pose(entity, &entityPose));
+            RglUtils::ErrorCheck(rgl_entity_set_pose(entity, &entityPose));
         }
     }
 
@@ -62,10 +70,10 @@ namespace RGL
         auto meshes = MeshLibraryInterface::Get()->GetMeshPointers(modelAsset);
 
         m_entities.reserve(meshes.size());
-        for (Mesh* meshPtr : meshes)
+        for (rgl_mesh_t mesh : meshes)
         {
             rgl_entity_t entity = nullptr;
-            ErrorCheck(rgl_entity_create(&entity, nullptr, meshPtr));
+            RglUtils::ErrorCheck(rgl_entity_create(&entity, nullptr, mesh));
 
             m_entities.emplace_back(entity);
         }

@@ -14,10 +14,14 @@
 
 namespace RGL
 {
+    //! Class providing easy access to RGL's meshes.
+    //! Each mesh has a corresponding modelAsset by which it is accessed.
     class MeshLibrary : protected MeshLibraryRequestBus::Handler
     {
     public:
         MeshLibrary();
+        MeshLibrary(MeshLibrary&& meshLibrary) = delete;
+        MeshLibrary(const MeshLibrary& meshLibrary) = delete;
         ~MeshLibrary();
 
     protected:

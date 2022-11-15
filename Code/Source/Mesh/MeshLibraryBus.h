@@ -21,6 +21,9 @@ namespace RGL
         AZ_RTTI(MeshLibraryRequests, "{b84ccaae-5d0f-410a-821e-5ff8d449b851}");
         virtual ~MeshLibraryRequests() = default;
 
+        //! Returns a vector of RGL meshes created from the modelAsset.
+        //! If the provided modelAsset was not encountered before, created RGL meshes are stored by the library.
+        //! On the other hand if the RGL meshes associated with the provided modelAsset were stored it will simply retrieve them.
         virtual AZStd::vector<Mesh*> GetMeshPointers(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) = 0;
     };
 

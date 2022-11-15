@@ -18,11 +18,7 @@
 #include <AzFramework/Entity/GameEntityContextBus.h>
 
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentConstants.h>
-#include <ROS2/Lidar/LidarRaycasterBus.h>
 #include <ROS2/ROS2Bus.h>
-
-#include <rgl/api/e2e_extensions.h>
-#include <rgl/api/experimental.h>
 
 #include "Utilities/RGLUtils.h"
 
@@ -65,7 +61,7 @@ namespace RGL
 
     RGLSystemComponent::RGLSystemComponent()
     {
-        ErrorCheck(rgl_configure_logging(RGL_LOG_LEVEL_OFF, nullptr, true));
+        RglUtils::ErrorCheck(rgl_configure_logging(RGL_LOG_LEVEL_WARN, nullptr, true));
         if (RGLInterface::Get() == nullptr)
         {
             RGLInterface::Register(this);
@@ -92,7 +88,7 @@ namespace RGL
         AzFramework::EntityContextEventBus::Handler::BusConnect(gameEntityContextId);
 
         auto* ros2Interface = ROS2::ROS2Interface::Get();
-        AZ_Assert(ros2Interface != nullptr, "The ROS2 interface was inaccessable.");
+        AZ_Assert(ros2Interface != nullptr, "The ROS2 interface was inaccessible.");
         m_lidarSystem.Activate(ros2Interface->RegisterLidarSystem("RobotecGPULidar"));
     }
 
@@ -103,13 +99,22 @@ namespace RGL
         AZ::TickBus::Handler::BusDisconnect();
 
         m_entityManagers.clear();
-        ErrorCheck(rgl_cleanup());
+        RglUtils::ErrorCheck(rgl_cleanup());
+    }
+
+    void RGLSystemComponent::ExcludeEntity(const AZ::EntityId& excludedEntityId)
+    {
+        size_t erased = m_entityManagers.erase(excludedEntityId);
+        if (erased == 0UL)
+        {
+            m_excludedEntities.insert(excludedEntityId);
+        }
     }
 
     // TODO - implement the rest of visible components (if needed)
     void RGLSystemComponent::OnEntityContextCreateEntity(AZ::Entity& entity)
     {
-        if (entity.FindComponent(AZ::Render::MeshComponentTypeId) == nullptr) // TODO - Add entity exclusion
+        if (entity.FindComponent(AZ::Render::MeshComponentTypeId) == nullptr || m_excludedEntities.contains(entity.GetId()))
         {
             return;
         }
@@ -126,7 +131,7 @@ namespace RGL
     void RGLSystemComponent::OnEntityContextReset()
     {
         m_entityManagers.clear();
-        ErrorCheck(rgl_cleanup());
+        RglUtils::ErrorCheck(rgl_cleanup());
     }
 
     void RGLSystemComponent::OnTick(float deltaTime, AZ::ScriptTimePoint time)
