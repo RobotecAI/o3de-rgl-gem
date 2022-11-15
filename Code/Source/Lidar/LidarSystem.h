@@ -26,7 +26,7 @@ namespace RGL
     protected:
         ////////////////////////////////////////////////////////////////////////
         // LidarSystemRequestBus::Handler interface implementation
-        AZ::Uuid CreateLidar([[maybe_unused]] const AZ::EntityId& lidarEntityId) override;
+        AZ::Uuid CreateLidar(const AZ::EntityId& lidarEntityId) override;
         ROS2::LidarImplementationFeatures GetSupportedFeatures() override;
         ////////////////////////////////////////////////////////////////////////
     private:

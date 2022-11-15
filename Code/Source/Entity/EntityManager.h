@@ -7,25 +7,26 @@
  */
 #pragma once
 
-#include "rgl/api/experimental.h"
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentBus.h>
 #include <AzCore/Component/EntityBus.h>
 #include <AzCore/Component/EntityId.h>
+#include <rgl/api/core.h>
 
 namespace RGL
 {
-    //! Manages RGL's representation of an Entity with a MeshComponent.
+    //! Class used for managing RGL's representation of an Entity with a MeshComponent.
     class EntityManager
         : protected AZ::Render::MeshComponentNotificationBus::Handler
         , protected AZ::EntityBus::Handler
     {
     public:
         EntityManager(AZ::EntityId entityId);
+        EntityManager(EntityManager&& entityManager);
+        EntityManager(const EntityManager& entityManager) = delete;
         ~EntityManager();
 
         //! Is this Entity static?
-        //! @return A boolean value informing the callee whether this entity is static.
-        bool IsStatic();
+        bool IsStatic() const;
 
         //! Updates poses of all RGL entities managed by this EntityManager.
         void UpdatePose();
@@ -43,7 +44,7 @@ namespace RGL
         void OnEntityActivated(const AZ::EntityId& entityId) override;
         ////////////////////////////////////////////////////////////////////////
     private:
-        bool m_isStatic;
+        bool m_isStatic{ false };
         AZ::EntityId m_entityId;
         AZStd::vector<rgl_entity_t> m_entities;
     };

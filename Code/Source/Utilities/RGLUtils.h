@@ -7,10 +7,12 @@
  */
 #pragma once
 
-#include "rgl/api/experimental.h"
-
 namespace RGL
 {
-    //! Handles RGL - related errors. Each status returned by RGL API function passed to this function.
-    void ErrorCheck(const rgl_status_t& status);
+    //! Class containing useful RGL - related utility functions.
+    class RglUtils {
+    public:
+        //! Handles RGL - related errors. Each status returned by RGL API function passed to this function.
+        static void ErrorCheck(const rgl_status_t& status);
+    };
 }; // namespace RGL

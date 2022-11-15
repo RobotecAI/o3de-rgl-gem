@@ -7,7 +7,8 @@
  */
 
 #include "MeshLibrary.h"
-#include "rgl/api/experimental.h"
+
+#include "rgl/api/core.h"
 
 namespace RGL
 {
@@ -32,9 +33,9 @@ namespace RGL
 
         for (auto mapEntry : m_meshPointersMap)
         {
-            for (auto mesh : mapEntry.second)
+            for (rgl_mesh_t mesh : mapEntry.second)
             {
-                ErrorCheck(rgl_mesh_destroy(mesh));
+                RglUtils::ErrorCheck(rgl_mesh_destroy(mesh));
             }
         }
     }
@@ -62,11 +63,11 @@ namespace RGL
             AZStd::span<const rgl_vec3i> indices = mesh.GetIndexBufferTyped<rgl_vec3i>();
 
             rgl_mesh_t meshPointer = nullptr;
-            ErrorCheck(rgl_mesh_create(&meshPointer, vertices.data(), vertices.size(), indices.data(), indices.size()));
+            RglUtils::ErrorCheck(rgl_mesh_create(&meshPointer, vertices.data(), vertices.size(), indices.data(), indices.size()));
             meshPointers.emplace_back(meshPointer);
         }
 
-        m_meshPointersMap.insert({assetId, meshPointers});
+        m_meshPointersMap.insert({ assetId, meshPointers });
         return meshPointers;
     }
 } // namespace RGL

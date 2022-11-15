@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 
-include(FindRGL.cmake)
-
 ly_add_target(
     NAME RGL.Static STATIC
     NAMESPACE Gem
@@ -28,10 +26,10 @@ ly_add_target(
             Gem::ROS2.Static
 )
 
-target_compile_options(RobotecGPULidar PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-fexceptions;-Wno-error>")
-target_compile_options(spdlog PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-fexceptions>")
 
-target_link_libraries(RGL.Static PUBLIC RobotecGPULidar)
+include(FindRGL.cmake)
+include_directories(RGL.Static PUBLIC ${RGL_INCLUDE_DIR})
+target_link_libraries(RGL.Static PRIVATE ${RGL_SO_PATH})
 
 ly_add_target(
     NAME RGL.API HEADERONLY

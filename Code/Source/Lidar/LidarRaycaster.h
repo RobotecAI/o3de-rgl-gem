@@ -8,8 +8,7 @@
 #pragma once
 
 #include <ROS2/Lidar/LidarRaycasterBus.h>
-
-struct Lidar;
+#include <rgl/api/core.h>
 
 namespace RGL
 {
@@ -24,13 +23,34 @@ namespace RGL
     protected:
         ////////////////////////////////////////////////////////////////////////
         // LidarRaycasterRequestBus::Handler interface implementation
-        void ConfigureRays(const AZStd::vector<AZ::Vector3>& rotations, float distance) override;
-        void ConfigureNoiseParameters(
-            float angularNoiseStdDev, float distanceNoiseStdDevBase, float distanceNoiseStdDevRisePerMeter) override;
+        void ConfigureRayOrientations(const AZStd::vector<AZ::Vector3>& orientations) override;
+        void ConfigureRayRange(float range) override;
         AZStd::vector<AZ::Vector3> PerformRaycast(const AZ::Transform& lidarTransform) override;
+        void ConfigureMaxRangePointAddition(bool addMaxRangePoints) override;
         ////////////////////////////////////////////////////////////////////////
     private:
+        //! Structure used for rgl-generated output retrieval.
+        struct DefaultFormatStruct
+        {
+            rgl_vec3f m_xyz;
+            int32_t m_isHit;
+        };
+
+        static constexpr rgl_mat3x4f IdentityTransform{
+            .value{
+                { 1, 0, 0, 0 },
+                { 0, 1, 0, 0 },
+                { 0, 0, 1, 0 },
+            },
+        };
+
+        static const AZStd::vector<rgl_field_t> DefaultFields;
+
+        bool m_addMaxRangePoints{ false };
         AZ::Uuid m_uuid;
-        Lidar* m_lidar;
+        float m_range{ 1.0f };
+        AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
+        rgl_node_t m_rayPoses{ nullptr }, m_lidarTransform{ nullptr }, m_rayTrace{ nullptr }, m_pointsCompact{ nullptr },
+            m_pointsFormat{ nullptr };
     };
 } // namespace RGL

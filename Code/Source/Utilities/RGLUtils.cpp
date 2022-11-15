@@ -5,18 +5,18 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  *
  */
-#include <Atom/RPI.Reflect/Model/ModelAsset.h>
-#include <AzCore/Component/TransformBus.h>
 #include <AzCore/Math/Matrix4x4.h>
 
-#include <rgl/api/experimental.h>
+#include <rgl/api/core.h>
 
 #include "RGLUtils.h"
 
 namespace RGL
 {
-    void ErrorCheck(const rgl_status_t& status)
+    void RglUtils::ErrorCheck(const rgl_status_t& status)
     {
+        static const AZStd::unordered_set<rgl_status_t> InvalidStates = { RGL_INVALID_STATE, RGL_INTERNAL_EXCEPTION, RGL_INVALID_PIPELINE };
+
         if (status == 0)
         {
             return;
@@ -24,7 +24,7 @@ namespace RGL
 
         const char* errorString;
         rgl_get_last_error_string(&errorString);
-        if (status == rgl_status_t::RGL_INVALID_STATE || status == rgl_status_t::RGL_INTERNAL_EXCEPTION)
+        if (InvalidStates.contains(status))
         {
             AZ_Assert(false, std::string("RGL encountered an unrecoverable error with message: ").append(errorString).c_str())
         }
