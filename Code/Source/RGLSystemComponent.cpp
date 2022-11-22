@@ -18,7 +18,6 @@
 #include <AzFramework/Entity/GameEntityContextBus.h>
 
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentConstants.h>
-#include <ROS2/ROS2Bus.h>
 
 #include "Utilities/RGLUtils.h"
 
@@ -87,9 +86,7 @@ namespace RGL
 
         AzFramework::EntityContextEventBus::Handler::BusConnect(gameEntityContextId);
 
-        auto* ros2Interface = ROS2::ROS2Interface::Get();
-        AZ_Assert(ros2Interface != nullptr, "The ROS2 interface was inaccessible.");
-        m_lidarSystem.Activate(ros2Interface->RegisterLidarSystem("RobotecGPULidar"));
+        m_lidarSystem.Activate();
     }
 
     void RGLSystemComponent::Deactivate()

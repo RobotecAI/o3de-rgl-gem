@@ -7,12 +7,25 @@
  */
 #include "LidarSystem.h"
 #include "RGLBus.h"
+#include <ROS2/Lidar/LidarRegistrarBus.h>
 
 namespace RGL
 {
-    void LidarSystem::Activate(int handlerId)
+    void LidarSystem::Activate()
     {
-        ROS2::LidarSystemRequestBus::Handler::BusConnect(handlerId);
+        const char* name = "RobotecGPULidar";
+        const char* description = "Mesh-based lidar implementation that uses the RobotecGPULidar API for GPU-enabled raycasting.";
+        const ROS2::LidarSystemFeatures supportedFeatures = {
+            /* .m_noise =                   */ false,
+            /* .m_collisionLayers =         */ false,
+            /* .m_MaxRangeHitPointConfig =  */ true,
+        };
+
+        ROS2::LidarSystemRequestBus::Handler::BusConnect(AZ_CRC(name));
+
+        auto* lidarSystemManagerInterface = ROS2::LidarRegistrarInterface::Get();
+        AZ_Assert(lidarSystemManagerInterface != nullptr, "The ROS2 LidarSystem Manager interface was inaccessible.");
+        lidarSystemManagerInterface->RegisterLidarSystem(name, description, supportedFeatures);
     }
 
     void LidarSystem::Deactivate()
@@ -27,16 +40,5 @@ namespace RGL
         AZ::Uuid lidarUuid = AZ::Uuid::CreateRandom();
         m_lidars.emplace_back(lidarUuid);
         return lidarUuid;
-    }
-
-    ROS2::LidarImplementationFeatures LidarSystem::GetSupportedFeatures()
-    {
-        static ROS2::LidarImplementationFeatures supportedFeatures = {
-            /* .m_noise =                   */ false,
-            /* .m_collisionLayers =         */ false,
-            /* .m_MaxRangeHitPointConfig =  */ true,
-        };
-
-        return supportedFeatures;
     }
 } // namespace RGL
