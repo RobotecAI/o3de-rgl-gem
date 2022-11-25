@@ -5,7 +5,6 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  *
  */
-
 #include "MeshLibrary.h"
 
 #include "rgl/api/core.h"
@@ -40,7 +39,12 @@ namespace RGL
         }
     }
 
-    AZStd::vector<Mesh*> MeshLibrary::GetMeshPointers(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset)
+    void MeshLibrary::Clear()
+    {
+        m_meshPointersMap.clear();
+    }
+
+    AZStd::vector<rgl_mesh_t> MeshLibrary::GetMeshPointers(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset)
     {
         const AZ::Data::AssetId& assetId = modelAsset.GetId();
 

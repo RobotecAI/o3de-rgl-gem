@@ -36,21 +36,13 @@ namespace RGL
             int32_t m_isHit;
         };
 
-        static constexpr rgl_mat3x4f IdentityTransform{
-            .value{
-                { 1, 0, 0, 0 },
-                { 0, 1, 0, 0 },
-                { 0, 0, 1, 0 },
-            },
-        };
-
         static const AZStd::vector<rgl_field_t> DefaultFields;
 
         bool m_addMaxRangePoints{ false };
         AZ::Uuid m_uuid;
         float m_range{ 1.0f };
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
-        rgl_node_t m_rayPoses{ nullptr }, m_lidarTransform{ nullptr }, m_rayTrace{ nullptr }, m_pointsCompact{ nullptr },
-            m_pointsFormat{ nullptr };
+        rgl_node_t m_rayPosesNode{ nullptr }, m_lidarTransformNode{ nullptr }, m_rayTraceNode{ nullptr }, m_pointsCompactNode{ nullptr },
+            m_pointsFormatNode{ nullptr };
     };
 } // namespace RGL

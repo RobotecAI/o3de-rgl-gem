@@ -5,7 +5,6 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  *
  */
-
 #include "EntityManager.h"
 #include "Mesh/MeshLibraryBus.h"
 
@@ -66,7 +65,7 @@ namespace RGL
     void EntityManager::OnModelReady(
         const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset, [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model)
     {
-        AZ_Assert(m_entities.empty(), "Entity Manager has an invalid state.");
+        AZ_Assert(m_entities.empty(), "Entity Manager for entity with ID: %s has an invalid state.", m_entityId.ToString().c_str());
         auto meshes = MeshLibraryInterface::Get()->GetMeshPointers(modelAsset);
 
         m_entities.reserve(meshes.size());

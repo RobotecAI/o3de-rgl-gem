@@ -5,7 +5,6 @@
  * SPDX-License-Identifier: Apache-2.0 OR MIT
  *
  */
-
 #include "LidarRaycaster.h"
 
 #include "Utilities/RGLUtils.h"
@@ -20,17 +19,17 @@ namespace RGL
         ROS2::LidarRaycasterRequestBus::Handler::BusConnect(uuid);
 
         // Configure the default graph
-        RglUtils::ErrorCheck(rgl_node_rays_from_mat3x4f(&m_rayPoses, &IdentityTransform, 1));
-        RglUtils::ErrorCheck(rgl_node_rays_transform(&m_lidarTransform, &IdentityTransform));
-        RglUtils::ErrorCheck(rgl_node_raytrace(&m_rayTrace, nullptr, m_range));
-        RglUtils::ErrorCheck(rgl_node_points_compact(&m_pointsCompact));
+        RglUtils::ErrorCheck(rgl_node_rays_from_mat3x4f(&m_rayPosesNode, &RglUtils::IdentityTransform, 1));
+        RglUtils::ErrorCheck(rgl_node_rays_transform(&m_lidarTransformNode, &RglUtils::IdentityTransform));
+        RglUtils::ErrorCheck(rgl_node_raytrace(&m_rayTraceNode, nullptr, m_range));
+        RglUtils::ErrorCheck(rgl_node_points_compact(&m_pointsCompactNode));
         RglUtils::ErrorCheck(
-            rgl_node_points_format(&m_pointsFormat, DefaultFields.data(), aznumeric_cast<int32_t>(DefaultFields.size())));
+            rgl_node_points_format(&m_pointsFormatNode, DefaultFields.data(), aznumeric_cast<int32_t>(DefaultFields.size())));
 
-        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayPoses, m_lidarTransform));
-        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_lidarTransform, m_rayTrace));
-        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayTrace, m_pointsCompact));
-        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompact, m_pointsFormat));
+        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayPosesNode, m_lidarTransformNode));
+        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_lidarTransformNode, m_rayTraceNode));
+        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsCompactNode));
+        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompactNode, m_pointsFormatNode));
     }
 
     LidarRaycaster::LidarRaycaster(LidarRaycaster&& lidarRaycaster) noexcept
@@ -38,17 +37,17 @@ namespace RGL
         , m_uuid{ lidarRaycaster.m_uuid }
         , m_range{ lidarRaycaster.m_range }
         , m_rayTransforms{ AZStd::move(lidarRaycaster.m_rayTransforms) }
-        , m_rayPoses{ lidarRaycaster.m_rayPoses }
-        , m_lidarTransform{ lidarRaycaster.m_lidarTransform }
-        , m_rayTrace{ lidarRaycaster.m_rayTrace }
-        , m_pointsCompact{ lidarRaycaster.m_pointsCompact }
-        , m_pointsFormat{ lidarRaycaster.m_pointsFormat }
+        , m_rayPosesNode{ lidarRaycaster.m_rayPosesNode }
+        , m_lidarTransformNode{ lidarRaycaster.m_lidarTransformNode }
+        , m_rayTraceNode{ lidarRaycaster.m_rayTraceNode }
+        , m_pointsCompactNode{ lidarRaycaster.m_pointsCompactNode }
+        , m_pointsFormatNode{ lidarRaycaster.m_pointsFormatNode }
     {
         lidarRaycaster.BusDisconnect();
 
         // Ensure proper destruction of the movee.
         lidarRaycaster.m_uuid = AZ::Uuid::CreateNull();
-        lidarRaycaster.m_rayPoses = nullptr;
+        lidarRaycaster.m_rayPosesNode = nullptr;
 
         ROS2::LidarRaycasterRequestBus::Handler::BusConnect(m_uuid);
     }
@@ -60,13 +59,13 @@ namespace RGL
             ROS2::LidarRaycasterRequestBus::Handler::BusDisconnect();
         }
 
-        if (m_rayPoses != nullptr)
+        if (m_rayPosesNode != nullptr)
         {
-            RglUtils::ErrorCheck(rgl_graph_destroy(m_pointsCompact));
+            RglUtils::ErrorCheck(rgl_graph_destroy(m_pointsCompactNode));
 
             if (m_addMaxRangePoints)
             {
-                rgl_graph_destroy(m_rayTrace);
+                RglUtils::ErrorCheck(rgl_graph_destroy(m_rayTraceNode));
             }
         }
     }
@@ -76,65 +75,45 @@ namespace RGL
         ValidateRayOrientations(orientations);
         AZStd::vector<rgl_mat3x4f> rglRayTransforms;
         rglRayTransforms.reserve(orientations.size());
-        for (AZ::Vector3 rotation : orientations)
+        for (AZ::Vector3 orientation : orientations)
         {
-            // Computed by hand since the O3DE built - in conversion don't seem to work as intended.
-            const float Y = -rotation.GetY() + (AZ::Constants::Pi / 2.0f);
-            const float Z = rotation.GetZ() + (AZ::Constants::Pi / 2.0f);
+            AZ::Matrix3x4 rayTransform = AZ::Matrix3x4::CreateFromQuaternion(AZ::Quaternion::CreateFromEulerRadiansZYX({
+                orientation.GetX(),
+                -orientation.GetY() + (AZ::Constants::Pi / 2.0f),
+                orientation.GetZ() - (AZ::Constants::Pi / 2.0f),
+            }));
 
-            const float SinY = AZ::Sin(Y);
-            const float SinZ = AZ::Sin(Z);
-            const float CosY = AZ::Cos(Y);
-            const float CosZ = AZ::Cos(Z);
-
-            rglRayTransforms.push_back({
-                {
-                    { CosY * CosZ, -SinZ, -(SinY * CosZ), 0.0f },
-                    { SinZ * CosY, CosZ, -(SinY * SinZ), 0.0f },
-                    { SinY, 0.0f, CosY, 0.0f },
-                },
-            });
+            rglRayTransforms.push_back(RglUtils::RglMat3x4FromAzMatrix3x4(rayTransform));
         }
 
         m_rayTransforms.clear();
         m_rayTransforms.reserve(rglRayTransforms.size());
         for (rgl_mat3x4f transform : rglRayTransforms)
         {
-            float m_rowMajorValues[]{
-                transform.value[0][0], transform.value[0][1], transform.value[0][2], transform.value[0][3],
-                transform.value[1][0], transform.value[1][1], transform.value[1][2], transform.value[1][3],
-                transform.value[2][0], transform.value[2][1], transform.value[2][2], transform.value[2][3],
-            };
-            m_rayTransforms.push_back(AZ::Matrix3x4::CreateFromRowMajorFloat12(m_rowMajorValues));
+            m_rayTransforms.push_back(RglUtils::AzMatrix3x2FromRglMat3x4(transform));
         }
 
         RglUtils::ErrorCheck(
-            rgl_node_rays_from_mat3x4f(&m_rayPoses, rglRayTransforms.data(), aznumeric_cast<int32_t>(rglRayTransforms.size())));
+            rgl_node_rays_from_mat3x4f(&m_rayPosesNode, rglRayTransforms.data(), aznumeric_cast<int32_t>(rglRayTransforms.size())));
     }
 
     void LidarRaycaster::ConfigureRayRange(float range)
     {
         ValidateRayRange(range);
         m_range = range;
-        RglUtils::ErrorCheck(rgl_node_raytrace(&m_rayTrace, nullptr, range));
+        RglUtils::ErrorCheck(rgl_node_raytrace(&m_rayTraceNode, nullptr, range));
     }
 
     AZStd::vector<AZ::Vector3> LidarRaycaster::PerformRaycast(const AZ::Transform& lidarTransform)
     {
         AZ::Matrix3x4 lidarPose = AZ::Matrix3x4::CreateFromTransform(lidarTransform);
-        rgl_mat3x4f rglLidarPose{
-            {
-                { lidarPose.GetRow(0).GetX(), lidarPose.GetRow(0).GetY(), lidarPose.GetRow(0).GetZ(), lidarPose.GetRow(0).GetW() },
-                { lidarPose.GetRow(1).GetX(), lidarPose.GetRow(1).GetY(), lidarPose.GetRow(1).GetZ(), lidarPose.GetRow(1).GetW() },
-                { lidarPose.GetRow(2).GetX(), lidarPose.GetRow(2).GetY(), lidarPose.GetRow(2).GetZ(), lidarPose.GetRow(2).GetW() },
-            },
-        };
+        rgl_mat3x4f rglLidarPose = RglUtils::RglMat3x4FromAzMatrix3x4(lidarPose);
 
-        RglUtils::ErrorCheck(rgl_node_rays_transform(&m_lidarTransform, &rglLidarPose));
-        RglUtils::ErrorCheck(rgl_graph_run(m_lidarTransform));
+        RglUtils::ErrorCheck(rgl_node_rays_transform(&m_lidarTransformNode, &rglLidarPose));
+        RglUtils::ErrorCheck(rgl_graph_run(m_lidarTransformNode));
 
         int32_t resultSize = -1;
-        RglUtils::ErrorCheck(rgl_graph_get_result_size(m_pointsFormat, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, &resultSize, nullptr));
+        RglUtils::ErrorCheck(rgl_graph_get_result_size(m_pointsFormatNode, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, &resultSize, nullptr));
 
         if (resultSize <= 0)
         {
@@ -142,7 +121,8 @@ namespace RGL
         }
 
         AZStd::vector<DefaultFormatStruct> rglRaycastResults{ aznumeric_cast<size_t>(resultSize) };
-        RglUtils::ErrorCheck(rgl_graph_get_result_data(m_pointsFormat, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, rglRaycastResults.data()));
+        RglUtils::ErrorCheck(
+            rgl_graph_get_result_data(m_pointsFormatNode, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, rglRaycastResults.data()));
 
         AZStd::vector<AZ::Vector3> raycastResults;
         raycastResults.reserve(resultSize);
@@ -172,17 +152,18 @@ namespace RGL
         }
 
         m_addMaxRangePoints = addMaxRangePoints;
+        // We need to add or remove the compact node depending on the value of addMaxRangePoints.
         if (addMaxRangePoints)
         {
-            RglUtils::ErrorCheck(rgl_graph_node_remove_child(m_rayTrace, m_pointsCompact));
-            RglUtils::ErrorCheck(rgl_graph_node_remove_child(m_pointsCompact, m_pointsFormat));
-            RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayTrace, m_pointsFormat));
+            RglUtils::ErrorCheck(rgl_graph_node_remove_child(m_rayTraceNode, m_pointsCompactNode));
+            RglUtils::ErrorCheck(rgl_graph_node_remove_child(m_pointsCompactNode, m_pointsFormatNode));
+            RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsFormatNode));
         }
         else
         {
-            RglUtils::ErrorCheck(rgl_graph_node_remove_child(m_rayTrace, m_pointsFormat));
-            RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayTrace, m_pointsCompact));
-            RglUtils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompact, m_pointsFormat));
+            RglUtils::ErrorCheck(rgl_graph_node_remove_child(m_rayTraceNode, m_pointsFormatNode));
+            RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsCompactNode));
+            RglUtils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompactNode, m_pointsFormatNode));
         }
     }
 

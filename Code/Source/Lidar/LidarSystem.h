@@ -23,6 +23,9 @@ namespace RGL
         void Activate();
         void Deactivate();
 
+        //! Deletes all lidar raycasters created by this system.
+        void Clear();
+
     protected:
         ////////////////////////////////////////////////////////////////////////
         // LidarSystemRequestBus::Handler interface implementation

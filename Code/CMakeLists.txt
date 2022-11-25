@@ -20,7 +20,6 @@ ly_add_target(
         PUBLIC
             AZ::AzCore
             AZ::AzFramework
-            AZ::AzToolsFramework
             Gem::Atom_RPI.Public
             Gem::AtomLyIntegration_CommonFeatures.Static
             Gem::ROS2.Static

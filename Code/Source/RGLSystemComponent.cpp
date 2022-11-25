@@ -96,13 +96,14 @@ namespace RGL
         AZ::TickBus::Handler::BusDisconnect();
 
         m_entityManagers.clear();
+        m_meshLibrary.Clear();
+        m_lidarSystem.Clear();
         RglUtils::ErrorCheck(rgl_cleanup());
     }
 
     void RGLSystemComponent::ExcludeEntity(const AZ::EntityId& excludedEntityId)
     {
-        size_t erased = m_entityManagers.erase(excludedEntityId);
-        if (erased == 0UL)
+        if (!m_entityManagers.erase(excludedEntityId))
         {
             m_excludedEntities.insert(excludedEntityId);
         }
@@ -128,19 +129,21 @@ namespace RGL
     void RGLSystemComponent::OnEntityContextReset()
     {
         m_entityManagers.clear();
+        m_meshLibrary.Clear();
+        m_lidarSystem.Clear();
         RglUtils::ErrorCheck(rgl_cleanup());
     }
 
     void RGLSystemComponent::OnTick(float deltaTime, AZ::ScriptTimePoint time)
     {
-        for (auto entityManager = m_entityManagers.begin(); entityManager != m_entityManagers.end(); ++entityManager)
+        for (auto& [entityId, entityManager] : m_entityManagers)
         {
-            if (entityManager->second.IsStatic())
+            if (entityManager.IsStatic())
             {
                 continue;
             }
 
-            entityManager->second.UpdatePose();
+            entityManager.UpdatePose();
         }
     }
 } // namespace RGL

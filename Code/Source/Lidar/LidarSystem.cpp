@@ -33,6 +33,11 @@ namespace RGL
         ROS2::LidarSystemRequestBus::Handler::BusDisconnect();
     }
 
+    void LidarSystem::Clear()
+    {
+        m_lidars.clear();
+    }
+
     AZ::Uuid LidarSystem::CreateLidar(const AZ::EntityId& lidarEntityId)
     {
         RGLInterface::Get()->ExcludeEntity(lidarEntityId);

@@ -24,12 +24,14 @@ namespace RGL
         MeshLibrary(const MeshLibrary& meshLibrary) = delete;
         ~MeshLibrary();
 
+        //! Deletes all meshes stored by the Library.
+        void Clear();
     protected:
         ////////////////////////////////////////////////////////////////////////
         // MeshLibraryRequestBus::Handler implementation
-        AZStd::vector<Mesh*> GetMeshPointers(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) override;
+        AZStd::vector<rgl_mesh_t> GetMeshPointers(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) override;
         ////////////////////////////////////////////////////////////////////////
     private:
-        AZStd::unordered_map<AZ::Data::AssetId, AZStd::vector<Mesh*>> m_meshPointersMap;
+        AZStd::unordered_map<AZ::Data::AssetId, AZStd::vector<rgl_mesh_t>> m_meshPointersMap;
     };
 } // namespace RGL

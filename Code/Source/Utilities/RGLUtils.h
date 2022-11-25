@@ -9,10 +9,21 @@
 
 namespace RGL
 {
-    //! Class containing useful RGL - related utility functions.
+    //! Class containing useful RGL - related utilities.
     class RglUtils {
     public:
         //! Handles RGL - related errors. Each status returned by RGL API function passed to this function.
         static void ErrorCheck(const rgl_status_t& status);
+
+        static rgl_mat3x4f RglMat3x4FromAzMatrix3x4(const AZ::Matrix3x4& azMatrix);
+        static AZ::Matrix3x4 AzMatrix3x2FromRglMat3x4(const rgl_mat3x4f& rglMatrix);
+
+        static constexpr rgl_mat3x4f IdentityTransform{
+            .value{
+                { 1, 0, 0, 0 },
+                { 0, 1, 0, 0 },
+                { 0, 0, 1, 0 },
+            },
+        };
     };
 }; // namespace RGL
