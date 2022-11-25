@@ -3,9 +3,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 
-set(RGL_HASH 31aacecf02f4fd2edb97bd135894fe6198a20932)
+set(RGL_HASH 06b6e02b09d995b42886b4c7d8accf79bf6f922a)
+set(RGL_TAG v0.11.0)
 
-set(RGL_SO_URL https://github.com/RobotecAI/RobotecGPULidar/releases/download/v0.11.0-alpha-1/libRobotecGPULidar.so)
+set(RGL_SO_URL https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/libRobotecGPULidar.so)
 set(RGL_API_URL https://raw.githubusercontent.com/RobotecAI/RobotecGPULidar/${RGL_HASH}/include/rgl/api/core.h)
 
 set(RGL_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3-rdParty/RobotecGPULidar)
