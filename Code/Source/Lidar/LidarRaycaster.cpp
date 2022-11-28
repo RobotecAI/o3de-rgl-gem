@@ -144,6 +144,14 @@ namespace RGL
         return raycastResults;
     }
 
+    void LidarRaycaster::ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities)
+    {
+        for (const auto & entity : excludedEntities)
+        {
+            RGLInterface::Get()->ExcludeEntity(entity);
+        }
+    }
+
     void LidarRaycaster::ConfigureMaxRangePointAddition(bool addMaxRangePoints)
     {
         if (addMaxRangePoints == m_addMaxRangePoints) // Make sure to only allow state switching calls

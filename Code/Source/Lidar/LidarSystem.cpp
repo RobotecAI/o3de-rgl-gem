@@ -18,6 +18,7 @@ namespace RGL
         const ROS2::LidarSystemFeatures supportedFeatures = {
             /* .m_noise =                   */ false,
             /* .m_collisionLayers =         */ false,
+            /* .m_entityExclusion =         */ true,
             /* .m_MaxRangeHitPointConfig =  */ true,
         };
 
@@ -40,8 +41,6 @@ namespace RGL
 
     AZ::Uuid LidarSystem::CreateLidar(const AZ::EntityId& lidarEntityId)
     {
-        RGLInterface::Get()->ExcludeEntity(lidarEntityId);
-
         AZ::Uuid lidarUuid = AZ::Uuid::CreateRandom();
         m_lidars.emplace_back(lidarUuid);
         return lidarUuid;

@@ -26,6 +26,7 @@ namespace RGL
         void ConfigureRayOrientations(const AZStd::vector<AZ::Vector3>& orientations) override;
         void ConfigureRayRange(float range) override;
         AZStd::vector<AZ::Vector3> PerformRaycast(const AZ::Transform& lidarTransform) override;
+        void ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities) override;
         void ConfigureMaxRangePointAddition(bool addMaxRangePoints) override;
         ////////////////////////////////////////////////////////////////////////
     private:
