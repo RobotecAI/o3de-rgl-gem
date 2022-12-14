@@ -52,4 +52,9 @@ namespace RGL
         };
         return AZ::Matrix3x4::CreateFromRowMajorFloat12(m_rowMajorValues);
     }
+
+    AZ::Vector3 RglUtils::AzVector3FromRglVec3f(const rgl_vec3f& rglVector)
+    {
+        return AZ::Vector3(rglVector.value[0], rglVector.value[1], rglVector.value[2]);
+    }
 }; // namespace RGL

@@ -6,4 +6,6 @@
 set(FILES
         Source/RGLEditorSystemComponent.cpp
         Source/RGLEditorSystemComponent.h
+        Source/Entity/TerrainEntityManagerEditorSystemComponent.cpp
+        Source/Entity/TerrainEntityManagerEditorSystemComponent.h
 )

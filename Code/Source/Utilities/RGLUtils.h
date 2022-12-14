@@ -16,7 +16,9 @@ namespace RGL
         static void ErrorCheck(const rgl_status_t& status);
 
         static rgl_mat3x4f RglMat3x4FromAzMatrix3x4(const AZ::Matrix3x4& azMatrix);
+        // TODO - name change!!
         static AZ::Matrix3x4 AzMatrix3x2FromRglMat3x4(const rgl_mat3x4f& rglMatrix);
+        static AZ::Vector3 AzVector3FromRglVec3f(const rgl_vec3f& rglVector);
 
         static constexpr rgl_mat3x4f IdentityTransform{
             .value{

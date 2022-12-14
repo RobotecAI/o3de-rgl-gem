@@ -15,7 +15,6 @@
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/Math/Vector3.h>
 #include <AzFramework/Entity/EntityContextBus.h>
-#include <AzToolsFramework/Entity/EntityTypes.h>
 
 struct Scene;
 
@@ -67,6 +66,7 @@ namespace RGL
 
     private:
         LidarSystem m_lidarSystem;
+
         MeshLibrary m_meshLibrary;
         AZStd::set<AZ::EntityId> m_excludedEntities;
         AZStd::unordered_map<AZ::EntityId, EntityManager> m_entityManagers;

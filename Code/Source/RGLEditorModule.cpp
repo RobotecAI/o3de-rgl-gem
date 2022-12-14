@@ -6,6 +6,7 @@
  *
  */
 #include "RGLEditorSystemComponent.h"
+#include "Entity/TerrainEntityManagerEditorSystemComponent.h"
 #include <RGLModuleInterface.h>
 
 namespace RGL
@@ -26,6 +27,7 @@ namespace RGL
                 m_descriptors.end(),
                 {
                     RGLEditorSystemComponent::CreateDescriptor(),
+                    TerrainEntityManagerEditorSystemComponent::CreateDescriptor(),
                 });
         }
 
@@ -37,6 +39,7 @@ namespace RGL
         {
             return AZ::ComponentTypeList{
                 azrtti_typeid<RGLEditorSystemComponent>(),
+                azrtti_typeid<TerrainEntityManagerEditorSystemComponent>(),
             };
         }
     };

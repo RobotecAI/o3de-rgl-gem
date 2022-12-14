@@ -7,6 +7,7 @@
  */
 #pragma once
 
+#include "Entity/TerrainEntityManagerSystemComponent.h"
 #include <AzCore/Memory/SystemAllocator.h>
 #include <AzCore/Module/Module.h>
 #include <RGLSystemComponent.h>
@@ -29,6 +30,7 @@ namespace RGL
                 m_descriptors.end(),
                 {
                     RGLSystemComponent::CreateDescriptor(),
+                    TerrainEntityManagerSystemComponent::CreateDescriptor(),
                 });
         }
 
@@ -39,6 +41,7 @@ namespace RGL
         {
             return AZ::ComponentTypeList{
                 azrtti_typeid<RGLSystemComponent>(),
+                azrtti_typeid<TerrainEntityManagerSystemComponent>(),
             };
         }
     };
