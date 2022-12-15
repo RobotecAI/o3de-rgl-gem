@@ -8,10 +8,10 @@
 
 #pragma once
 
+#include <AzCore/Component/Component.h>
 #include <AzFramework/Terrain/TerrainDataRequestBus.h>
 #include <AzFramework/Visibility/BoundsBus.h>
 #include <rgl/api/core.h>
-#include <AzCore/Component/Component.h>
 
 namespace RGL
 {
@@ -60,4 +60,4 @@ namespace RGL
         // Length of each sector side (in meters);
         static constexpr float SectorSideLength = 1.0f;
     };
-} // namespace ROS2
+} // namespace RGL

@@ -90,7 +90,7 @@ namespace RGL
         m_rayTransforms.reserve(rglRayTransforms.size());
         for (rgl_mat3x4f transform : rglRayTransforms)
         {
-            m_rayTransforms.push_back(RglUtils::AzMatrix3x2FromRglMat3x4(transform));
+            m_rayTransforms.push_back(RglUtils::AzMatrix3x4FromRglMat3x4(transform));
         }
 
         RglUtils::ErrorCheck(

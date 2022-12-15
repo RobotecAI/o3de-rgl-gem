@@ -140,22 +140,32 @@ namespace RGL
 
         EnsureManagedEntityDestroyed();
 
-        RglUtils::ErrorCheck(rgl_mesh_create(
-            &m_rglMesh,
-            m_vertices.data(),
-            aznumeric_cast<int32_t>(m_vertices.size()),
-            m_indices.data(),
-            aznumeric_cast<int32_t>(m_indices.size())));
+        RglUtils::SafeRglMeshCreate(m_rglMesh, m_vertices.data(), m_vertices.size(), m_indices.data(), m_indices.size());
+        if (m_rglMesh == nullptr)
+        {
+            AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL mesh.");
+            return;
+        }
 
-        RglUtils::ErrorCheck(rgl_entity_create(&m_rglEntity, nullptr, m_rglMesh));
+        RglUtils::SafeRglEntityCreate(m_rglEntity, m_rglMesh);
+        if (m_rglEntity == nullptr)
+        {
+            AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL entity.");
+            return;
+        }
+
         RglUtils::ErrorCheck(rgl_entity_set_pose(m_rglEntity, &RglUtils::IdentityTransform));
     }
 
     void TerrainEntityManagerSystemComponent::UpdateDirtyRegion(const AZ::Aabb& dirtyRegion)
     {
         const AZ::Aabb dirtyRegion2D = AZ::Aabb::CreateFromMinMaxValues(
-            dirtyRegion.GetMin().GetX(), dirtyRegion.GetMin().GetY(), AZStd::numeric_limits<float>::lowest(),
-            dirtyRegion.GetMax().GetX(), dirtyRegion.GetMax().GetY(), AZStd::numeric_limits<float>::max());
+            dirtyRegion.GetMin().GetX(),
+            dirtyRegion.GetMin().GetY(),
+            AZStd::numeric_limits<float>::lowest(),
+            dirtyRegion.GetMax().GetX(),
+            dirtyRegion.GetMax().GetY(),
+            AZStd::numeric_limits<float>::max());
 
         for (rgl_vec3f& vertex : m_vertices)
         {
@@ -173,7 +183,6 @@ namespace RGL
 
                 if (height != AZStd::numeric_limits<float>::lowest() && terrainExists)
                 {
-                    // TODO - Make sure that the vertex' z value is set properly (depending on rotation)
                     vertex.value[2] = height;
                 }
             }
@@ -194,4 +203,4 @@ namespace RGL
             UpdateDirtyRegion(dirtyRegion);
         }
     }
-} // namespace ROS2
+} // namespace RGL

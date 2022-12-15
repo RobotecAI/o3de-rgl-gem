@@ -13,23 +13,48 @@
 
 namespace RGL
 {
-    void RglUtils::ErrorCheck(const rgl_status_t& status)
+    void RglUtils::SafeRglMeshCreate(
+        rgl_mesh_t& targetMesh, const rgl_vec3f* vertices, size_t vertexCount, const rgl_vec3i* indices, size_t indexCount)
     {
-        static const AZStd::unordered_set<rgl_status_t> UnrecoverableStates = { RGL_INVALID_STATE, RGL_INTERNAL_EXCEPTION, RGL_INVALID_PIPELINE };
+        bool success = RglUtils::ErrorCheck(
+            rgl_mesh_create(&targetMesh, vertices, aznumeric_cast<int32_t>(vertexCount), indices, aznumeric_cast<int32_t>(indexCount)));
+        if (!success && targetMesh != nullptr)
+        {
+            RglUtils::ErrorCheck(rgl_mesh_destroy(targetMesh));
+            targetMesh = nullptr;
+        }
+    }
+
+    void RglUtils::SafeRglEntityCreate(rgl_entity_t& targetEntity, rgl_mesh_t mesh)
+    {
+        bool success = RglUtils::ErrorCheck(rgl_entity_create(&targetEntity, nullptr, mesh));
+        if (!success && targetEntity != nullptr)
+        {
+            RglUtils::ErrorCheck(rgl_entity_destroy(targetEntity));
+            targetEntity = nullptr;
+        }
+    }
+
+    bool RglUtils::ErrorCheck(const rgl_status_t& status)
+    {
+        static const AZStd::unordered_set<rgl_status_t> UnrecoverableStates = { RGL_INVALID_STATE,
+                                                                                RGL_INTERNAL_EXCEPTION,
+                                                                                RGL_INVALID_PIPELINE };
 
         if (status == RGL_SUCCESS)
         {
-            return;
+            return true;
         }
 
         const char* errorString;
         rgl_get_last_error_string(&errorString);
         if (UnrecoverableStates.contains(status))
         {
-            AZ_Assert(false, std::string("RGL encountered an unrecoverable error with message: ").append(errorString).c_str())
+            AZ_Assert(false, std::string("RGL encountered an unrecoverable error with message: ").append(errorString).c_str());
         }
 
-        AZ_Error("ErrorCheck", false, std::string("RGL encountered an error with message: ").append(errorString).c_str())
+        AZ_Error(__func__, false, std::string("RGL encountered an error with message: ").append(errorString).c_str());
+        return false;
     }
 
     rgl_mat3x4f RglUtils::RglMat3x4FromAzMatrix3x4(const AZ::Matrix3x4& azMatrix)
@@ -43,7 +68,7 @@ namespace RGL
         };
     }
 
-    AZ::Matrix3x4 RglUtils::AzMatrix3x2FromRglMat3x4(const rgl_mat3x4f& rglMatrix)
+    AZ::Matrix3x4 RglUtils::AzMatrix3x4FromRglMat3x4(const rgl_mat3x4f& rglMatrix)
     {
         float m_rowMajorValues[]{
             rglMatrix.value[0][0], rglMatrix.value[0][1], rglMatrix.value[0][2], rglMatrix.value[0][3],

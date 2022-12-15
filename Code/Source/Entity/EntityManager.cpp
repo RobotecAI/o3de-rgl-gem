@@ -44,6 +44,11 @@ namespace RGL
 
     void EntityManager::UpdatePose()
     {
+        if (m_entities.empty())
+        {
+            return;
+        }
+
         AZ::Transform transform = AZ::Transform::CreateIdentity();
         AZ::TransformBus::EventResult(transform, m_entityId, &AZ::TransformBus::Events::GetWorldTM);
         AZ::Matrix4x4 matrix = AZ::Matrix4x4::CreateFromTransform(transform);
@@ -68,16 +73,29 @@ namespace RGL
         AZ_Assert(m_entities.empty(), "Entity Manager for entity with ID: %s has an invalid state.", m_entityId.ToString().c_str());
         auto meshes = MeshLibraryInterface::Get()->GetMeshPointers(modelAsset);
 
+        if (meshes.empty())
+        {
+            AZ_Assert(false, "EntityManager with ID: %s did not receive any mesh from the MeshLibrary.", m_entityId.ToString().c_str());
+            return;
+        }
+
         m_entities.reserve(meshes.size());
         for (rgl_mesh_t mesh : meshes)
         {
             rgl_entity_t entity = nullptr;
-            RglUtils::ErrorCheck(rgl_entity_create(&entity, nullptr, mesh));
+            RglUtils::SafeRglEntityCreate(entity, mesh);
+            if (entity == nullptr)
+            {
+                continue;
+            }
 
             m_entities.emplace_back(entity);
         }
 
-        UpdatePose();
+        if (!m_entities.empty())
+        {
+            UpdatePose();
+        }
     }
 
     void EntityManager::OnEntityActivated(const AZ::EntityId& entityId)

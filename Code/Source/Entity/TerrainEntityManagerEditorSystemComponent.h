@@ -33,4 +33,4 @@ namespace RGL
         void Activate() override;
         void Deactivate() override;
     };
-} // namespace ROS2
+} // namespace RGL

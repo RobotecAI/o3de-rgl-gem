@@ -109,7 +109,6 @@ namespace RGL
         }
     }
 
-    // TODO - implement the rest of visible components (if needed)
     void RGLSystemComponent::OnEntityContextCreateEntity(AZ::Entity& entity)
     {
         if (entity.FindComponent(AZ::Render::MeshComponentTypeId) == nullptr || m_excludedEntities.contains(entity.GetId()))

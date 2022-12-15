@@ -67,7 +67,12 @@ namespace RGL
             AZStd::span<const rgl_vec3i> indices = mesh.GetIndexBufferTyped<rgl_vec3i>();
 
             rgl_mesh_t meshPointer = nullptr;
-            RglUtils::ErrorCheck(rgl_mesh_create(&meshPointer, vertices.data(), vertices.size(), indices.data(), indices.size()));
+            RglUtils::SafeRglMeshCreate(meshPointer, vertices.data(), vertices.size(), indices.data(), indices.size());
+            if (meshPointer == nullptr)
+            {
+                continue;
+            }
+            
             meshPointers.emplace_back(meshPointer);
         }
 

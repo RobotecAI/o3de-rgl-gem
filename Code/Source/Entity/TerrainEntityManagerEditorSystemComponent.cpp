@@ -31,12 +31,14 @@ namespace RGL
         incompatible.push_back(AZ_CRC_CE("TerrainEntityManagerEditorService"));
     }
 
-    void TerrainEntityManagerEditorSystemComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    void TerrainEntityManagerEditorSystemComponent::GetRequiredServices(
+        [[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
     {
         BaseSystemComponent::GetRequiredServices(required);
     }
 
-    void TerrainEntityManagerEditorSystemComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    void TerrainEntityManagerEditorSystemComponent::GetDependentServices(
+        [[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
     {
         BaseSystemComponent::GetDependentServices(dependent);
     }
@@ -50,4 +52,4 @@ namespace RGL
     {
         TerrainEntityManagerSystemComponent::Deactivate();
     }
-} // namespace ROS2
+} // namespace RGL
