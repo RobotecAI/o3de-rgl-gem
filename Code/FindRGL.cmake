@@ -1,8 +1,16 @@
-# Copyright (c) Contributors to the Open 3D Engine Project.
-# For complete copyright and license terms please see the LICENSE at the root of this distribution.
+# Copyright 2020-2021, Robotec.ai sp. z o.o.
 #
-# SPDX-License-Identifier: Apache-2.0 OR MIT
-
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 set(RGL_HASH e113be2206fe27e1434ab6337c932c1d6aaa7afe)
 set(RGL_TAG v0.11.2)
 
