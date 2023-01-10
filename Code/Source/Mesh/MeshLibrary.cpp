@@ -37,6 +37,11 @@ namespace RGL
 
         MeshLibraryRequestBus::Handler::BusDisconnect();
 
+        Clear();
+    }
+
+    void MeshLibrary::Clear()
+    {
         for (auto mapEntry : m_meshPointersMap)
         {
             for (rgl_mesh_t mesh : mapEntry.second)
@@ -44,10 +49,7 @@ namespace RGL
                 RglUtils::ErrorCheck(rgl_mesh_destroy(mesh));
             }
         }
-    }
 
-    void MeshLibrary::Clear()
-    {
         m_meshPointersMap.clear();
     }
 

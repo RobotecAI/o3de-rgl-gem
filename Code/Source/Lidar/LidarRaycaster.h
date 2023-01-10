@@ -50,6 +50,8 @@ namespace RGL
         AZ::Uuid m_uuid;
         float m_range{ 1.0f };
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
+        AZStd::vector<DefaultFormatStruct> m_rglRaycastResults;
+        AZStd::vector<AZ::Vector3> m_raycastResults;
         rgl_node_t m_rayPosesNode{ nullptr }, m_lidarTransformNode{ nullptr }, m_rayTraceNode{ nullptr }, m_pointsCompactNode{ nullptr },
             m_pointsFormatNode{ nullptr };
     };

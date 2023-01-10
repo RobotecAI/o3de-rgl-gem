@@ -127,28 +127,34 @@ namespace RGL
             return {};
         }
 
-        AZStd::vector<DefaultFormatStruct> rglRaycastResults{ aznumeric_cast<size_t>(resultSize) };
+        m_rglRaycastResults.resize(resultSize);
         RglUtils::ErrorCheck(
-            rgl_graph_get_result_data(m_pointsFormatNode, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, rglRaycastResults.data()));
+            rgl_graph_get_result_data(m_pointsFormatNode, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, m_rglRaycastResults.data()));
 
-        AZStd::vector<AZ::Vector3> raycastResults;
-        raycastResults.reserve(resultSize);
-        for (size_t result_index = 0LU; result_index < rglRaycastResults.size(); ++result_index)
+        m_raycastResults.resize(resultSize);
+        size_t usedIndex = 0LU;
+        for (size_t resultIndex = 0LU; resultIndex < m_rglRaycastResults.size(); ++resultIndex)
         {
-            if (m_addMaxRangePoints && (rglRaycastResults[result_index].m_isHit == 0))
+            if (m_rglRaycastResults[resultIndex].m_isHit)
             {
-                AZ::Vector4 maxVector = lidarPose * m_rayTransforms[result_index] * AZ::Vector4(0.0f, 0.0f, m_range, 1.0f);
-                raycastResults.push_back(maxVector.GetAsVector3());
+                m_raycastResults[usedIndex] = { m_rglRaycastResults[resultIndex].m_xyz.value[0],
+                                                m_rglRaycastResults[resultIndex].m_xyz.value[1],
+                                                m_rglRaycastResults[resultIndex].m_xyz.value[2] };
+
+                ++usedIndex;
             }
-            else
+            else if (m_addMaxRangePoints)
             {
-                raycastResults.push_back({ rglRaycastResults[result_index].m_xyz.value[0],
-                                           rglRaycastResults[result_index].m_xyz.value[1],
-                                           rglRaycastResults[result_index].m_xyz.value[2] });
+                AZ::Vector4 maxVector = lidarPose * m_rayTransforms[resultIndex] * AZ::Vector4(0.0f, 0.0f, m_range, 1.0f);
+                m_raycastResults[usedIndex] = maxVector.GetAsVector3();
+
+                ++usedIndex;
             }
         }
 
-        return raycastResults;
+        m_raycastResults.resize(usedIndex);
+
+        return m_raycastResults;
     }
 
     void LidarRaycaster::ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities)
