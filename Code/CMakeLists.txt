@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+include(FindRGL.cmake)
+
 ly_add_target(
     NAME RGL.Static STATIC
     NAMESPACE Gem
@@ -22,6 +25,7 @@ ly_add_target(
     INCLUDE_DIRECTORIES
         PUBLIC
             Include
+            ${RGL_INCLUDE_DIR}
         PRIVATE
             Source
     BUILD_DEPENDENCIES
@@ -33,10 +37,7 @@ ly_add_target(
             Gem::ROS2.Static
 )
 
-
-include(FindRGL.cmake)
-include_directories(RGL.Static PUBLIC ${RGL_INCLUDE_DIR})
-target_link_libraries(RGL.Static PRIVATE ${RGL_SO_PATH})
+ly_target_link_libraries(RGL.Static PUBLIC ${RGL_SO_PATH})
 
 ly_add_target(
     NAME RGL.API HEADERONLY
