@@ -21,6 +21,8 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
 - [Runtime requirements of the Robotec GPU Lidar](https://github.com/RobotecAI/RobotecGPULidar#runtime-requirements).
 - Any O3DE project with the [O3DE ROS2 Gem](https://github.com/o3de/o3de-extras/tree/development/Gems/ROS2) enabled.
 
+***Note:*** *You do not need to download or setup the RobotecGPULidar library itself.*
+
 ## Setup
 1. **Clone the Gem's repository.**
     ```bash
@@ -45,7 +47,7 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
     - **CLI** \
         In your local o3de engine directory you can enable the gem for your project (*project-path*).
         ```bash
-        ./scripts/o3de.sh enable-gem -gn ROS2 -pp <project-path>
+        ./scripts/o3de.sh enable-gem -gn RGL -pp <project-path>
         ```
     - **Project Manager** \
         Open your project. Select **File -> Edit Project Settings -> Configure Gems**. Now, search for the Robotec GPU Lidar Gem and enable it.
