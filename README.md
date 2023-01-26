@@ -26,7 +26,7 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
 ## Setup
 1. **Clone the Gem's repository.**
     ```bash
-    git clone # TO DO - add link once the gem is moved.
+    git clone https://github.com/RobotecAI/o3de-rgl-gem.git
     ```
 2. **Register the Gem.** \
     You can either register the gem through the Command Line Interface or the O3DE Project Manager:
