@@ -12,5 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set(FILES
-        Include/RGLBus.h
+        Include/RGL/RGLBus.h
 )

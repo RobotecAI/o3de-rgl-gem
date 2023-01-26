@@ -12,19 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "MeshLibrary.h"
-
-#include "rgl/api/core.h"
+#include <Mesh/MeshLibrary.h>
+#include <rgl/api/core.h>
 
 namespace RGL
 {
     MeshLibrary::MeshLibrary()
     {
-        if (MeshLibraryInterface::Get() == nullptr)
+        if (!MeshLibraryInterface::Get())
         {
             MeshLibraryInterface::Register(this);
         }
 
+        MeshLibraryRequestBus::Handler::BusConnect();
+    }
+
+    MeshLibrary::MeshLibrary(MeshLibrary&& meshLibrary)
+        : m_meshPointersMap{ AZStd::move(meshLibrary.m_meshPointersMap) }
+    {
+        meshLibrary.BusDisconnect();
+        MeshLibraryInterface::Unregister(&meshLibrary);
+        MeshLibraryInterface::Register(this);
         MeshLibraryRequestBus::Handler::BusConnect();
     }
 
@@ -46,37 +54,36 @@ namespace RGL
         {
             for (rgl_mesh_t mesh : mapEntry.second)
             {
-                RglUtils::ErrorCheck(rgl_mesh_destroy(mesh));
+                Utils::ErrorCheck(rgl_mesh_destroy(mesh));
             }
         }
 
         m_meshPointersMap.clear();
     }
 
-    AZStd::vector<rgl_mesh_t> MeshLibrary::GetMeshPointers(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset)
+    AZStd::vector<rgl_mesh_t> MeshLibrary::StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset)
     {
         const AZ::Data::AssetId& assetId = modelAsset.GetId();
 
-        auto meshPointersIt = m_meshPointersMap.find(assetId);
-        if (meshPointersIt != m_meshPointersMap.end())
+        if (auto meshPointersIt = m_meshPointersMap.find(assetId); meshPointersIt != m_meshPointersMap.end())
         {
             return meshPointersIt->second;
         }
 
-        auto lodAssets = modelAsset->GetLodAssets();
+        const auto lodAssets = modelAsset->GetLodAssets();
         // Get Highest LOD
-        auto modelLodAsset = lodAssets.begin()->Get();
-        auto meshes = modelLodAsset->GetMeshes();
+        const auto modelLodAsset = lodAssets.begin()->Get();
+        const auto meshes = modelLodAsset->GetMeshes();
 
         AZStd::vector<rgl_mesh_t> meshPointers;
         meshPointers.reserve(meshes.size());
-        for (auto mesh : meshes)
+        for (auto& mesh : meshes)
         {
-            AZStd::span<const rgl_vec3f> vertices = mesh.GetSemanticBufferTyped<rgl_vec3f>(AZ::Name("POSITION"));
-            AZStd::span<const rgl_vec3i> indices = mesh.GetIndexBufferTyped<rgl_vec3i>();
+            const AZStd::span<const rgl_vec3f> vertices = mesh.GetSemanticBufferTyped<rgl_vec3f>(AZ::Name("POSITION"));
+            const AZStd::span<const rgl_vec3i> indices = mesh.GetIndexBufferTyped<rgl_vec3i>();
 
             rgl_mesh_t meshPointer = nullptr;
-            RglUtils::SafeRglMeshCreate(meshPointer, vertices.data(), vertices.size(), indices.data(), indices.size());
+            Utils::SafeRglMeshCreate(meshPointer, vertices.data(), vertices.size(), indices.data(), indices.size());
             if (meshPointer == nullptr)
             {
                 continue;

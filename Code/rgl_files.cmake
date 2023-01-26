@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set(FILES
-        Source/RGLSystemComponent.cpp
-        Source/RGLSystemComponent.h
-        Source/Utilities/RGLUtils.cpp
-        Source/Utilities/RGLUtils.h
-        Source/Lidar/LidarRaycaster.cpp
-        Source/Lidar/LidarRaycaster.h
-        Source/Lidar/LidarSystem.cpp
-        Source/Lidar/LidarSystem.h
         Source/Entity/EntityManager.cpp
         Source/Entity/EntityManager.h
         Source/Entity/TerrainEntityManagerSystemComponent.cpp
         Source/Entity/TerrainEntityManagerSystemComponent.h
+        Source/Lidar/LidarRaycaster.cpp
+        Source/Lidar/LidarRaycaster.h
+        Source/Lidar/LidarSystem.cpp
+        Source/Lidar/LidarSystem.h
         Source/Mesh/MeshLibrary.cpp
         Source/Mesh/MeshLibrary.h
+        Source/RGLSystemComponent.cpp
+        Source/RGLSystemComponent.h
+        Source/Utilities/RGLUtils.cpp
+        Source/Utilities/RGLUtils.h
 )

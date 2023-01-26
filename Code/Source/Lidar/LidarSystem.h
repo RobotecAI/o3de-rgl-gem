@@ -14,8 +14,8 @@
  */
 #pragma once
 
-#include "LidarRaycaster.h"
-#include "ROS2/Lidar/LidarSystemBus.h"
+#include <Lidar/LidarRaycaster.h>
+#include <ROS2/Lidar/LidarSystemBus.h>
 
 namespace RGL
 {
@@ -23,8 +23,8 @@ namespace RGL
     {
     public:
         LidarSystem() = default;
-        LidarSystem(LidarSystem&& lidarSystem) = delete;
-        LidarSystem(const LidarSystem& lidarSystem) = delete;
+        LidarSystem(LidarSystem&& lidarSystem);
+        LidarSystem(const LidarSystem& lidarSystem) = default;
         ~LidarSystem() = default;
 
         void Activate();
@@ -34,10 +34,9 @@ namespace RGL
         void Clear();
 
     protected:
-        ////////////////////////////////////////////////////////////////////////
-        // LidarSystemRequestBus::Handler interface implementation
-        AZ::Uuid CreateLidar(const AZ::EntityId& lidarEntityId) override;
-        ////////////////////////////////////////////////////////////////////////
+        // LidarSystemRequestBus overrides
+        ROS2::LidarId CreateLidar(AZ::EntityId lidarEntityId) override;
+
     private:
         AZStd::vector<LidarRaycaster> m_lidars;
     };

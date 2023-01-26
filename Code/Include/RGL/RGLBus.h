@@ -17,7 +17,6 @@
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/EBus/EBus.h>
 #include <AzCore/Interface/Interface.h>
-#include <AzCore/std/string/string.h>
 
 namespace RGL
 {
@@ -25,11 +24,13 @@ namespace RGL
     {
     public:
         AZ_RTTI(RGLRequests, "{f301342c-3b17-11ed-a261-0242ac120002}");
-        virtual ~RGLRequests() = default;
 
         //! Excludes an entity from raycasting.
         //! @param excludedEntityId EntityId of the excluded entity.
         virtual void ExcludeEntity(const AZ::EntityId& excludedEntityId) = 0;
+
+    protected:
+        ~RGLRequests() = default;
     };
 
     class RGLBusTraits : public AZ::EBusTraits

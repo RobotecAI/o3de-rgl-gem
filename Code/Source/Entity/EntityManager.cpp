@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "EntityManager.h"
-#include "Mesh/MeshLibraryBus.h"
+#include <AzCore/Component/TransformBus.h>
+#include <Entity/EntityManager.h>
+#include <Mesh/MeshLibraryBus.h>
+#include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
@@ -40,7 +42,7 @@ namespace RGL
 
         for (rgl_entity_t entity : m_entities)
         {
-            RglUtils::ErrorCheck(rgl_entity_destroy(entity));
+            Utils::ErrorCheck(rgl_entity_destroy(entity));
         }
     }
 
@@ -58,19 +60,12 @@ namespace RGL
 
         AZ::Transform transform = AZ::Transform::CreateIdentity();
         AZ::TransformBus::EventResult(transform, m_entityId, &AZ::TransformBus::Events::GetWorldTM);
-        AZ::Matrix4x4 matrix = AZ::Matrix4x4::CreateFromTransform(transform);
 
-        rgl_mat3x4f entityPose = {
-            {
-                { matrix.GetRow(0).GetX(), matrix.GetRow(0).GetY(), matrix.GetRow(0).GetZ(), matrix.GetRow(0).GetW() },
-                { matrix.GetRow(1).GetX(), matrix.GetRow(1).GetY(), matrix.GetRow(1).GetZ(), matrix.GetRow(1).GetW() },
-                { matrix.GetRow(2).GetX(), matrix.GetRow(2).GetY(), matrix.GetRow(2).GetZ(), matrix.GetRow(2).GetW() },
-            },
-        };
+        const rgl_mat3x4f entityPose = Utils::RglMat3x4FromAzMatrix3x4(AZ::Matrix3x4::CreateFromTransform(transform));
 
         for (rgl_entity_t entity : m_entities)
         {
-            RglUtils::ErrorCheck(rgl_entity_set_pose(entity, &entityPose));
+            Utils::ErrorCheck(rgl_entity_set_pose(entity, &entityPose));
         }
     }
 
@@ -78,7 +73,7 @@ namespace RGL
         const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset, [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model)
     {
         AZ_Assert(m_entities.empty(), "Entity Manager for entity with ID: %s has an invalid state.", m_entityId.ToString().c_str());
-        auto meshes = MeshLibraryInterface::Get()->GetMeshPointers(modelAsset);
+        const auto meshes = MeshLibraryInterface::Get()->StoreModelAsset(modelAsset);
 
         if (meshes.empty())
         {
@@ -90,7 +85,7 @@ namespace RGL
         for (rgl_mesh_t mesh : meshes)
         {
             rgl_entity_t entity = nullptr;
-            RglUtils::SafeRglEntityCreate(entity, mesh);
+            Utils::SafeRglEntityCreate(entity, mesh);
             if (entity == nullptr)
             {
                 continue;

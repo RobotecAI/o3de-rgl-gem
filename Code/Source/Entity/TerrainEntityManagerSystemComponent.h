@@ -40,10 +40,9 @@ namespace RGL
         TerrainEntityManagerSystemComponent() = default;
         ~TerrainEntityManagerSystemComponent();
 
-        ////////////////////////////////////////////////////////////////////////
-        // AzFramework::Terrain::TerrainDataNotificationBus interface implementation
+        // AzFramework::Terrain::TerrainDataNotificationBus overrides
         void OnTerrainDataChanged(const AZ::Aabb& dirtyRegion, TerrainDataChangedMask dataChangedMask) override;
-        ////////////////////////////////////////////////////////////////////////
+
     protected:
         void Init() override;
         void Activate() override;

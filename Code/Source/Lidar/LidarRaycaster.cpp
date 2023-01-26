@@ -12,11 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "LidarRaycaster.h"
-
-#include "Utilities/RGLUtils.h"
-
-#include "RGLBus.h"
+#include <Lidar/LidarRaycaster.h>
+#include <RGL/RGLBus.h>
+#include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
@@ -26,17 +24,16 @@ namespace RGL
         ROS2::LidarRaycasterRequestBus::Handler::BusConnect(uuid);
 
         // Configure the default graph
-        RglUtils::ErrorCheck(rgl_node_rays_from_mat3x4f(&m_rayPosesNode, &RglUtils::IdentityTransform, 1));
-        RglUtils::ErrorCheck(rgl_node_rays_transform(&m_lidarTransformNode, &RglUtils::IdentityTransform));
-        RglUtils::ErrorCheck(rgl_node_raytrace(&m_rayTraceNode, nullptr, m_range));
-        RglUtils::ErrorCheck(rgl_node_points_compact(&m_pointsCompactNode));
-        RglUtils::ErrorCheck(
-            rgl_node_points_format(&m_pointsFormatNode, DefaultFields.data(), aznumeric_cast<int32_t>(DefaultFields.size())));
+        Utils::ErrorCheck(rgl_node_rays_from_mat3x4f(&m_rayPosesNode, &Utils::IdentityTransform, 1));
+        Utils::ErrorCheck(rgl_node_rays_transform(&m_lidarTransformNode, &Utils::IdentityTransform));
+        Utils::ErrorCheck(rgl_node_raytrace(&m_rayTraceNode, nullptr, m_range));
+        Utils::ErrorCheck(rgl_node_points_compact(&m_pointsCompactNode));
+        Utils::ErrorCheck(rgl_node_points_format(&m_pointsFormatNode, DefaultFields.data(), aznumeric_cast<int32_t>(DefaultFields.size())));
 
-        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayPosesNode, m_lidarTransformNode));
-        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_lidarTransformNode, m_rayTraceNode));
-        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsCompactNode));
-        RglUtils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompactNode, m_pointsFormatNode));
+        Utils::ErrorCheck(rgl_graph_node_add_child(m_rayPosesNode, m_lidarTransformNode));
+        Utils::ErrorCheck(rgl_graph_node_add_child(m_lidarTransformNode, m_rayTraceNode));
+        Utils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsCompactNode));
+        Utils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompactNode, m_pointsFormatNode));
     }
 
     LidarRaycaster::LidarRaycaster(LidarRaycaster&& lidarRaycaster) noexcept
@@ -66,13 +63,13 @@ namespace RGL
             ROS2::LidarRaycasterRequestBus::Handler::BusDisconnect();
         }
 
-        if (m_rayPosesNode != nullptr)
+        if (m_rayPosesNode)
         {
-            RglUtils::ErrorCheck(rgl_graph_destroy(m_pointsCompactNode));
+            Utils::ErrorCheck(rgl_graph_destroy(m_pointsCompactNode));
 
             if (m_addMaxRangePoints)
             {
-                RglUtils::ErrorCheck(rgl_graph_destroy(m_rayTraceNode));
+                Utils::ErrorCheck(rgl_graph_destroy(m_rayTraceNode));
             }
         }
     }
@@ -82,25 +79,26 @@ namespace RGL
         ValidateRayOrientations(orientations);
         AZStd::vector<rgl_mat3x4f> rglRayTransforms;
         rglRayTransforms.reserve(orientations.size());
-        for (AZ::Vector3 orientation : orientations)
+        for (const AZ::Vector3& orientation : orientations)
         {
-            AZ::Matrix3x4 rayTransform = AZ::Matrix3x4::CreateFromQuaternion(AZ::Quaternion::CreateFromEulerRadiansZYX({
+            // Since we provide a transform for the Z axis unit vector we need an additional PI / 2 added to the pitch.
+            const AZ::Matrix3x4 rayTransform = AZ::Matrix3x4::CreateFromQuaternion(AZ::Quaternion::CreateFromEulerRadiansZYX({
                 orientation.GetX(),
-                -orientation.GetY() + (AZ::Constants::Pi / 2.0f),
-                orientation.GetZ() - (AZ::Constants::Pi / 2.0f),
+                -orientation.GetY() + AZ::Constants::HalfPi,
+                orientation.GetZ(),
             }));
 
-            rglRayTransforms.push_back(RglUtils::RglMat3x4FromAzMatrix3x4(rayTransform));
+            rglRayTransforms.push_back(Utils::RglMat3x4FromAzMatrix3x4(rayTransform));
         }
 
         m_rayTransforms.clear();
         m_rayTransforms.reserve(rglRayTransforms.size());
         for (rgl_mat3x4f transform : rglRayTransforms)
         {
-            m_rayTransforms.push_back(RglUtils::AzMatrix3x4FromRglMat3x4(transform));
+            m_rayTransforms.push_back(Utils::AzMatrix3x4FromRglMat3x4(transform));
         }
 
-        RglUtils::ErrorCheck(
+        Utils::ErrorCheck(
             rgl_node_rays_from_mat3x4f(&m_rayPosesNode, rglRayTransforms.data(), aznumeric_cast<int32_t>(rglRayTransforms.size())));
     }
 
@@ -108,19 +106,19 @@ namespace RGL
     {
         ValidateRayRange(range);
         m_range = range;
-        RglUtils::ErrorCheck(rgl_node_raytrace(&m_rayTraceNode, nullptr, range));
+        Utils::ErrorCheck(rgl_node_raytrace(&m_rayTraceNode, nullptr, range));
     }
 
     AZStd::vector<AZ::Vector3> LidarRaycaster::PerformRaycast(const AZ::Transform& lidarTransform)
     {
-        AZ::Matrix3x4 lidarPose = AZ::Matrix3x4::CreateFromTransform(lidarTransform);
-        rgl_mat3x4f rglLidarPose = RglUtils::RglMat3x4FromAzMatrix3x4(lidarPose);
+        const AZ::Matrix3x4 lidarPose = AZ::Matrix3x4::CreateFromTransform(lidarTransform);
+        const rgl_mat3x4f rglLidarPose = Utils::RglMat3x4FromAzMatrix3x4(lidarPose);
 
-        RglUtils::ErrorCheck(rgl_node_rays_transform(&m_lidarTransformNode, &rglLidarPose));
-        RglUtils::ErrorCheck(rgl_graph_run(m_lidarTransformNode));
+        Utils::ErrorCheck(rgl_node_rays_transform(&m_lidarTransformNode, &rglLidarPose));
+        Utils::ErrorCheck(rgl_graph_run(m_lidarTransformNode));
 
         int32_t resultSize = -1;
-        RglUtils::ErrorCheck(rgl_graph_get_result_size(m_pointsFormatNode, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, &resultSize, nullptr));
+        Utils::ErrorCheck(rgl_graph_get_result_size(m_pointsFormatNode, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, &resultSize, nullptr));
 
         if (resultSize <= 0)
         {
@@ -128,8 +126,7 @@ namespace RGL
         }
 
         m_rglRaycastResults.resize(resultSize);
-        RglUtils::ErrorCheck(
-            rgl_graph_get_result_data(m_pointsFormatNode, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, m_rglRaycastResults.data()));
+        Utils::ErrorCheck(rgl_graph_get_result_data(m_pointsFormatNode, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, m_rglRaycastResults.data()));
 
         m_raycastResults.resize(resultSize);
         size_t usedIndex = 0LU;
@@ -137,15 +134,13 @@ namespace RGL
         {
             if (m_rglRaycastResults[resultIndex].m_isHit)
             {
-                m_raycastResults[usedIndex] = { m_rglRaycastResults[resultIndex].m_xyz.value[0],
-                                                m_rglRaycastResults[resultIndex].m_xyz.value[1],
-                                                m_rglRaycastResults[resultIndex].m_xyz.value[2] };
+                m_raycastResults[usedIndex] = Utils::AzVector3FromRglVec3f(m_rglRaycastResults[resultIndex].m_xyz);
 
                 ++usedIndex;
             }
             else if (m_addMaxRangePoints)
             {
-                AZ::Vector4 maxVector = lidarPose * m_rayTransforms[resultIndex] * AZ::Vector4(0.0f, 0.0f, m_range, 1.0f);
+                const AZ::Vector4 maxVector = lidarPose * m_rayTransforms[resultIndex] * AZ::Vector4(0.0f, 0.0f, m_range, 1.0f);
                 m_raycastResults[usedIndex] = maxVector.GetAsVector3();
 
                 ++usedIndex;
@@ -176,15 +171,15 @@ namespace RGL
         // We need to add or remove the compact node depending on the value of addMaxRangePoints.
         if (addMaxRangePoints)
         {
-            RglUtils::ErrorCheck(rgl_graph_node_remove_child(m_rayTraceNode, m_pointsCompactNode));
-            RglUtils::ErrorCheck(rgl_graph_node_remove_child(m_pointsCompactNode, m_pointsFormatNode));
-            RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsFormatNode));
+            Utils::ErrorCheck(rgl_graph_node_remove_child(m_rayTraceNode, m_pointsCompactNode));
+            Utils::ErrorCheck(rgl_graph_node_remove_child(m_pointsCompactNode, m_pointsFormatNode));
+            Utils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsFormatNode));
         }
         else
         {
-            RglUtils::ErrorCheck(rgl_graph_node_remove_child(m_rayTraceNode, m_pointsFormatNode));
-            RglUtils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsCompactNode));
-            RglUtils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompactNode, m_pointsFormatNode));
+            Utils::ErrorCheck(rgl_graph_node_remove_child(m_rayTraceNode, m_pointsFormatNode));
+            Utils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsCompactNode));
+            Utils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompactNode, m_pointsFormatNode));
         }
     }
 

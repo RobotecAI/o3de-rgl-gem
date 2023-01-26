@@ -18,13 +18,11 @@
 
 namespace RGL
 {
-    /// System component for RGL editor
+    /// System component for the RGL editor
     class RGLEditorSystemComponent : public RGLSystemComponent
     {
-        using BaseSystemComponent = RGLSystemComponent;
-
     public:
-        AZ_COMPONENT(RGLEditorSystemComponent, "{E36B695E-36C5-4162-BF86-EA68AA21217C}", BaseSystemComponent);
+        AZ_COMPONENT(RGLEditorSystemComponent, "{E36B695E-36C5-4162-BF86-EA68AA21217C}", RGLSystemComponent);
         static void Reflect(AZ::ReflectContext* context);
 
         RGLEditorSystemComponent();

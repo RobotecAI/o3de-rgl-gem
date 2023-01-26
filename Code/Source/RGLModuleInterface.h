@@ -14,9 +14,9 @@
  */
 #pragma once
 
-#include "Entity/TerrainEntityManagerSystemComponent.h"
 #include <AzCore/Memory/SystemAllocator.h>
 #include <AzCore/Module/Module.h>
+#include <Entity/TerrainEntityManagerSystemComponent.h>
 #include <RGLSystemComponent.h>
 
 namespace RGL
@@ -41,9 +41,7 @@ namespace RGL
                 });
         }
 
-        /**
-         * Add required SystemComponents to the SystemEntity.
-         */
+        //! Add required SystemComponents to the SystemEntity.
         AZ::ComponentTypeList GetRequiredSystemComponents() const override
         {
             return AZ::ComponentTypeList{

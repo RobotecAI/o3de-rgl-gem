@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "RGLSystemComponent.h"
 #include <RGLModuleInterface.h>
+#include <RGLSystemComponent.h>
 
 namespace RGL
 {

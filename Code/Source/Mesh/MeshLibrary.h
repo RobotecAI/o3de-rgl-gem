@@ -14,10 +14,10 @@
  */
 #pragma once
 
-#include "MeshLibraryBus.h"
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentBus.h>
 #include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/std/containers/unordered_map.h>
+#include <Mesh/MeshLibraryBus.h>
 
 namespace RGL
 {
@@ -27,18 +27,17 @@ namespace RGL
     {
     public:
         MeshLibrary();
-        MeshLibrary(MeshLibrary&& meshLibrary) = delete;
-        MeshLibrary(const MeshLibrary& meshLibrary) = delete;
+        MeshLibrary(MeshLibrary&& meshLibrary);
+        MeshLibrary(const MeshLibrary& meshLibrary) = default;
         ~MeshLibrary();
 
         //! Deletes all meshes stored by the Library.
         void Clear();
 
     protected:
-        ////////////////////////////////////////////////////////////////////////
-        // MeshLibraryRequestBus::Handler implementation
-        AZStd::vector<rgl_mesh_t> GetMeshPointers(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) override;
-        ////////////////////////////////////////////////////////////////////////
+        // MeshLibraryRequestBus overrides
+        AZStd::vector<rgl_mesh_t> StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) override;
+
     private:
         AZStd::unordered_map<AZ::Data::AssetId, AZStd::vector<rgl_mesh_t>> m_meshPointersMap;
     };

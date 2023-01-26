@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set(FILES
-        Source/RGLEditorSystemComponent.cpp
-        Source/RGLEditorSystemComponent.h
         Source/Entity/TerrainEntityManagerEditorSystemComponent.cpp
         Source/Entity/TerrainEntityManagerEditorSystemComponent.h
+        Source/RGLEditorSystemComponent.cpp
+        Source/RGLEditorSystemComponent.h
 )

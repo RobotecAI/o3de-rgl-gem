@@ -12,11 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "TerrainEntityManagerSystemComponent.h"
-#include "Utilities/RGLUtils.h"
-#include <AzCore/Serialization/EditContext.h>
-#include <AzCore/Serialization/EditContextConstants.inl>
-#include <AzCore/Serialization/SerializeContext.h>
+#include <Entity/TerrainEntityManagerSystemComponent.h>
+#include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
@@ -46,9 +43,9 @@ namespace RGL
         {
             serializeContext->Class<TerrainEntityManagerSystemComponent, AZ::Component>()->Version(0);
 
-            if (AZ::EditContext* ec = serializeContext->GetEditContext())
+            if (AZ::EditContext* editContext = serializeContext->GetEditContext())
             {
-                ec->Class<TerrainEntityManagerSystemComponent>("Terrain Entity Manager", "Manages the RGL Terrain entity.")
+                editContext->Class<TerrainEntityManagerSystemComponent>("Terrain Entity Manager", "Manages the RGL Terrain entity.")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                     ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("System"))
                     ->Attribute(AZ::Edit::Attributes::Category, "RGL")
@@ -78,15 +75,15 @@ namespace RGL
 
     void TerrainEntityManagerSystemComponent::EnsureManagedEntityDestroyed()
     {
-        if (m_rglEntity != nullptr)
+        if (m_rglEntity)
         {
-            RglUtils::ErrorCheck(rgl_entity_destroy(m_rglEntity));
+            Utils::ErrorCheck(rgl_entity_destroy(m_rglEntity));
             m_rglEntity = nullptr;
         }
 
-        if (m_rglMesh != nullptr)
+        if (m_rglMesh)
         {
-            RglUtils::ErrorCheck(rgl_mesh_destroy(m_rglMesh));
+            Utils::ErrorCheck(rgl_mesh_destroy(m_rglMesh));
             m_rglMesh = nullptr;
         }
     }
@@ -106,8 +103,8 @@ namespace RGL
         }
 
         m_currentWorldBounds = newWorldBounds;
-        size_t sectorCountX = aznumeric_cast<size_t>(newWorldSize.GetX() / SectorSideLength);
-        size_t sectorCountY = aznumeric_cast<size_t>(newWorldSize.GetY() / SectorSideLength);
+        const auto sectorCountX = aznumeric_cast<size_t>(newWorldSize.GetX() / SectorSideLength);
+        const auto sectorCountY = aznumeric_cast<size_t>(newWorldSize.GetY() / SectorSideLength);
 
         // To create a mesh constructed out of n * m sectors we need (n + 1) * (m + 1) vertices.
         // Each vertex is positioned in one of the sector's corners.
@@ -134,10 +131,10 @@ namespace RGL
         {
             for (size_t sectorIndexY = 0LU; sectorIndexY < sectorCountY; ++sectorIndexY)
             {
-                const int32_t upperLeft = aznumeric_cast<int32_t>(sectorIndexY * vertexCountX + sectorIndexX);
-                const int32_t upperRight = aznumeric_cast<int32_t>(upperLeft + 1LU);
-                const int32_t lowerLeft = aznumeric_cast<int32_t>(upperLeft + vertexCountX);
-                const int32_t lowerRight = aznumeric_cast<int32_t>(upperRight + vertexCountX);
+                const auto upperLeft = aznumeric_cast<int32_t>(sectorIndexY * vertexCountX + sectorIndexX);
+                const auto upperRight = aznumeric_cast<int32_t>(upperLeft + 1LU);
+                const auto lowerLeft = aznumeric_cast<int32_t>(upperLeft + vertexCountX);
+                const auto lowerRight = aznumeric_cast<int32_t>(upperRight + vertexCountX);
 
                 m_indices.emplace_back(rgl_vec3i{ upperLeft, upperRight, lowerLeft });
                 m_indices.emplace_back(rgl_vec3i{ lowerLeft, upperRight, lowerRight });
@@ -146,21 +143,21 @@ namespace RGL
 
         EnsureManagedEntityDestroyed();
 
-        RglUtils::SafeRglMeshCreate(m_rglMesh, m_vertices.data(), m_vertices.size(), m_indices.data(), m_indices.size());
-        if (m_rglMesh == nullptr)
+        Utils::SafeRglMeshCreate(m_rglMesh, m_vertices.data(), m_vertices.size(), m_indices.data(), m_indices.size());
+        if (!m_rglMesh)
         {
             AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL mesh.");
             return;
         }
 
-        RglUtils::SafeRglEntityCreate(m_rglEntity, m_rglMesh);
-        if (m_rglEntity == nullptr)
+        Utils::SafeRglEntityCreate(m_rglEntity, m_rglMesh);
+        if (!m_rglEntity)
         {
             AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL entity.");
             return;
         }
 
-        RglUtils::ErrorCheck(rgl_entity_set_pose(m_rglEntity, &RglUtils::IdentityTransform));
+        Utils::ErrorCheck(rgl_entity_set_pose(m_rglEntity, &Utils::IdentityTransform));
     }
 
     void TerrainEntityManagerSystemComponent::UpdateDirtyRegion(const AZ::Aabb& dirtyRegion)
@@ -175,7 +172,7 @@ namespace RGL
 
         for (rgl_vec3f& vertex : m_vertices)
         {
-            if (dirtyRegion2D.Contains(RglUtils::AzVector3FromRglVec3f(vertex)))
+            if (dirtyRegion2D.Contains(Utils::AzVector3FromRglVec3f(vertex)))
             {
                 float height = AZStd::numeric_limits<float>::lowest();
                 bool terrainExists = false;
@@ -194,17 +191,17 @@ namespace RGL
             }
         }
 
-        RglUtils::ErrorCheck(rgl_mesh_update_vertices(m_rglMesh, m_vertices.data(), aznumeric_cast<int32_t>(m_vertices.size())));
+        Utils::ErrorCheck(rgl_mesh_update_vertices(m_rglMesh, m_vertices.data(), aznumeric_cast<int32_t>(m_vertices.size())));
     }
 
     void TerrainEntityManagerSystemComponent::OnTerrainDataChanged(const AZ::Aabb& dirtyRegion, TerrainDataChangedMask dataChangedMask)
     {
-        if (dataChangedMask & TerrainDataChangedMask::Settings)
+        if ((dataChangedMask & TerrainDataChangedMask::Settings) != TerrainDataChangedMask::None)
         {
             UpdateWorldBounds();
         }
 
-        if (dataChangedMask & TerrainDataChangedMask::HeightData)
+        if ((dataChangedMask & TerrainDataChangedMask::HeightData) != TerrainDataChangedMask::None)
         {
             UpdateDirtyRegion(dirtyRegion);
         }

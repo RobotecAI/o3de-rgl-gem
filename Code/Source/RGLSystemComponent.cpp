@@ -12,21 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <RGLSystemComponent.h>
-
-#include <AzCore/Asset/AssetCommon.h>
-#include <AzCore/Component/Entity.h>
-#include <AzCore/Component/TransformBus.h>
-#include <AzCore/Serialization/EditContext.h>
-#include <AzCore/Serialization/SerializeContext.h>
-
 #include <AzFramework/Entity/EntityContext.h>
-#include <AzFramework/Entity/EntityContextBus.h>
 #include <AzFramework/Entity/GameEntityContextBus.h>
-
+#include <RGLSystemComponent.h>
+#include <Utilities/RGLUtils.h>
+// TODO - Format the code past o3de hash 57a500f3eaf2b0d8450003dd04016f5147e940a7. Missing includes inside the file.
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentConstants.h>
-
-#include "Utilities/RGLUtils.h"
 
 namespace RGL
 {
@@ -36,9 +27,9 @@ namespace RGL
         {
             serializeContext->Class<RGLSystemComponent, AZ::Component>()->Version(0);
 
-            if (AZ::EditContext* ec = serializeContext->GetEditContext())
+            if (AZ::EditContext* editContext = serializeContext->GetEditContext())
             {
-                ec->Class<RGLSystemComponent>("RGLSystemComponent", "[Description of functionality provided by this component]")
+                editContext->Class<RGLSystemComponent>("RGLSystemComponent", "[Description of functionality provided by this component]")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                     ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("System"))
                     ->Attribute(AZ::Edit::Attributes::AutoExpand, true);
@@ -67,8 +58,8 @@ namespace RGL
 
     RGLSystemComponent::RGLSystemComponent()
     {
-        RglUtils::ErrorCheck(rgl_configure_logging(RGL_LOG_LEVEL_WARN, nullptr, true));
-        if (RGLInterface::Get() == nullptr)
+        Utils::ErrorCheck(rgl_configure_logging(RGL_LOG_LEVEL_WARN, nullptr, true));
+        if (!RGLInterface::Get())
         {
             RGLInterface::Register(this);
         }
@@ -93,19 +84,19 @@ namespace RGL
 
         AzFramework::EntityContextEventBus::Handler::BusConnect(gameEntityContextId);
 
-        m_lidarSystem.Activate();
+        m_rglLidarSystem.Activate();
     }
 
     void RGLSystemComponent::Deactivate()
     {
-        m_lidarSystem.Deactivate();
+        m_rglLidarSystem.Deactivate();
         AzFramework::EntityContextEventBus::Handler::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
 
         m_entityManagers.clear();
         m_meshLibrary.Clear();
-        m_lidarSystem.Clear();
-        RglUtils::ErrorCheck(rgl_cleanup());
+        m_rglLidarSystem.Clear();
+        Utils::ErrorCheck(rgl_cleanup());
     }
 
     void RGLSystemComponent::ExcludeEntity(const AZ::EntityId& excludedEntityId)
@@ -136,8 +127,8 @@ namespace RGL
     {
         m_entityManagers.clear();
         m_meshLibrary.Clear();
-        m_lidarSystem.Clear();
-        RglUtils::ErrorCheck(rgl_cleanup());
+        m_rglLidarSystem.Clear();
+        Utils::ErrorCheck(rgl_cleanup());
     }
 
     void RGLSystemComponent::OnTick(float deltaTime, AZ::ScriptTimePoint time)

@@ -12,28 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "LidarSystem.h"
-#include "RGLBus.h"
+#include <Lidar/LidarSystem.h>
 #include <ROS2/Lidar/LidarRegistrarBus.h>
 
 namespace RGL
 {
+    LidarSystem::LidarSystem(LidarSystem&& lidarSystem)
+        : m_lidars{ AZStd::move(lidarSystem.m_lidars) }
+    {
+        lidarSystem.BusDisconnect();
+    }
+
     void LidarSystem::Activate()
     {
         const char* name = "RobotecGPULidar";
         const char* description = "Mesh-based lidar implementation that uses the RobotecGPULidar API for GPU-enabled raycasting.";
-        const ROS2::LidarSystemFeatures supportedFeatures = {
-            /* .m_noise =                   */ false,
-            /* .m_collisionLayers =         */ false,
-            /* .m_entityExclusion =         */ true,
-            /* .m_MaxRangeHitPointConfig =  */ true,
-        };
+        static constexpr ROS2::LidarSystemFeatures SupportedFeatures = aznumeric_cast<ROS2::LidarSystemFeatures>(
+            ROS2::LidarSystemFeatures::EntityExclusion | ROS2::LidarSystemFeatures::MaxRangePoints);
 
         ROS2::LidarSystemRequestBus::Handler::BusConnect(AZ_CRC(name));
 
         auto* lidarSystemManagerInterface = ROS2::LidarRegistrarInterface::Get();
         AZ_Assert(lidarSystemManagerInterface != nullptr, "The ROS2 LidarSystem Manager interface was inaccessible.");
-        lidarSystemManagerInterface->RegisterLidarSystem(name, description, supportedFeatures);
+        lidarSystemManagerInterface->RegisterLidarSystem(name, description, SupportedFeatures);
     }
 
     void LidarSystem::Deactivate()
@@ -46,9 +47,9 @@ namespace RGL
         m_lidars.clear();
     }
 
-    AZ::Uuid LidarSystem::CreateLidar(const AZ::EntityId& lidarEntityId)
+    ROS2::LidarId LidarSystem::CreateLidar(AZ::EntityId lidarEntityId)
     {
-        AZ::Uuid lidarUuid = AZ::Uuid::CreateRandom();
+        const AZ::Uuid lidarUuid = AZ::Uuid::CreateRandom();
         m_lidars.emplace_back(lidarUuid);
         return lidarUuid;
     }

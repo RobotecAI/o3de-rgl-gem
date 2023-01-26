@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "TerrainEntityManagerEditorSystemComponent.h"
 #include <AzCore/Serialization/SerializeContext.h>
+#include <Entity/TerrainEntityManagerEditorSystemComponent.h>
 
 namespace RGL
 {

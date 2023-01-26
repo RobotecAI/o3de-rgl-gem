@@ -14,7 +14,7 @@
  */
 #pragma once
 
-#include "TerrainEntityManagerSystemComponent.h"
+#include <Entity/TerrainEntityManagerSystemComponent.h>
 
 namespace RGL
 {

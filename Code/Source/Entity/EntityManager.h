@@ -29,8 +29,8 @@ namespace RGL
     public:
         EntityManager(AZ::EntityId entityId);
         EntityManager(EntityManager&& entityManager);
-        EntityManager(const EntityManager& entityManager) = delete;
-        ~EntityManager();
+        EntityManager(const EntityManager& entityManager) = default;
+        ~EntityManager() override;
 
         //! Is this Entity static?
         bool IsStatic() const;
@@ -39,17 +39,14 @@ namespace RGL
         void UpdatePose();
 
     protected:
-        ////////////////////////////////////////////////////////////////////////
-        // AZ::Render::MeshComponentNotificationBus::Handler implementation
+        // AZ::Render::MeshComponentNotificationBus overrides
         void OnModelReady(
             const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset,
             [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model) override;
-        ////////////////////////////////////////////////////////////////////////
 
-        ////////////////////////////////////////////////////////////////////////
-        // AZ::EntityBus::Handler implementation
+        // AZ::EntityBus::Handler implementation overrides
         void OnEntityActivated(const AZ::EntityId& entityId) override;
-        ////////////////////////////////////////////////////////////////////////
+
     private:
         bool m_isStatic{ false };
         AZ::EntityId m_entityId;

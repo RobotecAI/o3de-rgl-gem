@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "RGLEditorSystemComponent.h"
-#include <AzCore/Serialization/SerializeContext.h>
+#include <RGLEditorSystemComponent.h>
 
 namespace RGL
 {
@@ -31,24 +30,24 @@ namespace RGL
 
     void RGLEditorSystemComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
     {
-        BaseSystemComponent::GetProvidedServices(provided);
+        RGLSystemComponent::GetProvidedServices(provided);
         provided.push_back(AZ_CRC_CE("RGLEditorService"));
     }
 
     void RGLEditorSystemComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
     {
-        BaseSystemComponent::GetIncompatibleServices(incompatible);
+        RGLSystemComponent::GetIncompatibleServices(incompatible);
         incompatible.push_back(AZ_CRC_CE("RGLEditorService"));
     }
 
     void RGLEditorSystemComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
     {
-        BaseSystemComponent::GetRequiredServices(required);
+        RGLSystemComponent::GetRequiredServices(required);
     }
 
     void RGLEditorSystemComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
     {
-        BaseSystemComponent::GetDependentServices(dependent);
+        RGLSystemComponent::GetDependentServices(dependent);
     }
 
     void RGLEditorSystemComponent::Activate()

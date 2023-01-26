@@ -14,14 +14,14 @@
  */
 #pragma once
 
-#include "Entity/EntityManager.h"
-#include "Lidar/LidarSystem.h"
-#include "Mesh/MeshLibrary.h"
-#include "RGLBus.h"
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/Math/Vector3.h>
 #include <AzFramework/Entity/EntityContextBus.h>
+#include <Entity/EntityManager.h>
+#include <Lidar/LidarSystem.h>
+#include <Mesh/MeshLibrary.h>
+#include <RGL/RGLBus.h>
 
 struct Scene;
 
@@ -48,31 +48,23 @@ namespace RGL
         ~RGLSystemComponent() override;
 
     protected:
-        ////////////////////////////////////////////////////////////////////////
-        // AZ::Component interface implementation
+        // AZ::Component overrides
         void Activate() override;
         void Deactivate() override;
-        ////////////////////////////////////////////////////////////////////////
 
-        ////////////////////////////////////////////////////////////////////////
-        // RGLRequestBus::Handler implementation
+        // RGLRequestBus overrides
         void ExcludeEntity(const AZ::EntityId& excludedEntityId) override;
-        ////////////////////////////////////////////////////////////////////////
 
-        ////////////////////////////////////////////////////////////////////////
-        // AzFramework::EntityContextEventBus::Handler interface implementation
+        // AzFramework::EntityContextEventBus overrides
         void OnEntityContextCreateEntity(AZ::Entity& entity) override;
         void OnEntityContextDestroyEntity(const AZ::EntityId& id) override;
         void OnEntityContextReset() override;
-        ////////////////////////////////////////////////////////////////////////
 
-        ////////////////////////////////////////////////////////////////////////
-        // AZ::TickBus::Handler interface implementation
+        // AZ::TickBus overrides
         void OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time) override;
-        ////////////////////////////////////////////////////////////////////////
 
     private:
-        LidarSystem m_lidarSystem;
+        LidarSystem m_rglLidarSystem;
 
         MeshLibrary m_meshLibrary;
         AZStd::set<AZ::EntityId> m_excludedEntities;

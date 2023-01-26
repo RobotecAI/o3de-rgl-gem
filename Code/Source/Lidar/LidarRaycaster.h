@@ -24,18 +24,17 @@ namespace RGL
     public:
         explicit LidarRaycaster(const AZ::Uuid& uuid);
         LidarRaycaster(LidarRaycaster&& lidarSystem) noexcept;
-        LidarRaycaster(const LidarRaycaster& lidarSystem) = delete;
+        LidarRaycaster(const LidarRaycaster& lidarSystem) = default;
         ~LidarRaycaster() override;
 
     protected:
-        ////////////////////////////////////////////////////////////////////////
-        // LidarRaycasterRequestBus::Handler interface implementation
+        // LidarRaycasterRequestBus overrides
         void ConfigureRayOrientations(const AZStd::vector<AZ::Vector3>& orientations) override;
         void ConfigureRayRange(float range) override;
         AZStd::vector<AZ::Vector3> PerformRaycast(const AZ::Transform& lidarTransform) override;
         void ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities) override;
         void ConfigureMaxRangePointAddition(bool addMaxRangePoints) override;
-        ////////////////////////////////////////////////////////////////////////
+
     private:
         //! Structure used for rgl-generated output retrieval.
         struct DefaultFormatStruct
