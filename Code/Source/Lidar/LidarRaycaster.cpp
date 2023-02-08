@@ -21,7 +21,7 @@ namespace RGL
     LidarRaycaster::LidarRaycaster(const AZ::Uuid& uuid)
         : m_uuid{ uuid }
     {
-        ROS2::LidarRaycasterRequestBus::Handler::BusConnect(uuid);
+        ROS2::LidarRaycasterRequestBus::Handler::BusConnect(ROS2::LidarId(uuid));
 
         // Configure the default graph
         Utils::ErrorCheck(rgl_node_rays_from_mat3x4f(&m_rayPosesNode, &Utils::IdentityTransform, 1));
@@ -53,7 +53,7 @@ namespace RGL
         lidarRaycaster.m_uuid = AZ::Uuid::CreateNull();
         lidarRaycaster.m_rayPosesNode = nullptr;
 
-        ROS2::LidarRaycasterRequestBus::Handler::BusConnect(m_uuid);
+        ROS2::LidarRaycasterRequestBus::Handler::BusConnect(ROS2::LidarId(m_uuid));
     }
 
     LidarRaycaster::~LidarRaycaster()

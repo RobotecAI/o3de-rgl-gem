@@ -51,6 +51,6 @@ namespace RGL
     {
         const AZ::Uuid lidarUuid = AZ::Uuid::CreateRandom();
         m_lidars.emplace_back(lidarUuid);
-        return lidarUuid;
+        return ROS2::LidarId(lidarUuid);
     }
 } // namespace RGL
