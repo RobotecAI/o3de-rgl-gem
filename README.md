@@ -1,5 +1,18 @@
-# O3DE RGL Gem
-The O3DE Robotec GPU Lidar Gem is a subgem of the [O3DE ROS2 Gem](https://github.com/o3de/o3de-extras/tree/development/Gems/ROS2) providing it with a fast and scalable LiDAR implementation by making use of the [Robotec GPU Lidar](https://github.com/RobotecAI/RobotecGPULidar) library.
+# Robotec GPU Lidar (RGL) Gem for Open 3D Engine (O3DE)
+
+This project enables GPU-accelerated LIDAR simulation for robotics.
+
+## A bit of context
+
+* [Open 3D Engine](https:://o3de.org) - an open source game & simulation engine. O3DE is extendable through modules called Gems. This is one of such Gems.
+* [LIDAR](https://en.wikipedia.org/wiki/Lidar) - a type of active sensor used in robotics, emitting and receiving back laser beams.
+* [Robot Operating System (ROS)](https://docs.ros.org/en/rolling/index.html) - an open source middleware and de facto standard for robotics.
+* [ROS2 Gem](https://github.com/o3de/o3de-extras/tree/development/Gems/ROS2) - an open source module for O3DE which enables simulation for robotics using modern ROS.
+* [Robotec GPU Lidar](https://github.com/RobotecAI/RobotecGPULidar) - an open source library for simulating LIDAR through raycasting based on GPU with CUDA and OptiX.
+
+## Description
+
+The O3DE Robotec GPU Lidar Gem is a module working with [O3DE ROS2 Gem](https://github.com/o3de/o3de-extras/tree/development/Gems/ROS2) and extending it with a fast and scalable LiDAR implementation by making use of the [Robotec GPU Lidar](https://github.com/RobotecAI/RobotecGPULidar) library.
 
 ## Features
 Combined with the O3DE ROS2 Gem's `Lidar Sensor Component` the O3DE RGL Gem allows for creation of a configurable, high - performance LiDAR. The Gem provides a faithful representation of the simulated environment by supporting the following visuals:
