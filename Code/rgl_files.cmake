@@ -20,6 +20,8 @@ set(FILES
         Source/Lidar/LidarRaycaster.h
         Source/Lidar/LidarSystem.cpp
         Source/Lidar/LidarSystem.h
+        Source/Lidar/RaycastResults.cpp
+        Source/Lidar/RaycastResults.h
         Source/Mesh/MeshLibrary.cpp
         Source/Mesh/MeshLibrary.h
         Source/RGLSystemComponent.cpp

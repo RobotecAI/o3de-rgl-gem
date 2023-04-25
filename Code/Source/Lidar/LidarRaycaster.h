@@ -14,6 +14,7 @@
  */
 #pragma once
 
+#include <Lidar/RaycastResults.h>
 #include <ROS2/Lidar/LidarRaycasterBus.h>
 #include <rgl/api/core.h>
 
@@ -31,26 +32,27 @@ namespace RGL
         // LidarRaycasterRequestBus overrides
         void ConfigureRayOrientations(const AZStd::vector<AZ::Vector3>& orientations) override;
         void ConfigureRayRange(float range) override;
-        AZStd::vector<AZ::Vector3> PerformRaycast(const AZ::Transform& lidarTransform) override;
+        void ConfigureMinimumRayRange(float range) override;
+        void ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags) override;
+
+        ROS2::RaycastResult PerformRaycast(const AZ::Transform& lidarTransform) override;
+
         void ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities) override;
         void ConfigureMaxRangePointAddition(bool addMaxRangePoints) override;
 
     private:
-        //! Structure used for rgl-generated output retrieval.
-        struct DefaultFormatStruct
-        {
-            rgl_vec3f m_xyz;
-            int32_t m_isHit;
-        };
-
-        static const AZStd::vector<rgl_field_t> DefaultFields;
-
         bool m_addMaxRangePoints{ false };
         AZ::Uuid m_uuid;
         float m_range{ 1.0f };
+        float m_minRange{ 0.0f };
+        ROS2::RaycastResultFlags m_resultFlags;
+
+        AZStd::vector<rgl_field_t> m_resultFields = { RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_F32 };
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
-        AZStd::vector<DefaultFormatStruct> m_rglRaycastResults;
-        AZStd::vector<AZ::Vector3> m_raycastResults;
+
+        RaycastResults m_rglRaycastResults;
+        ROS2::RaycastResult m_raycastResults;
+
         rgl_node_t m_rayPosesNode{ nullptr }, m_lidarTransformNode{ nullptr }, m_rayTraceNode{ nullptr }, m_pointsCompactNode{ nullptr },
             m_pointsFormatNode{ nullptr };
     };
