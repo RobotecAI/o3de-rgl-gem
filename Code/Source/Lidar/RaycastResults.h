@@ -39,17 +39,10 @@ namespace RGL
         RaycastResults& operator=(const RaycastResults& other) = default;
 
     private:
-        struct FieldOffset
-        {
-            rgl_field_t m_fieldType;
-            size_t m_offset;
-        };
+        size_t m_count{ 0LU }; //!< Count of datapoints.
+        size_t m_elementSize{ 0LU }; //!< Size of a single datapoint.
 
-        size_t m_count{ 0LU }; //!< Count of datapoints
-        size_t m_elementSize{ 0LU }; //!< Size of a single datapoint
-
-        // Since we intend to use few fields we can use a vector here.
-        AZStd::vector<FieldOffset> m_layout;
+        AZStd::map<rgl_field_t, size_t> m_layout;
 
         // Buffer for result storage. We use uint8_t since its size is equal to 1 byte.
         AZStd::vector<uint8_t> m_data;

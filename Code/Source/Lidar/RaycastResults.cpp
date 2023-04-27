@@ -19,26 +19,29 @@ namespace RGL
     RaycastResults::RaycastResults(const ResultLayout& layout, size_t count)
         : m_count{ count }
     {
-        AZ_Error(__func__, !layout.empty(), "ResultLayout must not be empty.");
+        AZ_Error(__func__, !layout.empty(), "Incorrect layout - ResultLayout must not be empty.");
 
         m_elementSize = 0LU;
+        bool duplicateFound = false;
         for (const auto& field : layout)
         {
             switch (field)
             {
             case RGL_FIELD_XYZ_F32:
-                m_layout.push_back({ RGL_FIELD_XYZ_F32, m_elementSize });
+                duplicateFound = !m_layout.emplace(RGL_FIELD_XYZ_F32, m_elementSize).second;
                 m_elementSize += sizeof(rgl_vec3f);
                 break;
             case RGL_FIELD_IS_HIT_I32:
-                m_layout.push_back({ RGL_FIELD_IS_HIT_I32, m_elementSize });
+                duplicateFound = !m_layout.emplace(RGL_FIELD_IS_HIT_I32, m_elementSize).second;
                 m_elementSize += sizeof(int32_t);
                 break;
             case RGL_FIELD_DISTANCE_F32:
-                m_layout.push_back({ RGL_FIELD_DISTANCE_F32, m_elementSize });
+                duplicateFound = !m_layout.emplace(RGL_FIELD_DISTANCE_F32, m_elementSize).second;
                 m_elementSize += sizeof(float);
                 break;
             }
+
+            AZ_Error(__func__, !duplicateFound, "Incorrect layout - ResultLayout contains duplicate fields.")
         }
 
         size_t size = m_elementSize * count;
@@ -88,17 +91,9 @@ namespace RGL
 
     void* RaycastResults::GetFieldPtr(size_t index, rgl_field_t fieldType)
     {
-        size_t offset = 0LU;
-        // This loop will not have a negative impact on performance
-        // since we intend to use only a few fields.
-        for (auto field : m_layout)
-        {
-            if (field.m_fieldType == fieldType)
-            {
-                offset = field.m_offset;
-            }
-        }
+        const auto fieldOffset = m_layout.find(fieldType);
+        AZ_Error(__func__, fieldOffset != m_layout.end(), "Field of specified type is not contained within result layout.");
 
-        return static_cast<void*>(m_data.data() + (m_elementSize * index) + offset);
+        return static_cast<void*>(m_data.data() + (m_elementSize * index) + fieldOffset->second);
     }
 } // namespace RGL

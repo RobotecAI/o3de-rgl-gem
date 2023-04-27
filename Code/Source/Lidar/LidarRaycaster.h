@@ -41,19 +41,22 @@ namespace RGL
         void ConfigureMaxRangePointAddition(bool addMaxRangePoints) override;
 
     private:
-        bool m_addMaxRangePoints{ false };
+        bool m_addMaxRangePoints{ false }, m_useCompact{ true };
         AZ::Uuid m_uuid;
         float m_range{ 1.0f };
         float m_minRange{ 0.0f };
-        ROS2::RaycastResultFlags m_resultFlags;
+        ROS2::RaycastResultFlags m_resultFlags{ ROS2::RaycastResultFlags::Points };
 
         AZStd::vector<rgl_field_t> m_resultFields = { RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_F32 };
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
+        AZStd::vector<float> m_rayDirections{ 1.0f };
 
         RaycastResults m_rglRaycastResults;
         ROS2::RaycastResult m_raycastResults;
 
         rgl_node_t m_rayPosesNode{ nullptr }, m_lidarTransformNode{ nullptr }, m_rayTraceNode{ nullptr }, m_pointsCompactNode{ nullptr },
             m_pointsFormatNode{ nullptr };
+
+        void ConfigurePointsCompact(bool value = true);
     };
 } // namespace RGL
