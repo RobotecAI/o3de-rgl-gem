@@ -13,6 +13,8 @@
 # limitations under the License.
 
 include(FindRGL.cmake)
+message("Include dir: ${RGL_INCLUDE_DIR}")
+message(".so dir: ${DEST_SO_DIR}")
 
 ly_add_target(
     NAME RGL.Static STATIC
@@ -37,7 +39,7 @@ ly_add_target(
             Gem::ROS2.Static
 )
 
-ly_target_link_libraries(RGL.Static PUBLIC ${RGL_SO_PATH})
+ly_target_link_libraries(RGL.Static PUBLIC ${RGL_SO_DIR})
 
 ly_add_target(
     NAME RGL.API HEADERONLY
