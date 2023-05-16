@@ -27,18 +27,24 @@ namespace RGL
         // Configure the default graph
         Utils::ErrorCheck(rgl_node_rays_from_mat3x4f(&m_rayPosesNode, &Utils::IdentityTransform, 1));
         Utils::ErrorCheck(rgl_node_rays_transform(&m_lidarTransformNode, &Utils::IdentityTransform));
+        Utils::ErrorCheck(rgl_node_gaussian_noise_angular_ray(&m_angularNoiseNode, 0.0f, 0.0f, RGL_AXIS_Z));
         Utils::ErrorCheck(rgl_node_raytrace(&m_rayTraceNode, nullptr, m_range));
+        Utils::ErrorCheck(rgl_node_gaussian_noise_distance(&m_distanceNoiseNode, 0.0f, 0.0f, 0.0f));
         Utils::ErrorCheck(rgl_node_points_compact(&m_pointsCompactNode));
         Utils::ErrorCheck(
             rgl_node_points_format(&m_pointsFormatNode, m_resultFields.data(), aznumeric_cast<int32_t>(m_resultFields.size())));
+
         Utils::ErrorCheck(rgl_graph_node_add_child(m_rayPosesNode, m_lidarTransformNode));
-        Utils::ErrorCheck(rgl_graph_node_add_child(m_lidarTransformNode, m_rayTraceNode));
-        Utils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsCompactNode));
+        Utils::ErrorCheck(rgl_graph_node_add_child(m_lidarTransformNode, m_angularNoiseNode));
+        Utils::ErrorCheck(rgl_graph_node_add_child(m_angularNoiseNode, m_rayTraceNode));
+        Utils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_distanceNoiseNode));
+        Utils::ErrorCheck(rgl_graph_node_add_child(m_distanceNoiseNode, m_pointsCompactNode));
         Utils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompactNode, m_pointsFormatNode));
     }
 
     LidarRaycaster::LidarRaycaster(LidarRaycaster&& lidarRaycaster) noexcept
         : m_addMaxRangePoints{ lidarRaycaster.m_addMaxRangePoints }
+        , m_useCompact{ lidarRaycaster.m_useCompact }
         , m_uuid{ lidarRaycaster.m_uuid }
         , m_range{ lidarRaycaster.m_range }
         , m_minRange{ lidarRaycaster.m_minRange }
@@ -48,7 +54,10 @@ namespace RGL
         , m_rglRaycastResults{ AZStd::move(lidarRaycaster.m_rglRaycastResults) }
         , m_rayPosesNode{ AZStd::move(lidarRaycaster.m_rayPosesNode) }
         , m_lidarTransformNode{ AZStd::move(lidarRaycaster.m_lidarTransformNode) }
+        , m_angularNoiseNode{ AZStd::move(lidarRaycaster.m_angularNoiseNode)}
         , m_rayTraceNode{ AZStd::move(lidarRaycaster.m_rayTraceNode) }
+        , m_distanceNoiseNode{ AZStd::move(lidarRaycaster.m_distanceNoiseNode)}
+        , m_pointsCompactNode{ AZStd::move(lidarRaycaster.m_pointsCompactNode)}
         , m_pointsFormatNode{ AZStd::move(lidarRaycaster.m_pointsFormatNode) }
     {
         lidarRaycaster.BusDisconnect();
@@ -224,6 +233,13 @@ namespace RGL
         return m_raycastResults;
     }
 
+    void LidarRaycaster::ConfigureNoiseParameters(
+        float angularNoiseStdDev, float distanceNoiseStdDevBase, float distanceNoiseStdDevRisePerMeter)
+    {
+        Utils::ErrorCheck(rgl_node_gaussian_noise_angular_ray(&m_angularNoiseNode, 0.0f, angularNoiseStdDev, RGL_AXIS_Z));
+        Utils::ErrorCheck(rgl_node_gaussian_noise_distance(&m_distanceNoiseNode, 0.0f, distanceNoiseStdDevBase, distanceNoiseStdDevRisePerMeter));
+    }
+
     void LidarRaycaster::ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities)
     {
         for (const auto& entity : excludedEntities)
@@ -252,15 +268,15 @@ namespace RGL
         // We unpin / repin the compact node from / to the rgl tree.
         if (value)
         {
-            Utils::ErrorCheck(rgl_graph_node_remove_child(m_rayTraceNode, m_pointsFormatNode));
-            Utils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsCompactNode));
+            Utils::ErrorCheck(rgl_graph_node_remove_child(m_distanceNoiseNode, m_pointsFormatNode));
+            Utils::ErrorCheck(rgl_graph_node_add_child(m_distanceNoiseNode, m_pointsCompactNode));
             Utils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompactNode, m_pointsFormatNode));
         }
         else
         {
-            Utils::ErrorCheck(rgl_graph_node_remove_child(m_rayTraceNode, m_pointsCompactNode));
+            Utils::ErrorCheck(rgl_graph_node_remove_child(m_distanceNoiseNode, m_pointsCompactNode));
             Utils::ErrorCheck(rgl_graph_node_remove_child(m_pointsCompactNode, m_pointsFormatNode));
-            Utils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_pointsFormatNode));
+            Utils::ErrorCheck(rgl_graph_node_add_child(m_distanceNoiseNode, m_pointsFormatNode));
         }
     }
 } // namespace RGL

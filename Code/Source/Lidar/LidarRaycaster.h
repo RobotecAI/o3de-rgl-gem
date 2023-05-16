@@ -37,6 +37,10 @@ namespace RGL
 
         ROS2::RaycastResult PerformRaycast(const AZ::Transform& lidarTransform) override;
 
+        void ConfigureNoiseParameters(
+            [[maybe_unused]] float angularNoiseStdDev,
+            [[maybe_unused]] float distanceNoiseStdDevBase,
+            [[maybe_unused]] float distanceNoiseStdDevRisePerMeter) override;
         void ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities) override;
         void ConfigureMaxRangePointAddition(bool addMaxRangePoints) override;
 
@@ -54,8 +58,8 @@ namespace RGL
         RaycastResults m_rglRaycastResults;
         ROS2::RaycastResult m_raycastResults;
 
-        rgl_node_t m_rayPosesNode{ nullptr }, m_lidarTransformNode{ nullptr }, m_rayTraceNode{ nullptr }, m_pointsCompactNode{ nullptr },
-            m_pointsFormatNode{ nullptr };
+        rgl_node_t m_rayPosesNode{ nullptr }, m_lidarTransformNode{ nullptr }, m_angularNoiseNode{ nullptr }, m_rayTraceNode{ nullptr },
+            m_distanceNoiseNode{ nullptr }, m_pointsCompactNode{ nullptr }, m_pointsFormatNode{ nullptr };
 
         void ConfigurePointsCompact(bool value = true);
     };
