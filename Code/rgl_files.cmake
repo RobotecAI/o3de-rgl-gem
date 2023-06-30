@@ -20,6 +20,8 @@ set(FILES
         Source/Lidar/LidarRaycaster.h
         Source/Lidar/LidarSystem.cpp
         Source/Lidar/LidarSystem.h
+        Source/Lidar/PipelineGraph.cpp
+        Source/Lidar/PipelineGraph.h
         Source/Lidar/RaycastResults.cpp
         Source/Lidar/RaycastResults.h
         Source/Mesh/MeshLibrary.cpp

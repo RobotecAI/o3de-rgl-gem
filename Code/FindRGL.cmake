@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set(RGL_TAG 0.13.1)
+set(RGL_TAG 0.14.1)
 
 set(RGL_LINUX_ZIP_URL   https://github.com/RobotecAI/RobotecGPULidar/releases/download/v${RGL_TAG}/Linux-x64.zip)
 set(RGL_SRC_ZIP_URL     https://github.com/RobotecAI/RobotecGPULidar/archive/refs/tags/v${RGL_TAG}.zip)
@@ -24,13 +24,15 @@ set(RGL_SRC_ZIP_FILENAME    ${RGL_SRC_ZIP_FILENAME_BASE}.zip)
 
 set(DEST_SO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/RobotecGPULidar)
 set(DEST_API_DIR ${DEST_SO_DIR}/include/rgl/api)
+set(DEST_API_EXT_DIR ${DEST_API_DIR}/extensions)
 
 set(SO_FILENAME libRobotecGPULidar.so)
 set(API_FILENAME core.h)
+set(API_EXT_ROS_FILENAME ros2.h)
 
 # Paths relative to the .zip file root.
 set(SO_REL_PATH ${SO_FILENAME})
-set(API_REL_PATH RobotecGPULidar-${RGL_TAG}/include/rgl/api/${API_FILENAME})
+set(API_REL_PATH RobotecGPULidar-${RGL_TAG}/include/rgl/api)
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
@@ -62,14 +64,14 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
 
     file(ARCHIVE_EXTRACT INPUT ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME}
             DESTINATION ${DEST_API_DIR}
-            PATTERNS ${API_REL_PATH}
+            PATTERNS ${API_REL_PATH}/*
             VERBOSE
             TOUCH
             )
 
     # Move the extracted files to their desired locations
     file(RENAME ${DEST_SO_DIR}/${SO_REL_PATH} ${DEST_SO_DIR}/${SO_FILENAME})
-    file(RENAME ${DEST_API_DIR}/${API_REL_PATH} ${DEST_API_DIR}/${API_FILENAME})
+    file(COPY ${DEST_API_DIR}/${API_REL_PATH} DESTINATION ${DEST_SO_DIR}/include/rgl/)
 
     # Remove the unwanted byproducts
     file(REMOVE_RECURSE ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME_BASE})

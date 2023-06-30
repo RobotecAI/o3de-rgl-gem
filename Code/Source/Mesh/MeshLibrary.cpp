@@ -54,7 +54,7 @@ namespace RGL
         {
             for (rgl_mesh_t mesh : mapEntry.second)
             {
-                Utils::ErrorCheck(rgl_mesh_destroy(mesh));
+                RGL_CHECK(rgl_mesh_destroy(mesh));
             }
         }
 

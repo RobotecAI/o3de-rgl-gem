@@ -42,7 +42,7 @@ namespace RGL
 
         for (rgl_entity_t entity : m_entities)
         {
-            Utils::ErrorCheck(rgl_entity_destroy(entity));
+            RGL_CHECK(rgl_entity_destroy(entity));
         }
     }
 
@@ -65,7 +65,7 @@ namespace RGL
 
         for (rgl_entity_t entity : m_entities)
         {
-            Utils::ErrorCheck(rgl_entity_set_pose(entity, &entityPose));
+            RGL_CHECK(rgl_entity_set_pose(entity, &entityPose));
         }
     }
 

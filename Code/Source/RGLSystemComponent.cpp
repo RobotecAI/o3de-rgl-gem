@@ -58,7 +58,7 @@ namespace RGL
 
     RGLSystemComponent::RGLSystemComponent()
     {
-        Utils::ErrorCheck(rgl_configure_logging(RGL_LOG_LEVEL_WARN, nullptr, true));
+        RGL_CHECK(rgl_configure_logging(RGL_LOG_LEVEL_WARN, nullptr, true));
         if (!RGLInterface::Get())
         {
             RGLInterface::Register(this);
@@ -96,7 +96,7 @@ namespace RGL
         m_entityManagers.clear();
         m_meshLibrary.Clear();
         m_rglLidarSystem.Clear();
-        Utils::ErrorCheck(rgl_cleanup());
+        RGL_CHECK(rgl_cleanup());
     }
 
     void RGLSystemComponent::ExcludeEntity(const AZ::EntityId& excludedEntityId)
@@ -128,7 +128,7 @@ namespace RGL
         m_entityManagers.clear();
         m_meshLibrary.Clear();
         m_rglLidarSystem.Clear();
-        Utils::ErrorCheck(rgl_cleanup());
+        RGL_CHECK(rgl_cleanup());
     }
 
     void RGLSystemComponent::OnTick(float deltaTime, AZ::ScriptTimePoint time)

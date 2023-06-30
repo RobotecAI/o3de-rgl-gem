@@ -14,57 +14,34 @@
  */
 #include <Lidar/LidarRaycaster.h>
 #include <RGL/RGLBus.h>
+#include <ROS2/ROS2Bus.h>
 #include <Utilities/RGLUtils.h>
+#include <rgl/api/extensions/ros2.h>
 
 namespace RGL
 {
     LidarRaycaster::LidarRaycaster(const AZ::Uuid& uuid)
         : m_uuid{ uuid }
         , m_rglRaycastResults{ m_resultFields, 1LU }
+        , m_graph{ m_range.second, m_resultFields }
     {
         ROS2::LidarRaycasterRequestBus::Handler::BusConnect(ROS2::LidarId(uuid));
-
-        // Configure the default graph
-        Utils::ErrorCheck(rgl_node_rays_from_mat3x4f(&m_rayPosesNode, &Utils::IdentityTransform, 1));
-        Utils::ErrorCheck(rgl_node_rays_transform(&m_lidarTransformNode, &Utils::IdentityTransform));
-        Utils::ErrorCheck(rgl_node_gaussian_noise_angular_ray(&m_angularNoiseNode, 0.0f, 0.0f, RGL_AXIS_Z));
-        Utils::ErrorCheck(rgl_node_raytrace(&m_rayTraceNode, nullptr, m_range));
-        Utils::ErrorCheck(rgl_node_gaussian_noise_distance(&m_distanceNoiseNode, 0.0f, 0.0f, 0.0f));
-        Utils::ErrorCheck(rgl_node_points_compact(&m_pointsCompactNode));
-        Utils::ErrorCheck(
-            rgl_node_points_format(&m_pointsFormatNode, m_resultFields.data(), aznumeric_cast<int32_t>(m_resultFields.size())));
-
-        Utils::ErrorCheck(rgl_graph_node_add_child(m_rayPosesNode, m_lidarTransformNode));
-        Utils::ErrorCheck(rgl_graph_node_add_child(m_lidarTransformNode, m_angularNoiseNode));
-        Utils::ErrorCheck(rgl_graph_node_add_child(m_angularNoiseNode, m_rayTraceNode));
-        Utils::ErrorCheck(rgl_graph_node_add_child(m_rayTraceNode, m_distanceNoiseNode));
-        Utils::ErrorCheck(rgl_graph_node_add_child(m_distanceNoiseNode, m_pointsCompactNode));
-        Utils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompactNode, m_pointsFormatNode));
     }
 
-    LidarRaycaster::LidarRaycaster(LidarRaycaster&& lidarRaycaster) noexcept
-        : m_addMaxRangePoints{ lidarRaycaster.m_addMaxRangePoints }
-        , m_useCompact{ lidarRaycaster.m_useCompact }
-        , m_uuid{ lidarRaycaster.m_uuid }
-        , m_range{ lidarRaycaster.m_range }
-        , m_minRange{ lidarRaycaster.m_minRange }
-        , m_resultFlags{ AZStd::move(lidarRaycaster.m_resultFlags) }
-        , m_resultFields{ AZStd::move(lidarRaycaster.m_resultFields) }
-        , m_rayTransforms{ AZStd::move(lidarRaycaster.m_rayTransforms) }
-        , m_rglRaycastResults{ AZStd::move(lidarRaycaster.m_rglRaycastResults) }
-        , m_rayPosesNode{ AZStd::move(lidarRaycaster.m_rayPosesNode) }
-        , m_lidarTransformNode{ AZStd::move(lidarRaycaster.m_lidarTransformNode) }
-        , m_angularNoiseNode{ AZStd::move(lidarRaycaster.m_angularNoiseNode)}
-        , m_rayTraceNode{ AZStd::move(lidarRaycaster.m_rayTraceNode) }
-        , m_distanceNoiseNode{ AZStd::move(lidarRaycaster.m_distanceNoiseNode)}
-        , m_pointsCompactNode{ AZStd::move(lidarRaycaster.m_pointsCompactNode)}
-        , m_pointsFormatNode{ AZStd::move(lidarRaycaster.m_pointsFormatNode) }
+    LidarRaycaster::LidarRaycaster(LidarRaycaster&& other)
+        : m_uuid{ other.m_uuid }
+        , m_isMaxRangePoints{ other.m_isMaxRangePoints }
+        , m_resultFlags{ other.m_resultFlags }
+        , m_range{ other.m_range }
+        , m_graph{ std::move(other.m_graph) }
+        , m_resultFields{ AZStd::move(other.m_resultFields) }
+        , m_rayTransforms{ AZStd::move(other.m_rayTransforms) }
+        , m_rglRaycastResults{ AZStd::move(other.m_rglRaycastResults) }
     {
-        lidarRaycaster.BusDisconnect();
+        other.BusDisconnect();
 
         // Ensure proper destruction of the movee.
-        lidarRaycaster.m_uuid = AZ::Uuid::CreateNull();
-        lidarRaycaster.m_rayPosesNode = nullptr;
+        other.m_uuid = AZ::Uuid::CreateNull();
         ROS2::LidarRaycasterRequestBus::Handler::BusConnect(ROS2::LidarId(m_uuid));
     }
 
@@ -73,16 +50,6 @@ namespace RGL
         if (!m_uuid.IsNull())
         {
             ROS2::LidarRaycasterRequestBus::Handler::BusDisconnect();
-        }
-
-        if (m_rayPosesNode)
-        {
-            Utils::ErrorCheck(rgl_graph_destroy(m_pointsCompactNode));
-
-            if (!m_useCompact)
-            {
-                Utils::ErrorCheck(rgl_graph_destroy(m_rayTraceNode));
-            }
         }
     }
 
@@ -110,20 +77,20 @@ namespace RGL
             m_rayTransforms.push_back(Utils::AzMatrix3x4FromRglMat3x4(transform));
         }
 
-        Utils::ErrorCheck(
-            rgl_node_rays_from_mat3x4f(&m_rayPosesNode, rglRayTransforms.data(), aznumeric_cast<int32_t>(rglRayTransforms.size())));
+        RGL_CHECK(rgl_node_rays_from_mat3x4f(
+            &m_graph.GetNodes().m_rayPoses, rglRayTransforms.data(), aznumeric_cast<int32_t>(rglRayTransforms.size())));
     }
 
     void LidarRaycaster::ConfigureRayRange(float range)
     {
         ValidateRayRange(range);
-        m_range = range;
-        Utils::ErrorCheck(rgl_node_raytrace(&m_rayTraceNode, nullptr, range));
+        m_range.second = range;
+        RGL_CHECK(rgl_node_raytrace(&m_graph.GetNodes().m_rayTrace, nullptr, range));
     }
 
     void LidarRaycaster::ConfigureMinimumRayRange(float range)
     {
-        m_minRange = range;
+        m_range.first = range;
     }
 
     void LidarRaycaster::ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags)
@@ -137,30 +104,39 @@ namespace RGL
             m_resultFields.push_back(RGL_FIELD_XYZ_F32);
         }
 
-        const bool rangesExpected = (flags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges;
-        if (rangesExpected)
+        if ((flags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges)
         {
             m_resultFields.push_back(RGL_FIELD_DISTANCE_F32);
         }
 
-        // We need to configure if points should be compacted to minimize the CPU operations when retrieving raycast results.
-        ConfigurePointsCompact(!rangesExpected && !m_addMaxRangePoints);
+        RGL_CHECK(rgl_node_points_format(
+            &m_graph.GetNodes().m_pointsFormat, m_resultFields.data(), aznumeric_cast<int32_t>(m_resultFields.size())));
+        RGL_CHECK(rgl_node_points_format(
+            &m_graph.GetNodes().m_pointsFormatPublish, m_resultFields.data(), aznumeric_cast<int32_t>(m_resultFields.size())));
 
-        Utils::ErrorCheck(
-            rgl_node_points_format(&m_pointsFormatNode, m_resultFields.data(), aznumeric_cast<int32_t>(m_resultFields.size())));
         m_rglRaycastResults = RaycastResults{ m_resultFields, m_rglRaycastResults.GetCount() };
+
+        m_graph.SetIsCompactEnabled(ShouldEnableCompact());
+        m_graph.SetIsPublishingEnabled(ShouldEnablePublishing());
     }
 
     ROS2::RaycastResult LidarRaycaster::PerformRaycast(const AZ::Transform& lidarTransform)
     {
         const AZ::Matrix3x4 lidarPose = AZ::Matrix3x4::CreateFromTransform(lidarTransform);
-        const rgl_mat3x4f rglLidarPose = Utils::RglMat3x4FromAzMatrix3x4(lidarPose);
+        m_lidarPose = Utils::RglMat3x4FromAzMatrix3x4(lidarPose);
+        m_lidarPoseInv = Utils::RglMat3x4FromAzMatrix3x4(lidarPose.GetInverseFull());
 
-        Utils::ErrorCheck(rgl_node_rays_transform(&m_lidarTransformNode, &rglLidarPose));
-        Utils::ErrorCheck(rgl_graph_run(m_lidarTransformNode));
+        RGL_CHECK(rgl_node_rays_transform(&m_graph.GetNodes().m_lidarTransform, &m_lidarPose));
+        if (m_graph.IsPublishingEnabled())
+        {
+            RGL_CHECK(rgl_node_points_transform(&m_graph.GetNodes().m_pointCloudTransform, &m_lidarPoseInv));
+        }
+
+        RGL_CHECK(rgl_graph_run(m_graph.GetNodes().m_lidarTransform));
 
         int32_t resultSize = -1;
-        Utils::ErrorCheck(rgl_graph_get_result_size(m_pointsFormatNode, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, &resultSize, nullptr));
+        RGL_CHECK(
+            rgl_graph_get_result_size(m_graph.GetNodes().m_pointsFormat, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, &resultSize, nullptr));
 
         if (resultSize <= 0)
         {
@@ -168,8 +144,8 @@ namespace RGL
         }
 
         m_rglRaycastResults.Resize(resultSize);
-        Utils::ErrorCheck(
-            rgl_graph_get_result_data(m_pointsFormatNode, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, m_rglRaycastResults.GetData()));
+        RGL_CHECK(rgl_graph_get_result_data(
+            m_graph.GetNodes().m_pointsFormat, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, m_rglRaycastResults.GetData()));
 
         bool pointsExpected = (m_resultFlags & ROS2::RaycastResultFlags::Points) == ROS2::RaycastResultFlags::Points;
         bool distanceExpected = (m_resultFlags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges;
@@ -185,25 +161,25 @@ namespace RGL
         }
 
         size_t usedPointIndex = 0LU;
-        const float MaxRange = m_addMaxRangePoints ? m_range : AZStd::numeric_limits<float>::infinity();
+        const float MaxRange = m_isMaxRangePoints ? m_range.second : AZStd::numeric_limits<float>::infinity();
         for (size_t resultIndex = 0LU; resultIndex < m_rglRaycastResults.GetCount(); ++resultIndex)
         {
             if (pointsExpected)
             {
-                const bool IsHit =
-                    m_useCompact || *static_cast<int32_t*>(m_rglRaycastResults.GetFieldPtr(resultIndex, RGL_FIELD_IS_HIT_I32));
+                const bool IsHit = (m_graph.IsCompactEnabled()) ||
+                    *static_cast<int32_t*>(m_rglRaycastResults.GetFieldPtr(resultIndex, RGL_FIELD_IS_HIT_I32));
                 if (IsHit)
                 {
                     m_raycastResults.m_points[usedPointIndex] = Utils::AzVector3FromRglVec3f(
                         *static_cast<rgl_vec3f*>(m_rglRaycastResults.GetFieldPtr(resultIndex, RGL_FIELD_XYZ_F32)));
                 }
-                else if (m_addMaxRangePoints)
+                else if (m_isMaxRangePoints)
                 {
-                    const AZ::Vector4 maxVector = lidarPose * m_rayTransforms[resultIndex] * AZ::Vector4(0.0f, 0.0f, m_range, 1.0f);
+                    const AZ::Vector4 maxVector = lidarPose * m_rayTransforms[resultIndex] * AZ::Vector4(0.0f, 0.0f, m_range.second, 1.0f);
                     m_raycastResults.m_points[usedPointIndex] = maxVector.GetAsVector3();
                 }
 
-                if (IsHit || m_addMaxRangePoints)
+                if (IsHit || m_isMaxRangePoints)
                 {
                     ++usedPointIndex;
                 }
@@ -212,11 +188,11 @@ namespace RGL
             if (distanceExpected)
             {
                 float distance = *static_cast<float*>(m_rglRaycastResults.GetFieldPtr(resultIndex, RGL_FIELD_DISTANCE_F32));
-                if (distance < m_minRange)
+                if (distance < m_range.first)
                 {
                     distance = -AZStd::numeric_limits<float>::infinity();
                 }
-                else if (distance > m_range)
+                else if (distance > m_range.second)
                 {
                     distance = MaxRange;
                 }
@@ -236,8 +212,11 @@ namespace RGL
     void LidarRaycaster::ConfigureNoiseParameters(
         float angularNoiseStdDev, float distanceNoiseStdDevBase, float distanceNoiseStdDevRisePerMeter)
     {
-        Utils::ErrorCheck(rgl_node_gaussian_noise_angular_ray(&m_angularNoiseNode, 0.0f, angularNoiseStdDev, RGL_AXIS_Z));
-        Utils::ErrorCheck(rgl_node_gaussian_noise_distance(&m_distanceNoiseNode, 0.0f, distanceNoiseStdDevBase, distanceNoiseStdDevRisePerMeter));
+        RGL_CHECK(rgl_node_gaussian_noise_angular_ray(&m_graph.GetNodes().m_angularNoise, 0.0f, angularNoiseStdDev, RGL_AXIS_Z));
+        RGL_CHECK(rgl_node_gaussian_noise_distance(
+            &m_graph.GetNodes().m_distanceNoise, 0.0f, distanceNoiseStdDevBase, distanceNoiseStdDevRisePerMeter));
+
+        m_graph.SetIsNoiseEnabled(true);
     }
 
     void LidarRaycaster::ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities)
@@ -250,33 +229,50 @@ namespace RGL
 
     void LidarRaycaster::ConfigureMaxRangePointAddition(bool addMaxRangePoints)
     {
-        m_addMaxRangePoints = addMaxRangePoints;
+        m_isMaxRangePoints = addMaxRangePoints;
+
         // We need to configure if points should be compacted to minimize the CPU operations when retrieving raycast results.
-        ConfigurePointsCompact(
-            !((m_resultFlags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges) && !m_addMaxRangePoints);
+        m_graph.SetIsCompactEnabled(ShouldEnableCompact());
+
+        m_graph.SetIsPublishingEnabled(ShouldEnablePublishing());
     }
 
-    void LidarRaycaster::ConfigurePointsCompact(bool value)
+    void LidarRaycaster::ConfigurePointCloudPublisher(
+        const AZStd::string& topicName, const AZStd::string& frameId, const ROS2::QoS& qoSPolicy)
     {
-        if (m_useCompact == value) // Make sure to only allow state switching calls
-        {
-            return;
-        }
+        RGL_CHECK(rgl_node_points_transform(&m_graph.GetNodes().m_pointCloudTransform, &Utils::IdentityTransform));
 
-        m_useCompact = value;
+        RGL_CHECK(rgl_node_points_ros2_publish_with_qos(
+            &m_graph.GetNodes().m_pointCloudPublish,
+            topicName.c_str(),
+            frameId.c_str(),
+            static_cast<rgl_qos_policy_reliability_t>(static_cast<int>(qoSPolicy.GetQoS().reliability())),
+            static_cast<rgl_qos_policy_durability_t>(static_cast<int>(qoSPolicy.GetQoS().durability())),
+            static_cast<rgl_qos_policy_history_t>(static_cast<int>(qoSPolicy.GetQoS().history())),
+            qoSPolicy.GetQoS().depth()));
 
-        // We unpin / repin the compact node from / to the rgl tree.
-        if (value)
-        {
-            Utils::ErrorCheck(rgl_graph_node_remove_child(m_distanceNoiseNode, m_pointsFormatNode));
-            Utils::ErrorCheck(rgl_graph_node_add_child(m_distanceNoiseNode, m_pointsCompactNode));
-            Utils::ErrorCheck(rgl_graph_node_add_child(m_pointsCompactNode, m_pointsFormatNode));
-        }
-        else
-        {
-            Utils::ErrorCheck(rgl_graph_node_remove_child(m_distanceNoiseNode, m_pointsCompactNode));
-            Utils::ErrorCheck(rgl_graph_node_remove_child(m_pointsCompactNode, m_pointsFormatNode));
-            Utils::ErrorCheck(rgl_graph_node_add_child(m_distanceNoiseNode, m_pointsFormatNode));
-        }
+        m_graph.SetIsPublishingEnabled(ShouldEnablePublishing());
+    }
+
+    bool LidarRaycaster::CanHandlePublishing()
+    {
+        return m_graph.IsPublishingEnabled();
+    }
+
+    void LidarRaycaster::UpdatePublisherTimestamp(AZ::u64 timestampNanoseconds)
+    {
+        RGL_CHECK(rgl_scene_set_time(nullptr, timestampNanoseconds));
+    }
+
+    bool LidarRaycaster::ShouldEnableCompact() const
+    {
+        const bool RangesExpected = (m_resultFlags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges;
+        return !RangesExpected && !m_isMaxRangePoints;
+    }
+
+    bool LidarRaycaster::ShouldEnablePublishing() const
+    {
+        // Same conditions.
+        return m_graph.IsPublisherConfigured() && ShouldEnableCompact();
     }
 } // namespace RGL

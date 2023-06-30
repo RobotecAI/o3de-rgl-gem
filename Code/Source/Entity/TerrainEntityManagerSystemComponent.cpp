@@ -77,13 +77,13 @@ namespace RGL
     {
         if (m_rglEntity)
         {
-            Utils::ErrorCheck(rgl_entity_destroy(m_rglEntity));
+            RGL_CHECK(rgl_entity_destroy(m_rglEntity));
             m_rglEntity = nullptr;
         }
 
         if (m_rglMesh)
         {
-            Utils::ErrorCheck(rgl_mesh_destroy(m_rglMesh));
+            RGL_CHECK(rgl_mesh_destroy(m_rglMesh));
             m_rglMesh = nullptr;
         }
     }
@@ -157,7 +157,7 @@ namespace RGL
             return;
         }
 
-        Utils::ErrorCheck(rgl_entity_set_pose(m_rglEntity, &Utils::IdentityTransform));
+        RGL_CHECK(rgl_entity_set_pose(m_rglEntity, &Utils::IdentityTransform));
     }
 
     void TerrainEntityManagerSystemComponent::UpdateDirtyRegion(const AZ::Aabb& dirtyRegion)
@@ -191,7 +191,7 @@ namespace RGL
             }
         }
 
-        Utils::ErrorCheck(rgl_mesh_update_vertices(m_rglMesh, m_vertices.data(), aznumeric_cast<int32_t>(m_vertices.size())));
+        RGL_CHECK(rgl_mesh_update_vertices(m_rglMesh, m_vertices.data(), aznumeric_cast<int32_t>(m_vertices.size())));
     }
 
     void TerrainEntityManagerSystemComponent::OnTerrainDataChanged(const AZ::Aabb& dirtyRegion, TerrainDataChangedMask dataChangedMask)

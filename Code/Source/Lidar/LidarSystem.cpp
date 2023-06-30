@@ -27,8 +27,9 @@ namespace RGL
     {
         const char* name = "RobotecGPULidar";
         const char* description = "Mesh-based lidar implementation that uses the RobotecGPULidar API for GPU-enabled raycasting.";
-        static constexpr ROS2::LidarSystemFeatures SupportedFeatures = aznumeric_cast<ROS2::LidarSystemFeatures>(
-            ROS2::LidarSystemFeatures::EntityExclusion | ROS2::LidarSystemFeatures::MaxRangePoints | ROS2::LidarSystemFeatures::Noise);
+        static constexpr auto SupportedFeatures = aznumeric_cast<ROS2::LidarSystemFeatures>(
+            ROS2::LidarSystemFeatures::EntityExclusion | ROS2::LidarSystemFeatures::MaxRangePoints | ROS2::LidarSystemFeatures::Noise |
+            ROS2::LidarSystemFeatures::PointcloudPublishing);
 
         ROS2::LidarSystemRequestBus::Handler::BusConnect(AZ_CRC(name));
 
@@ -50,7 +51,12 @@ namespace RGL
     ROS2::LidarId LidarSystem::CreateLidar(AZ::EntityId lidarEntityId)
     {
         const AZ::Uuid lidarUuid = AZ::Uuid::CreateRandom();
-        m_lidars.emplace_back(lidarUuid);
+        m_lidars.emplace(lidarUuid, LidarRaycaster(lidarUuid));
         return ROS2::LidarId(lidarUuid);
+    }
+
+    void LidarSystem::DestroyLidar(ROS2::LidarId lidarId)
+    {
+        m_lidars.erase(lidarId);
     }
 } // namespace RGL
