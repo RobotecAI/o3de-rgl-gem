@@ -18,6 +18,10 @@
 #include <Utilities/RGLUtils.h>
 // TODO - Format the code past o3de hash 57a500f3eaf2b0d8450003dd04016f5147e940a7. Missing includes inside the file.
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentConstants.h>
+#include <Entity/ActorEntityManager.h>
+#include <Entity/EntityManager.h>
+#include <Entity/MeshEntityManager.h>
+#include <Integration/Components/ActorComponent.h>
 
 namespace RGL
 {
@@ -109,12 +113,26 @@ namespace RGL
 
     void RGLSystemComponent::OnEntityContextCreateEntity(AZ::Entity& entity)
     {
-        if (entity.FindComponent(AZ::Render::MeshComponentTypeId) == nullptr || m_excludedEntities.contains(entity.GetId()))
+        if (m_excludedEntities.contains(entity.GetId()))
         {
             return;
         }
 
-        [[maybe_unused]] bool inserted = m_entityManagers.emplace(entity.GetId(), EntityManager{ entity.GetId() }).second;
+        AZStd::shared_ptr<EntityManager> entityManager;
+        if (entity.FindComponent<EMotionFX::Integration::ActorComponent>())
+        {
+            entityManager = AZStd::make_shared<ActorEntityManager>(entity.GetId());
+        }
+        else if (entity.FindComponent(AZ::Render::MeshComponentTypeId))
+        {
+            entityManager = AZStd::make_shared<MeshEntityManager>(entity.GetId());
+        }
+        else
+        {
+            return;
+        }
+
+        [[maybe_unused]] bool inserted = m_entityManagers.emplace(entity.GetId(), entityManager).second;
         AZ_Error(__func__, inserted, "Object with provided entityId already exists.");
     }
 
@@ -135,12 +153,7 @@ namespace RGL
     {
         for (auto& [entityId, entityManager] : m_entityManagers)
         {
-            if (entityManager.IsStatic())
-            {
-                continue;
-            }
-
-            entityManager.UpdatePose();
+            entityManager->Update();
         }
     }
 } // namespace RGL

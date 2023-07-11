@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set(FILES
+        Source/Entity/ActorEntityManager.cpp
+        Source/Entity/ActorEntityManager.h
+        Source/Entity/MeshEntityManager.cpp
+        Source/Entity/MeshEntityManager.h
         Source/Entity/EntityManager.cpp
         Source/Entity/EntityManager.h
         Source/Entity/TerrainEntityManagerSystemComponent.cpp

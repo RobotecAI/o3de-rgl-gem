@@ -12,33 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <AzCore/Component/TransformBus.h>
+
 #include <Entity/EntityManager.h>
-#include <Mesh/MeshLibraryBus.h>
-#include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
     EntityManager::EntityManager(AZ::EntityId entityId)
         : m_entityId{ entityId }
     {
-        AZ::Render::MeshComponentNotificationBus::Handler::BusConnect(entityId);
-        AZ::EntityBus::Handler::BusConnect(entityId);
+        AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
 
-    EntityManager::EntityManager(EntityManager&& entityManager)
-        : m_isStatic{ entityManager.m_isStatic }
-        , m_entityId{ entityManager.m_entityId }
-        , m_entities{ AZStd::move(entityManager.m_entities) }
+    EntityManager::EntityManager(EntityManager&& other)
+        : m_entityId{ other.m_entityId }
+        , m_entities{ AZStd::move(other.m_entities) }
+        , m_isStatic{ other.m_isStatic }
     {
-        AZ::Render::MeshComponentNotificationBus::Handler::BusConnect(m_entityId);
         AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
 
     EntityManager::~EntityManager()
     {
         AZ::EntityBus::Handler::BusDisconnect();
-        AZ::Render::MeshComponentNotificationBus::Handler::BusDisconnect();
 
         for (rgl_entity_t entity : m_entities)
         {
@@ -46,9 +41,24 @@ namespace RGL
         }
     }
 
+    void EntityManager::Update()
+    {
+        if (IsStatic())
+        {
+            return;
+        }
+
+        UpdatePose();
+    }
+
     bool EntityManager::IsStatic() const
     {
         return m_isStatic;
+    }
+
+    void EntityManager::OnEntityActivated(const AZ::EntityId& entityId)
+    {
+        AZ::TransformBus::EventResult(m_isStatic, m_entityId, &AZ::TransformBus::Events::IsStaticTransform);
     }
 
     void EntityManager::UpdatePose()
@@ -67,41 +77,5 @@ namespace RGL
         {
             RGL_CHECK(rgl_entity_set_pose(entity, &entityPose));
         }
-    }
-
-    void EntityManager::OnModelReady(
-        const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset, [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model)
-    {
-        AZ_Assert(m_entities.empty(), "Entity Manager for entity with ID: %s has an invalid state.", m_entityId.ToString().c_str());
-        const auto meshes = MeshLibraryInterface::Get()->StoreModelAsset(modelAsset);
-
-        if (meshes.empty())
-        {
-            AZ_Assert(false, "EntityManager with ID: %s did not receive any mesh from the MeshLibrary.", m_entityId.ToString().c_str());
-            return;
-        }
-
-        m_entities.reserve(meshes.size());
-        for (rgl_mesh_t mesh : meshes)
-        {
-            rgl_entity_t entity = nullptr;
-            Utils::SafeRglEntityCreate(entity, mesh);
-            if (entity == nullptr)
-            {
-                continue;
-            }
-
-            m_entities.emplace_back(entity);
-        }
-
-        if (!m_entities.empty())
-        {
-            UpdatePose();
-        }
-    }
-
-    void EntityManager::OnEntityActivated(const AZ::EntityId& entityId)
-    {
-        AZ::TransformBus::EventResult(m_isStatic, m_entityId, &AZ::TransformBus::Events::IsStaticTransform);
     }
 } // namespace RGL
