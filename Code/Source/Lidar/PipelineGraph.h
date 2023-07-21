@@ -14,47 +14,24 @@
  */
 #pragma once
 
+#include <ROS2/Communication/QoS.h>
 #include <rgl/api/core.h>
 
 namespace RGL
 {
+    class RaycastResults;
+
     //! Class that manages the RGL pipeline graph construction, which depends on
-    //! three conditions: point-cloud compact, noise and publication. Below is a
-    //! visual representation of the pipeline graph.
-    //!
-    //!      +--------+    +--------------+    +-?--?--?--?-+
-    //!      |rayPoses+---->lidarTransform+---->angularNoise?
-    //!      +--------+    +--------------+    +-?--?--?--?++
-    //!                                                    |
-    //!      +-?--?---?--?-+     +-?--?---?--?-+      +----v---+
-    //!      |pointsCompact<-----+distanceNoise<------+rayTrace|
-    //!      +-?--?-+-?--?-+     +-?--?-?-?--?-+      +--------+
-    //!             |                   |
-    //!      +------v-----+      +------v--------+
-    //!      |pointsFormat|      |pointsTransform|
-    //!      +------------+      +------+--------+
-    //!                                 |
-    //!                        +--------v----------+
-    //!                        |pointsFormatPublish|
-    //!                        +--------+----------+
-    //!                                 |
-    //!                         +-------v---------+
-    //!                         |pointCloudPublish|
-    //!                         +-----------------+
-    //!
-    //! Enabling compact adds an additional pointsCompact node to the pipeline,
-    //! enabling noise, adds the angularNoise and distance noise nodes whereas
-    //! enabling point-cloud publishing adds an additional branch to the pipeline
-    //! graph consisting of three nodes: pointsTransform, pointsFormatPublish
-    //! and pointCloudPublish.
+    //! three conditions: point-cloud compact, noise and publication. The diagram
+    //! representation of this graph can be found under static/PipelineGraph.mmd.
     class PipelineGraph
     {
     public:
         struct Nodes
         {
             rgl_node_t m_rayPoses{ nullptr }, m_lidarTransform{ nullptr }, m_angularNoise{ nullptr }, m_rayTrace{ nullptr },
-                m_distanceNoise{ nullptr }, m_pointsCompact{ nullptr }, m_pointsFormat{ nullptr }, m_pointCloudTransform{ nullptr },
-                m_pointsFormatPublish{ nullptr }, m_pointCloudPublish{ nullptr };
+                m_distanceNoise{ nullptr }, m_rayTraceYield{ nullptr }, m_pointsCompact{ nullptr }, m_compactYield{ nullptr },
+                m_pointsFormat{ nullptr }, m_pointCloudTransform{ nullptr }, m_pcPublishFormat{ nullptr }, m_pointCloudPublish{ nullptr };
         };
 
         PipelineGraph(float maxRange, AZStd::vector<rgl_field_t>& resultFields);
@@ -62,39 +39,75 @@ namespace RGL
         PipelineGraph(PipelineGraph&& other);
         ~PipelineGraph();
 
-        [[nodiscard]] bool IsCompactEnabled() const
-        {
-            return m_isCompactEnabled;
-        };
-        [[nodiscard]] bool IsPublishingEnabled() const
-        {
-            return m_isPublishingEnabled;
-        };
-        [[nodiscard]] bool IsNoiseEnabled() const
-        {
-            return m_isNoiseEnabled;
-        }
-        
+        [[nodiscard]] bool IsCompactEnabled() const;
+        [[nodiscard]] bool IsPcPublishingEnabled() const;
+        [[nodiscard]] bool IsNoiseEnabled() const;
         [[nodiscard]] bool IsPublisherConfigured() const
         {
             return m_nodes.m_pointCloudPublish;
         }
 
-        [[nodiscard]] const Nodes& GetNodes() const
-        {
-            return m_nodes;
-        };
+        void ConfigureRayPosesNode(const AZStd::vector<rgl_mat3x4f>& rayPoses);
+        void ConfigureRayTraceNode(float maxRange);
+        void ConfigureFormatNode(const AZStd::vector<rgl_field_t>& fields);
+        void ConfigureLidarTransformNode(const AZ::Matrix3x4& lidarTransform);
+        void ConfigurePcTransformNode(const AZ::Matrix3x4& pcTransform);
+        void ConfigureAngularNoiseNode(float angularNoiseStdDev);
+        void ConfigureDistanceNoiseNode(float distanceNoiseStdDevBase, float distanceNoiseStdDevRisePerMeter);
+        void ConfigurePcPublisherNode(const AZStd::string& topicName, const AZStd::string& frameId, const ROS2::QoS& qosPolicy);
 
-        Nodes& GetNodes()
-        {
-            return m_nodes;
-        };
         void SetIsCompactEnabled(bool value);
-        void SetIsPublishingEnabled(bool value);
+        void SetIsPcPublishingEnabled(bool value);
         void SetIsNoiseEnabled(bool value);
 
+        void Run();
+        //! Get the raycast results.
+        //! @param results Raycast results destination.
+        //! @return If successful returns true, otherwise returns false.
+        bool GetResults(RaycastResults& results);
+
     private:
+        enum PipelineFeatureFlags : uint8_t
+        // clang-format off
+        {
+            None                    = 0,
+            Noise                   = 1,
+            PointsCompact           = 1 << 1,
+            PointCloudPublishing    = 1 << 2,
+            All                     = Noise | PointsCompact | PointCloudPublishing,
+        };
+        // clang-format on
+
+        using ConditionType = AZStd::function<bool(const PipelineGraph&)>;
+
+        class ConditionalConnection
+        {
+        public:
+            ConditionalConnection(rgl_node_t parent, rgl_node_t child, const ConditionType& condition, bool activate=false);
+            void Update(const PipelineGraph& graph);
+
+        private:
+            bool m_isActive;
+            ConditionType m_condition;
+            rgl_node_t m_parent, m_child;
+        };
+
+        static const std::vector<rgl_field_t> DefaultFields;
+
+        [[nodiscard]] bool IsFeatureEnabled(PipelineFeatureFlags feature) const;
+
+        void SetIsFeatureEnabled(PipelineFeatureFlags feature, bool value);
+        void InitializeConditionalConnections();
+        void UpdateConnections();
+        //! Adds conditional connections that support conditional insertion / removal
+        //! of a node from in between the parent and child node.
+        //! @param condition When true, the node should connect with parent and child.
+        //! Otherwise the node is not connected.
+        void AddConditionalNode(rgl_node_t node, rgl_node_t parent, rgl_node_t child, const ConditionType& condition);
+        void AddConditionalConnection(rgl_node_t parent, rgl_node_t child, const ConditionType& condition);
+
+        PipelineFeatureFlags m_activeFeatures{ PointsCompact };
         Nodes m_nodes;
-        bool m_isCompactEnabled{ true }, m_isPublishingEnabled{ false }, m_isNoiseEnabled{ false };
+        std::vector<ConditionalConnection> m_conditionalConnections;
     };
 } // namespace RGL

@@ -50,19 +50,18 @@ namespace RGL
         void ConfigurePointCloudPublisher(
             [[maybe_unused]] const AZStd::string& topicName,
             [[maybe_unused]] const AZStd::string& frameId,
-            [[maybe_unused]] const ROS2::QoS& qoSPolicy) override;
+            [[maybe_unused]] const ROS2::QoS& qosPolicy) override;
 
         void UpdatePublisherTimestamp([[maybe_unused]] AZ::u64 timestampNanoseconds) override;
 
     private:
         AZ::Uuid m_uuid;
 
-        bool m_isMaxRangePoints{ false };
+        bool m_isMaxRangeEnabled{ false }; //!< Determines whether max range point addition is enabled.
         ROS2::RaycastResultFlags m_resultFlags{ ROS2::RaycastResultFlags::Points };
 
         AZStd::pair<float, float> m_range{ 0.0f, 1.0f };
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
-        rgl_mat3x4f m_lidarPose{ Utils::IdentityTransform }, m_lidarPoseInv{ Utils::IdentityTransform };
 
         AZStd::vector<rgl_field_t> m_resultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_F32 };
         RaycastResults m_rglRaycastResults;
@@ -70,7 +69,9 @@ namespace RGL
 
         PipelineGraph m_graph;
 
+        [[nodiscard]] bool ArePointsExpected() const;
+        [[nodiscard]] bool AreRangesExpected() const;
         [[nodiscard]] bool ShouldEnableCompact() const;
-        [[nodiscard]] bool ShouldEnablePublishing() const;
+        [[nodiscard]] bool ShouldEnablePcPublishing() const;
     };
 } // namespace RGL

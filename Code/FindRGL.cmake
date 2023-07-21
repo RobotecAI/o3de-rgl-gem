@@ -11,13 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set(RGL_TAG 0.14.1)
+set(RGL_VERSION 0.14.1)
+set(RGL_TAG v${RGL_VERSION})
 
-set(RGL_LINUX_ZIP_URL   https://github.com/RobotecAI/RobotecGPULidar/releases/download/v${RGL_TAG}/Linux-x64.zip)
-set(RGL_SRC_ZIP_URL     https://github.com/RobotecAI/RobotecGPULidar/archive/refs/tags/v${RGL_TAG}.zip)
+set(RGL_LINUX_ZIP_URL   https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/Linux-x64.zip)
+set(RGL_SRC_ZIP_URL     https://github.com/RobotecAI/RobotecGPULidar/archive/refs/tags/${RGL_TAG}.zip)
 
 set(RGL_LINUX_ZIP_FILENAME_BASE  Linux-x64)
-set(RGL_SRC_ZIP_FILENAME_BASE    RobotecGPULidar-${RGL_TAG})
+set(RGL_SRC_ZIP_FILENAME_BASE    RobotecGPULidar-${RGL_VERSION})
 
 set(RGL_LINUX_ZIP_FILENAME  ${RGL_LINUX_ZIP_FILENAME_BASE}.zip)
 set(RGL_SRC_ZIP_FILENAME    ${RGL_SRC_ZIP_FILENAME_BASE}.zip)
@@ -32,7 +33,7 @@ set(API_EXT_ROS_FILENAME ros2.h)
 
 # Paths relative to the .zip file root.
 set(SO_REL_PATH ${SO_FILENAME})
-set(API_REL_PATH RobotecGPULidar-${RGL_TAG}/include/rgl/api)
+set(API_REL_PATH RobotecGPULidar-${RGL_VERSION}/include/rgl/api)
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
