@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set(FILES
+        Source/Entity/ActorEntityManager.cpp
+        Source/Entity/ActorEntityManager.h
+        Source/Entity/MeshEntityManager.cpp
+        Source/Entity/MeshEntityManager.h
         Source/Entity/EntityManager.cpp
         Source/Entity/EntityManager.h
         Source/Entity/TerrainEntityManagerSystemComponent.cpp
@@ -20,6 +24,8 @@ set(FILES
         Source/Lidar/LidarRaycaster.h
         Source/Lidar/LidarSystem.cpp
         Source/Lidar/LidarSystem.h
+        Source/Lidar/PipelineGraph.cpp
+        Source/Lidar/PipelineGraph.h
         Source/Lidar/RaycastResults.cpp
         Source/Lidar/RaycastResults.h
         Source/Mesh/MeshLibrary.cpp

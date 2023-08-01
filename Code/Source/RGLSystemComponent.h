@@ -18,15 +18,14 @@
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/Math/Vector3.h>
 #include <AzFramework/Entity/EntityContextBus.h>
-#include <Entity/EntityManager.h>
 #include <Lidar/LidarSystem.h>
 #include <Mesh/MeshLibrary.h>
 #include <RGL/RGLBus.h>
 
-struct Scene;
-
 namespace RGL
 {
+    class EntityManager;
+
     class RGLSystemComponent
         : public AZ::Component
         , protected RGLRequestBus::Handler
@@ -68,6 +67,6 @@ namespace RGL
 
         MeshLibrary m_meshLibrary;
         AZStd::set<AZ::EntityId> m_excludedEntities;
-        AZStd::unordered_map<AZ::EntityId, EntityManager> m_entityManagers;
+        AZStd::unordered_map<AZ::EntityId, AZStd::shared_ptr<EntityManager>> m_entityManagers;
     };
 } // namespace RGL

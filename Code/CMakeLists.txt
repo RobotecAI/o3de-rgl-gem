@@ -35,9 +35,10 @@ ly_add_target(
             Gem::Atom_RPI.Public
             Gem::AtomLyIntegration_CommonFeatures.Static
             Gem::ROS2.Static
+            Gem::EMotionFX.Static
 )
 
-ly_target_link_libraries(RGL.Static PUBLIC ${RGL_SO_PATH})
+ly_target_link_libraries(RGL.Static PUBLIC ${RGL_SO_DIR})
 
 ly_add_target(
     NAME RGL.API HEADERONLY

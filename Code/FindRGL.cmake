@@ -11,26 +11,77 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set(RGL_HASH e5ea8a1a74c253a304f4d1d4652391bca9d448e6)
-set(RGL_TAG v0.11.3)
+set(RGL_VERSION 0.14.1)
+set(RGL_TAG v${RGL_VERSION})
 
-set(RGL_SO_URL https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/libRobotecGPULidar.so)
-set(RGL_API_URL https://raw.githubusercontent.com/RobotecAI/RobotecGPULidar/${RGL_HASH}/include/rgl/api/core.h)
+set(RGL_LINUX_ZIP_URL   https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/Linux-x64.zip)
+set(RGL_SRC_ZIP_URL     https://github.com/RobotecAI/RobotecGPULidar/archive/refs/tags/${RGL_TAG}.zip)
 
-set(RGL_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/RobotecGPULidar)
-set(RGL_INCLUDE_DIR ${RGL_LIB_DIR}/include)
+set(RGL_LINUX_ZIP_FILENAME_BASE  Linux-x64)
+set(RGL_SRC_ZIP_FILENAME_BASE    RobotecGPULidar-${RGL_VERSION})
 
-set(RGL_SO_PATH ${RGL_LIB_DIR}/libRobotecGPULidar.so)
-set(RGL_API_PATH ${RGL_LIB_DIR}/include/rgl/api/core.h)
+set(RGL_LINUX_ZIP_FILENAME  ${RGL_LINUX_ZIP_FILENAME_BASE}.zip)
+set(RGL_SRC_ZIP_FILENAME    ${RGL_SRC_ZIP_FILENAME_BASE}.zip)
+
+set(DEST_SO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/RobotecGPULidar)
+set(DEST_API_DIR ${DEST_SO_DIR}/include/rgl/api)
+set(DEST_API_EXT_DIR ${DEST_API_DIR}/extensions)
+
+set(SO_FILENAME libRobotecGPULidar.so)
+set(API_FILENAME core.h)
+set(API_EXT_ROS_FILENAME ros2.h)
+
+# Paths relative to the .zip file root.
+set(SO_REL_PATH ${SO_FILENAME})
+set(API_REL_PATH RobotecGPULidar-${RGL_VERSION}/include/rgl/api)
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-file(DOWNLOAD
-        ${RGL_SO_URL}
-        ${RGL_SO_PATH}
-    )
+# This check is performed to mitigate Clion multi-profile project reload issues
+# (each profile would execute the file download, extraction and removal without it).
+# Note: This check does not provide a full assurance (not atomic) but is good enough
+#       since this is a Clion-specific issue.
+if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
+    FILE(TOUCH ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
 
-file(DOWNLOAD
-        ${RGL_API_URL}
-        ${RGL_API_PATH}
-    )
+    # Download the RGL archive files
+    file(DOWNLOAD
+            ${RGL_LINUX_ZIP_URL}
+            ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
+        )
+
+    file(DOWNLOAD
+            ${RGL_SRC_ZIP_URL}
+            ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME}
+        )
+
+    # Extract the contents of the downloaded archive files
+    file(ARCHIVE_EXTRACT INPUT ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
+            DESTINATION ${DEST_SO_DIR}
+            PATTERNS ${SO_REL_PATH}
+            VERBOSE
+            TOUCH
+            )
+
+    file(ARCHIVE_EXTRACT INPUT ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME}
+            DESTINATION ${DEST_API_DIR}
+            PATTERNS ${API_REL_PATH}/*
+            VERBOSE
+            TOUCH
+            )
+
+    # Move the extracted files to their desired locations
+    file(RENAME ${DEST_SO_DIR}/${SO_REL_PATH} ${DEST_SO_DIR}/${SO_FILENAME})
+    file(COPY ${DEST_API_DIR}/${API_REL_PATH} DESTINATION ${DEST_SO_DIR}/include/rgl/)
+
+    # Remove the unwanted byproducts
+    file(REMOVE_RECURSE ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME_BASE})
+    file(REMOVE ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME})
+    file(REMOVE ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME})
+
+    file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
+endif()
+
+# Paths used by external targets
+set(RGL_SO_DIR ${DEST_SO_DIR}/${SO_FILENAME})
+set(RGL_INCLUDE_DIR ${DEST_SO_DIR}/include)

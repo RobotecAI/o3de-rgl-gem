@@ -14,8 +14,10 @@
  */
 #pragma once
 
+#include <Lidar/PipelineGraph.h>
 #include <Lidar/RaycastResults.h>
 #include <ROS2/Lidar/LidarRaycasterBus.h>
+#include <Utilities/RGLUtils.h>
 #include <rgl/api/core.h>
 
 namespace RGL
@@ -24,8 +26,8 @@ namespace RGL
     {
     public:
         explicit LidarRaycaster(const AZ::Uuid& uuid);
-        LidarRaycaster(LidarRaycaster&& lidarSystem) noexcept;
-        LidarRaycaster(const LidarRaycaster& lidarSystem) = default;
+        LidarRaycaster(LidarRaycaster&& other);
+        LidarRaycaster(const LidarRaycaster& other) = delete;
         ~LidarRaycaster() override;
 
     protected:
@@ -34,29 +36,42 @@ namespace RGL
         void ConfigureRayRange(float range) override;
         void ConfigureMinimumRayRange(float range) override;
         void ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags) override;
+        bool CanHandlePublishing() override;
 
         ROS2::RaycastResult PerformRaycast(const AZ::Transform& lidarTransform) override;
 
+        void ConfigureNoiseParameters(
+            [[maybe_unused]] float angularNoiseStdDev,
+            [[maybe_unused]] float distanceNoiseStdDevBase,
+            [[maybe_unused]] float distanceNoiseStdDevRisePerMeter) override;
         void ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities) override;
         void ConfigureMaxRangePointAddition(bool addMaxRangePoints) override;
 
+        void ConfigurePointCloudPublisher(
+            [[maybe_unused]] const AZStd::string& topicName,
+            [[maybe_unused]] const AZStd::string& frameId,
+            [[maybe_unused]] const ROS2::QoS& qosPolicy) override;
+
+        void UpdatePublisherTimestamp([[maybe_unused]] AZ::u64 timestampNanoseconds) override;
+
     private:
-        bool m_addMaxRangePoints{ false }, m_useCompact{ true };
         AZ::Uuid m_uuid;
-        float m_range{ 1.0f };
-        float m_minRange{ 0.0f };
+
+        bool m_isMaxRangeEnabled{ false }; //!< Determines whether max range point addition is enabled.
         ROS2::RaycastResultFlags m_resultFlags{ ROS2::RaycastResultFlags::Points };
 
-        AZStd::vector<rgl_field_t> m_resultFields = { RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_F32 };
+        AZStd::pair<float, float> m_range{ 0.0f, 1.0f };
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
-        AZStd::vector<float> m_rayDirections{ 1.0f };
 
+        AZStd::vector<rgl_field_t> m_resultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_F32 };
         RaycastResults m_rglRaycastResults;
         ROS2::RaycastResult m_raycastResults;
 
-        rgl_node_t m_rayPosesNode{ nullptr }, m_lidarTransformNode{ nullptr }, m_rayTraceNode{ nullptr }, m_pointsCompactNode{ nullptr },
-            m_pointsFormatNode{ nullptr };
+        PipelineGraph m_graph;
 
-        void ConfigurePointsCompact(bool value = true);
+        [[nodiscard]] bool ArePointsExpected() const;
+        [[nodiscard]] bool AreRangesExpected() const;
+        [[nodiscard]] bool ShouldEnableCompact() const;
+        [[nodiscard]] bool ShouldEnablePcPublishing() const;
     };
 } // namespace RGL
