@@ -155,9 +155,10 @@ namespace RGL
 
     void PipelineGraph::SetIsPcPublishingEnabled(bool value)
     {
-        if (!IsPublisherConfigured())
+        if (value && !IsPublisherConfigured())
         {
-            AZ_Assert(false, "Trying to enable publishing without the publisher node configured.")
+            AZ_Assert(false, "Trying to enable publishing without the publisher node configured.");
+            return;
         }
         SetIsFeatureEnabled(PipelineFeatureFlags::PointCloudPublishing, value);
     }

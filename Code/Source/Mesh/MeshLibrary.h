@@ -18,6 +18,7 @@
 #include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/std/containers/unordered_map.h>
 #include <Mesh/MeshLibraryBus.h>
+#include <rgl/api/core.h>
 
 namespace RGL
 {
@@ -39,6 +40,6 @@ namespace RGL
         AZStd::vector<rgl_mesh_t> StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) override;
 
     private:
-        AZStd::unordered_map<AZ::Data::AssetId, AZStd::vector<rgl_mesh_t>> m_meshPointersMap;
+        AZStd::unordered_map<AZ::Data::AssetId, AZStd::vector<Mesh*>> m_meshPointersMap;
     };
 } // namespace RGL

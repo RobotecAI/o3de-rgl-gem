@@ -9,8 +9,8 @@
 #include <AzCore/std/containers/unordered_set.h>
 #include <AzCore/std/string/conversions.h>
 #include <Utilities/RGLUtils.h>
-#include <rgl/api/core.h>
 #include <iostream>
+#include <rgl/api/core.h>
 
 namespace RGL::Utils
 {
@@ -120,5 +120,10 @@ namespace RGL::Utils
     AZ::Vector3 AzVector3FromRglVec3f(const rgl_vec3f& rglVector)
     {
         return { rglVector.value[0], rglVector.value[1], rglVector.value[2] };
+    }
+
+    rgl_vec3f RglVector3FromAzVec3f(const AZ::Vector3& azVector)
+    {
+        return { azVector.GetX(), azVector.GetY(), azVector.GetZ() };
     }
 } // namespace RGL::Utils

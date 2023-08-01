@@ -14,42 +14,36 @@
  */
 #pragma once
 
-#include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentBus.h>
 #include <AzCore/Component/EntityBus.h>
 #include <AzCore/Component/EntityId.h>
+#include <AzCore/std/containers/vector.h>
 #include <rgl/api/core.h>
 
 namespace RGL
 {
-    //! Class used for managing RGL's representation of an Entity with a MeshComponent.
-    class EntityManager
-        : protected AZ::Render::MeshComponentNotificationBus::Handler
-        , protected AZ::EntityBus::Handler
+    class EntityManager : public AZ::EntityBus::Handler
     {
     public:
         EntityManager(AZ::EntityId entityId);
-        EntityManager(EntityManager&& entityManager);
-        EntityManager(const EntityManager& entityManager) = default;
-        ~EntityManager() override;
+        EntityManager(const EntityManager& other) = default;
+        EntityManager(EntityManager&& other);
+        virtual ~EntityManager();
 
-        //! Is this Entity static?
-        bool IsStatic() const;
-
-        //! Updates poses of all RGL entities managed by this EntityManager.
-        void UpdatePose();
+        virtual void Update();
 
     protected:
-        // AZ::Render::MeshComponentNotificationBus overrides
-        void OnModelReady(
-            const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset,
-            [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model) override;
+        //! Is this Entity static?
+        [[nodiscard]] bool IsStatic() const;
 
         // AZ::EntityBus::Handler implementation overrides
         void OnEntityActivated(const AZ::EntityId& entityId) override;
 
-    private:
-        bool m_isStatic{ false };
+        //! Updates poses of all RGL entities managed by this EntityManager.
+        virtual void UpdatePose();
+
         AZ::EntityId m_entityId;
         AZStd::vector<rgl_entity_t> m_entities;
+    private:
+        bool m_isStatic{ false };
     };
 } // namespace RGL

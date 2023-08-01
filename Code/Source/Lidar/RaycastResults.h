@@ -42,7 +42,7 @@ namespace RGL
         size_t m_count{ 0LU }; //!< Count of datapoints.
         size_t m_elementSize{ 0LU }; //!< Size of a single datapoint.
 
-        AZStd::map<rgl_field_t, size_t> m_layout;
+        AZStd::unordered_map<rgl_field_t, size_t> m_layout;
 
         // Buffer for result storage. We use uint8_t since its size is equal to 1 byte.
         AZStd::vector<uint8_t> m_data;

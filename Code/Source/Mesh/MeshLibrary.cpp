@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <Mesh/MeshLibrary.h>
+#include <Utilities/RGLUtils.h>
 #include <rgl/api/core.h>
 
 namespace RGL
