@@ -60,14 +60,12 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
             DESTINATION ${DEST_SO_DIR}
             PATTERNS ${SO_REL_PATH}
             VERBOSE
-            TOUCH
             )
 
     file(ARCHIVE_EXTRACT INPUT ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME}
             DESTINATION ${DEST_API_DIR}
             PATTERNS ${API_REL_PATH}/*
             VERBOSE
-            TOUCH
             )
 
     # Move the extracted files to their desired locations
