@@ -15,6 +15,8 @@
 #pragma once
 
 #include <rgl/api/core.h>
+#include <AzCore/std/containers/vector.h>
+#include <AzCore/std/containers/unordered_map.h>
 
 namespace RGL
 {

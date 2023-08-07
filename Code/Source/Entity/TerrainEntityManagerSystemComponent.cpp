@@ -14,6 +14,8 @@
  */
 #include <Entity/TerrainEntityManagerSystemComponent.h>
 #include <Utilities/RGLUtils.h>
+#include <AzCore/Serialization/EditContext.h>
+#include <AzCore/Serialization/SerializeContext.h>
 
 namespace RGL
 {

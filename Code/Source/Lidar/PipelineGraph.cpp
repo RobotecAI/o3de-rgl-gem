@@ -14,6 +14,8 @@
  */
 #include <Lidar/PipelineGraph.h>
 #include <Lidar/RaycastResults.h>
+#include <Utilities/RGLUtils.h>
+#include <rgl/api/extensions/ros2.h>
 
 namespace RGL
 {
@@ -224,7 +226,6 @@ namespace RGL
             return graph.IsPcPublishingEnabled();
         };
 
-
         // clang-format off
         AddConditionalNode(m_nodes.m_angularNoise, m_nodes.m_lidarTransform, m_nodes.m_rayTrace, NoiseCondition);
         AddConditionalNode(m_nodes.m_distanceNoise, m_nodes.m_rayTrace, m_nodes.m_rayTraceYield, NoiseCondition);
@@ -261,7 +262,8 @@ namespace RGL
         m_conditionalConnections.emplace_back(parent, child, condition, condition(*this));
     }
 
-    PipelineGraph::ConditionalConnection::ConditionalConnection(rgl_node_t parent, rgl_node_t child, const ConditionType& condition, bool activate)
+    PipelineGraph::ConditionalConnection::ConditionalConnection(
+        rgl_node_t parent, rgl_node_t child, const ConditionType& condition, bool activate)
         : m_parent(parent)
         , m_child(child)
         , m_condition(condition)
