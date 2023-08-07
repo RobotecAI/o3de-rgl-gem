@@ -14,6 +14,7 @@
  */
 #pragma once
 
+#include <AzCore/Math/Matrix3x3.h>
 #include <ROS2/Communication/QoS.h>
 #include <rgl/api/core.h>
 
@@ -83,7 +84,7 @@ namespace RGL
         class ConditionalConnection
         {
         public:
-            ConditionalConnection(rgl_node_t parent, rgl_node_t child, const ConditionType& condition, bool activate=false);
+            ConditionalConnection(rgl_node_t parent, rgl_node_t child, const ConditionType& condition, bool activate = false);
             void Update(const PipelineGraph& graph);
 
         private:
