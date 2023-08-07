@@ -14,6 +14,8 @@
  */
 
 #include <Entity/EntityManager.h>
+#include <Utilities/RGLUtils.h>
+#include <AzCore/Component/TransformBus.h>
 
 namespace RGL
 {
