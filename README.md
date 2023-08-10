@@ -31,10 +31,10 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
 <img src="static/gif/rgl_gem_preview2.gif" alt="drawing" width="500"/>
 
 ## Requirements
-- [Runtime requirements of the Robotec GPU Lidar](https://github.com/RobotecAI/RobotecGPULidar#runtime-requirements).
+- [**Runtime requirements** of the Robotec GPU Lidar](https://github.com/RobotecAI/RobotecGPULidar#runtime-requirements).
 - Any O3DE project with the [O3DE ROS2 Gem](https://github.com/o3de/o3de-extras/tree/development/Gems/ROS2) enabled.
 
-***Note:*** *You do not need to download or setup the RobotecGPULidar library itself.*
+***IMPORTANT:*** *You do not need to download or set up the RobotecGPULidar library itself and only have to meet the **RUNTIME** requirements.*
 
 ## Setup
 1. **Clone the Gem's repository.**
@@ -44,7 +44,7 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
 2. **Register the Gem.** \
     You can either register the gem through the Command Line Interface or the O3DE Project Manager:
     - **CLI** \
-        Head to your local O3DE engine directory (*o3de-dir*) and register the gem using it's path (*gem-path*).
+        Head to your local O3DE engine directory (*o3de-dir*) and register the gem using its path (*gem-path*).
         ```bash
         cd <o3de-dir>
         ./scripts/o3de.sh register --gem-path <gem-path>
@@ -88,3 +88,35 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
 3. **Customize your LiDAR.**
 
     After following through all previous instructions, you can customize the `ROS2 Lidar Sensor` component in the Entity Inspector to fit all your needs.
+
+## Troubleshooting
+
+### Issues related to the `libRobotecGPULidar.so` file
+If you encounter any issues relating the `libRobotecGPULidar.so` file please follow these steps:
+ 1. Delete the `Code/3rdParty/RobotecGPULidar/` directory.
+ 2. If you encounter the `DOWNLOAD_RGL` file under the `Code/` directory, delete it.
+ 3. Reload the CMake project.
+
+### Issues related to the in-game lidar behaviour 
+
+One common issue is when the lidar detects unwanted geometry as shown below.
+
+<img src="static/png/lidar_sphere.png" alt="drawing" width="400"/>
+
+You can fix this with the following steps:
+ 1. Locate the `Excluded Entities` section in the `ROS2 Lidar Sensor` component properties.
+
+    <img src="static/png/excluded_entities1.png" alt="drawing" width="300"/>
+ 
+ 2. Add a new excluded entity. You can select it in the Viewport or in the Entity Outliner.
+    
+    <img src="static/png/excluded_entities2.png" alt="drawing" width="300"/>
+
+The entity's name should appear in the Excluded Entities list (as seen on the image below).
+
+<img src="static/png/excluded_entities3.png" alt="drawing" width="300"/>
+
+### Other issues
+
+If this section does not seem to help, feel free to post an issue on the gem's github
+repository in which you describe the problem you are facing.
