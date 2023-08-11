@@ -14,14 +14,14 @@
 set(RGL_VERSION 0.14.1)
 set(RGL_TAG v${RGL_VERSION})
 
-set(RGL_LINUX_ZIP_URL   https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/Linux-x64.zip)
-set(RGL_SRC_ZIP_URL     https://github.com/RobotecAI/RobotecGPULidar/archive/refs/tags/${RGL_TAG}.zip)
+set(RGL_LINUX_ZIP_URL https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/Linux-x64.zip)
+set(RGL_SRC_ZIP_URL https://github.com/RobotecAI/RobotecGPULidar/archive/refs/tags/${RGL_TAG}.zip)
 
-set(RGL_LINUX_ZIP_FILENAME_BASE  Linux-x64)
-set(RGL_SRC_ZIP_FILENAME_BASE    RobotecGPULidar-${RGL_VERSION})
+set(RGL_LINUX_ZIP_FILENAME_BASE Linux-x64)
+set(RGL_SRC_ZIP_FILENAME_BASE RobotecGPULidar-${RGL_VERSION})
 
-set(RGL_LINUX_ZIP_FILENAME  ${RGL_LINUX_ZIP_FILENAME_BASE}.zip)
-set(RGL_SRC_ZIP_FILENAME    ${RGL_SRC_ZIP_FILENAME_BASE}.zip)
+set(RGL_LINUX_ZIP_FILENAME ${RGL_LINUX_ZIP_FILENAME_BASE}.zip)
+set(RGL_SRC_ZIP_FILENAME ${RGL_SRC_ZIP_FILENAME_BASE}.zip)
 
 set(DEST_SO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/RobotecGPULidar)
 set(DEST_API_DIR ${DEST_SO_DIR}/include/rgl/api)
@@ -48,12 +48,12 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
     file(DOWNLOAD
             ${RGL_LINUX_ZIP_URL}
             ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
-        )
+            )
 
     file(DOWNLOAD
             ${RGL_SRC_ZIP_URL}
             ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME}
-        )
+            )
 
     # Extract the contents of the downloaded archive files
     file(ARCHIVE_EXTRACT INPUT ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
@@ -78,7 +78,13 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
     file(REMOVE ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME})
 
     file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
-endif()
+else ()
+    message(WARNING "Omitting the RobotecGPULidar library download. This is intended when using the Clion multi-profile"
+    " project reload. This may also happen due to interruption of previous project configurations. If you have"
+    " any issues related to the libRobotecGPULidar.so file please make sure that the DOWNLOAD_RGL file is not"
+    " present under the Code directory."
+    )
+endif ()
 
 # Paths used by external targets
 set(RGL_SO_DIR ${DEST_SO_DIR}/${SO_FILENAME})

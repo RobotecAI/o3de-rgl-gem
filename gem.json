@@ -15,8 +15,8 @@
         "ROS2"
     ],
     "icon_path": "preview.png",
-    "requirements": "Requires a CUDA-capable GPU and installation of both the CUDA Toolkit 11.2+ and NVidia OptiX 7.2.",
-    "documentation_url": "Link to any documentation of RobotecGPULidar goes here: i.e. https://o3de.org/docs/user-guide/gems/reference/design/white-box/",
+    "requirements": "Requires a CUDA-capable GPU with the nvidia drivers specified in the README.md file of the RGL gem github repository.",
+    "documentation_url": "",
     "dependencies": [
         "ROS2"
     ],
