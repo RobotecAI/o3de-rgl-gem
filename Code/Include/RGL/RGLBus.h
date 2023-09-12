@@ -17,6 +17,7 @@
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/EBus/EBus.h>
 #include <AzCore/Interface/Interface.h>
+#include <SceneConfigurationComponent.h>
 
 namespace RGL
 {
@@ -28,6 +29,9 @@ namespace RGL
         //! Excludes an entity from raycasting.
         //! @param excludedEntityId EntityId of the excluded entity.
         virtual void ExcludeEntity(const AZ::EntityId& excludedEntityId) = 0;
+
+        virtual void SetSceneConfiguration(const SceneConfiguration& config) = 0;
+        virtual const SceneConfiguration& GetSceneConfiguration() = 0;
 
     protected:
         ~RGLRequests() = default;

@@ -15,6 +15,7 @@
 #include <Entity/TerrainEntityManagerEditorSystemComponent.h>
 #include <RGLEditorSystemComponent.h>
 #include <RGLModuleInterface.h>
+#include <SceneConfigurationComponent.h>
 
 namespace RGL
 {
@@ -28,13 +29,14 @@ namespace RGL
         {
             // Push results of [MyComponent]::CreateDescriptor() into m_descriptors here.
             // Add ALL components descriptors associated with this gem to m_descriptors.
-            // This will associate the AzTypeInfo information for the components with the the SerializeContext, BehaviorContext and
+            // This will associate the AzTypeInfo information for the components with the SerializeContext, BehaviorContext and
             // EditContext. This happens through the [MyComponent]::Reflect() function.
             m_descriptors.insert(
                 m_descriptors.end(),
                 {
                     RGLEditorSystemComponent::CreateDescriptor(),
                     TerrainEntityManagerEditorSystemComponent::CreateDescriptor(),
+                    SceneConfigurationComponent::CreateDescriptor(),
                 });
         }
 
@@ -47,6 +49,7 @@ namespace RGL
             return AZ::ComponentTypeList{
                 azrtti_typeid<RGLEditorSystemComponent>(),
                 azrtti_typeid<TerrainEntityManagerEditorSystemComponent>(),
+                azrtti_typeid<SceneConfigurationComponent>(),
             };
         }
     };

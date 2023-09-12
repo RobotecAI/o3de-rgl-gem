@@ -22,6 +22,7 @@
 #include <Entity/ActorEntityManager.h>
 #include <Utilities/RGLUtils.h>
 #include <rgl/api/core.h>
+#include <RGL/RGLBus.h>
 
 namespace RGL
 {
@@ -47,7 +48,10 @@ namespace RGL
 
     void ActorEntityManager::Update()
     {
-        UpdateMeshVertices();
+        if (RGLInterface::Get()->GetSceneConfiguration().m_isSkinnedMeshUpdateEnabled)
+        {
+            UpdateMeshVertices();
+        }
         EntityManager::Update();
     }
 

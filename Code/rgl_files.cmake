@@ -34,4 +34,6 @@ set(FILES
         Source/RGLSystemComponent.h
         Source/Utilities/RGLUtils.cpp
         Source/Utilities/RGLUtils.h
+        Source/SceneConfigurationComponent.cpp
+        Source/SceneConfigurationComponent.h
 )
