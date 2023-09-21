@@ -31,7 +31,7 @@ namespace RGL
         virtual void ExcludeEntity(const AZ::EntityId& excludedEntityId) = 0;
 
         virtual void SetSceneConfiguration(const SceneConfiguration& config) = 0;
-        virtual const SceneConfiguration& GetSceneConfiguration() = 0;
+        [[nodiscard]] virtual const SceneConfiguration& GetSceneConfiguration() const = 0;
 
     protected:
         ~RGLRequests() = default;

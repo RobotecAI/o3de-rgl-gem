@@ -116,7 +116,7 @@ namespace RGL
         m_sceneConfig = config;
     }
 
-    const SceneConfiguration& RGLSystemComponent::GetSceneConfiguration()
+    const SceneConfiguration& RGLSystemComponent::GetSceneConfiguration() const
     {
         return m_sceneConfig;
     }

@@ -54,7 +54,7 @@ namespace RGL
         // RGLRequestBus overrides
         void ExcludeEntity(const AZ::EntityId& excludedEntityId) override;
         void SetSceneConfiguration(const SceneConfiguration& config) override;
-        const SceneConfiguration& GetSceneConfiguration() override;
+        [[nodiscard]] const SceneConfiguration& GetSceneConfiguration() const override;
 
         // AzFramework::EntityContextEventBus overrides
         void OnEntityContextCreateEntity(AZ::Entity& entity) override;

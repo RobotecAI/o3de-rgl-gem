@@ -4,12 +4,13 @@
 
 namespace RGL
 {
+    //! Structure used to describe all global scene parameters.
     struct SceneConfiguration
     {
         AZ_TYPE_INFO(SceneConfiguration, "{7e55de90-e26c-4567-9e06-822c6ce62b9c}");
         static void Reflect(AZ::ReflectContext* context);
 
-        bool m_isSkinnedMeshUpdateEnabled{ true };
+        bool m_isSkinnedMeshUpdateEnabled{ true }; //!< If set to true, all skinned meshes will be updated. Otherwise they will remain unchanged.
     };
 
     class SceneConfigurationComponent : public AZ::Component

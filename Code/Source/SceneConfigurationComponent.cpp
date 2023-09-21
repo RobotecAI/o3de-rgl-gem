@@ -1,3 +1,5 @@
+#include <AzCore/Serialization/EditContext.h>
+#include <AzCore/Serialization/SerializeContext.h>
 #include <RGL/RGLBus.h>
 #include <SceneConfigurationComponent.h>
 
@@ -5,12 +7,12 @@ namespace RGL
 {
     void SceneConfiguration::Reflect(AZ::ReflectContext* context)
     {
-        if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
+        if (auto* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<SceneConfiguration>()->Version(0)->Field(
                 "SkinnedMeshUpdate", &SceneConfiguration::m_isSkinnedMeshUpdateEnabled);
 
-            if (AZ::EditContext* editContext = serializeContext->GetEditContext())
+            if (auto* editContext = serializeContext->GetEditContext())
             {
                 // clang-format off
                 editContext->Class<SceneConfiguration>("RGL Scene Configuration", "")
@@ -28,12 +30,12 @@ namespace RGL
     {
         SceneConfiguration::Reflect(context);
 
-        if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
+        if (auto* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<SceneConfigurationComponent, AZ::Component>()->Version(0)->Field(
                 "Config", &SceneConfigurationComponent::m_config);
 
-            if (AZ::EditContext* editContext = serializeContext->GetEditContext())
+            if (auto* editContext = serializeContext->GetEditContext())
             {
                 // clang-format off
                 editContext->Class<SceneConfigurationComponent>("RGL Scene Configuration", "")
