@@ -12,16 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentConstants.h>
 #include <AzFramework/Entity/EntityContext.h>
 #include <AzFramework/Entity/GameEntityContextBus.h>
-#include <RGLSystemComponent.h>
-#include <Utilities/RGLUtils.h>
-// TODO - Format the code past o3de hash 57a500f3eaf2b0d8450003dd04016f5147e940a7. Missing includes inside the file.
-#include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentConstants.h>
 #include <Entity/ActorEntityManager.h>
 #include <Entity/EntityManager.h>
 #include <Entity/MeshEntityManager.h>
 #include <Integration/Components/ActorComponent.h>
+#include <RGLSystemComponent.h>
+#include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
