@@ -53,6 +53,8 @@ namespace RGL
 
         // RGLRequestBus overrides
         void ExcludeEntity(const AZ::EntityId& excludedEntityId) override;
+        void SetSceneConfiguration(const SceneConfiguration& config) override;
+        [[nodiscard]] const SceneConfiguration& GetSceneConfiguration() const override;
 
         // AzFramework::EntityContextEventBus overrides
         void OnEntityContextCreateEntity(AZ::Entity& entity) override;
@@ -67,6 +69,7 @@ namespace RGL
 
         MeshLibrary m_meshLibrary;
         AZStd::set<AZ::EntityId> m_excludedEntities;
+        SceneConfiguration m_sceneConfig;
         AZStd::unordered_map<AZ::EntityId, AZStd::shared_ptr<EntityManager>> m_entityManagers;
     };
 } // namespace RGL

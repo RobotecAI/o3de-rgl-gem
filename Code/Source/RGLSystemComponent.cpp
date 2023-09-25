@@ -110,6 +110,16 @@ namespace RGL
         }
     }
 
+    void RGLSystemComponent::SetSceneConfiguration(const RGL::SceneConfiguration& config)
+    {
+        m_sceneConfig = config;
+    }
+
+    const SceneConfiguration& RGLSystemComponent::GetSceneConfiguration() const
+    {
+        return m_sceneConfig;
+    }
+
     void RGLSystemComponent::OnEntityContextCreateEntity(AZ::Entity& entity)
     {
         if (m_excludedEntities.contains(entity.GetId()))
