@@ -171,7 +171,7 @@ namespace RGL
         SetIsFeatureEnabled(PipelineFeatureFlags::Noise, value);
     }
 
-    void PipelineGraph::Run() const
+    void PipelineGraph::Run()
     {
         RGL_CHECK(rgl_graph_run(m_nodes.m_rayPoses));
     }

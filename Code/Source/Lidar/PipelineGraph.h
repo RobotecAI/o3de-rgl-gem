@@ -62,7 +62,7 @@ namespace RGL
         void SetIsPcPublishingEnabled(bool value);
         void SetIsNoiseEnabled(bool value);
 
-        void Run() const;
+        void Run();
         //! Get the raycast results.
         //! @param results Raycast results destination.
         //! @return If successful returns true, otherwise returns false.

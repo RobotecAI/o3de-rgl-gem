@@ -176,11 +176,7 @@ namespace RGL
             if (distanceExpected)
             {
                 float distance = *static_cast<float*>(m_rglRaycastResults.GetFieldPtr(resultIndex, RGL_FIELD_DISTANCE_F32));
-                if (distance < m_range.first)
-                {
-                    distance = -AZStd::numeric_limits<float>::infinity();
-                }
-                else if (distance > m_range.second)
+                if (distance > m_range.second)
                 {
                     distance = MaxRange;
                 }
