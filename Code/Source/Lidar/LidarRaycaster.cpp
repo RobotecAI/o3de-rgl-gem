@@ -84,13 +84,14 @@ namespace RGL
     {
         ValidateRayRange(range);
         m_range.second = range;
-        m_graph.ConfigureRayRangesNode(m_range.first, m_range.second);
+        // We set the graph-side value of min range to zero to be able to distinguish rays below min range from the ones above max range.
+        m_graph.ConfigureRayRangesNode(0.0f, m_range.second);
     }
 
     void LidarRaycaster::ConfigureMinimumRayRange(float range)
     {
         m_range.first = range;
-        m_graph.ConfigureRayRangesNode(m_range.first, m_range.second);
+        // We omit updating the graph-side value of min range to be able to distinguish rays below min range from the ones above max range.
     }
 
     void LidarRaycaster::ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags)
@@ -176,7 +177,11 @@ namespace RGL
             if (distanceExpected)
             {
                 float distance = *static_cast<float*>(m_rglRaycastResults.GetFieldPtr(resultIndex, RGL_FIELD_DISTANCE_F32));
-                if (distance > m_range.second)
+                if (distance < m_range.first)
+                {
+                    distance = -AZStd::numeric_limits<float>::infinity();
+                }
+                else if (distance > m_range.second)
                 {
                     distance = MaxRange;
                 }
