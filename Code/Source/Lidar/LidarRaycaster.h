@@ -15,7 +15,6 @@
 #pragma once
 
 #include <Lidar/PipelineGraph.h>
-#include <Lidar/RaycastResults.h>
 #include <ROS2/Lidar/LidarRaycasterBus.h>
 #include <Utilities/RGLUtils.h>
 #include <rgl/api/core.h>
@@ -63,8 +62,7 @@ namespace RGL
         AZStd::pair<float, float> m_range{ 0.0f, 1.0f };
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
 
-        AZStd::vector<rgl_field_t> m_resultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_F32 };
-        RaycastResults m_rglRaycastResults;
+        PipelineGraph::RaycastResults m_rglRaycastResults;
         ROS2::RaycastResult m_raycastResults;
 
         PipelineGraph m_graph;

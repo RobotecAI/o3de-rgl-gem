@@ -22,8 +22,6 @@ namespace RGL
 {
     LidarRaycaster::LidarRaycaster(const AZ::Uuid& uuid)
         : m_uuid{ uuid }
-        , m_rglRaycastResults{ m_resultFields, 1LU }
-        , m_graph{ m_range.second, m_resultFields }
     {
         ROS2::LidarRaycasterRequestBus::Handler::BusConnect(ROS2::LidarId(uuid));
     }
@@ -34,7 +32,6 @@ namespace RGL
         , m_resultFlags{ other.m_resultFlags }
         , m_range{ other.m_range }
         , m_graph{ std::move(other.m_graph) }
-        , m_resultFields{ AZStd::move(other.m_resultFields) }
         , m_rayTransforms{ AZStd::move(other.m_rayTransforms) }
         , m_rglRaycastResults{ AZStd::move(other.m_rglRaycastResults) }
     {
@@ -97,22 +94,20 @@ namespace RGL
     void LidarRaycaster::ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags)
     {
         m_resultFlags = flags;
-        m_resultFields.clear();
+        m_rglRaycastResults.m_fields.clear();
 
         if ((flags & ROS2::RaycastResultFlags::Points) == ROS2::RaycastResultFlags::Points)
         {
-            m_resultFields.push_back(RGL_FIELD_IS_HIT_I32);
-            m_resultFields.push_back(RGL_FIELD_XYZ_F32);
+            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_IS_HIT_I32);
+            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_XYZ_F32);
         }
 
         if ((flags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges)
         {
-            m_resultFields.push_back(RGL_FIELD_DISTANCE_F32);
+            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_DISTANCE_F32);
         }
 
-        m_graph.ConfigureFormatNode(m_resultFields);
-
-        m_rglRaycastResults = RaycastResults{ m_resultFields, m_rglRaycastResults.GetCount() };
+        m_graph.ConfigureFormatNode(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
 
         m_graph.SetIsCompactEnabled(ShouldEnableCompact());
         m_graph.SetIsPcPublishingEnabled(ShouldEnablePcPublishing());
@@ -141,26 +136,25 @@ namespace RGL
 
         if (pointsExpected)
         {
-            m_raycastResults.m_points.resize(m_rglRaycastResults.GetCount());
+            m_raycastResults.m_points.resize(m_rglRaycastResults.m_xyz.size());
         }
 
         if (distanceExpected)
         {
-            m_raycastResults.m_ranges.resize(m_rglRaycastResults.GetCount());
+            m_raycastResults.m_ranges.resize(m_rglRaycastResults.m_distance.size());
         }
 
         size_t usedPointIndex = 0LU;
+        const size_t ResultsSize = pointsExpected ? m_raycastResults.m_points.size() : m_raycastResults.m_ranges.size();
         const float MaxRange = m_isMaxRangeEnabled ? m_range.second : AZStd::numeric_limits<float>::infinity();
-        for (size_t resultIndex = 0LU; resultIndex < m_rglRaycastResults.GetCount(); ++resultIndex)
+        for (size_t resultIndex = 0LU; resultIndex < ResultsSize; ++resultIndex)
         {
             if (pointsExpected)
             {
-                const bool IsHit = (m_graph.IsCompactEnabled()) ||
-                    *static_cast<int32_t*>(m_rglRaycastResults.GetFieldPtr(resultIndex, RGL_FIELD_IS_HIT_I32));
+                const bool IsHit = (m_graph.IsCompactEnabled()) || aznumeric_cast<bool>(m_rglRaycastResults.m_isHit[resultIndex]);
                 if (IsHit)
                 {
-                    m_raycastResults.m_points[usedPointIndex] = Utils::AzVector3FromRglVec3f(
-                        *static_cast<rgl_vec3f*>(m_rglRaycastResults.GetFieldPtr(resultIndex, RGL_FIELD_XYZ_F32)));
+                    m_raycastResults.m_points[usedPointIndex] = Utils::AzVector3FromRglVec3f(m_rglRaycastResults.m_xyz[resultIndex]);
                 }
                 else if (m_isMaxRangeEnabled)
                 {
@@ -176,7 +170,7 @@ namespace RGL
 
             if (distanceExpected)
             {
-                float distance = *static_cast<float*>(m_rglRaycastResults.GetFieldPtr(resultIndex, RGL_FIELD_DISTANCE_F32));
+                float distance = m_rglRaycastResults.m_distance[resultIndex];
                 if (distance < m_range.first)
                 {
                     distance = -AZStd::numeric_limits<float>::infinity();

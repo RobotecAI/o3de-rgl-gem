@@ -15,6 +15,7 @@
 #pragma once
 
 #include <AzCore/Math/Matrix3x3.h>
+#include <AzCore/std/containers/array.h>
 #include <ROS2/Communication/QoS.h>
 #include <rgl/api/core.h>
 
@@ -27,16 +28,27 @@ namespace RGL
     //! representation of this graph can be found under static/PipelineGraph.mmd.
     class PipelineGraph
     {
+    private:
+        static const AZStd::array<rgl_field_t, 2> DefaultFields;
+
     public:
+        struct RaycastResults
+        {
+            AZStd::vector<rgl_field_t> m_fields{ DefaultFields.data(), DefaultFields.data() + DefaultFields.size() };
+            AZStd::vector<int32_t> m_isHit;
+            AZStd::vector<rgl_vec3f> m_xyz;
+            AZStd::vector<float> m_distance;
+        };
+
         struct Nodes
         {
             rgl_node_t m_rayPoses{ nullptr }, m_rayRanges{ nullptr }, m_lidarTransform{ nullptr }, m_angularNoise{ nullptr },
                 m_rayTrace{ nullptr }, m_distanceNoise{ nullptr }, m_rayTraceYield{ nullptr }, m_pointsCompact{ nullptr },
-                m_compactYield{ nullptr }, m_pointsFormat{ nullptr }, m_pointCloudTransform{ nullptr }, m_pcPublishFormat{ nullptr },
+                m_compactYield{ nullptr }, m_pointsYield{ nullptr }, m_pointCloudTransform{ nullptr }, m_pcPublishFormat{ nullptr },
                 m_pointCloudPublish{ nullptr };
         };
 
-        PipelineGraph(float maxRange, AZStd::vector<rgl_field_t>& resultFields);
+        PipelineGraph();
         PipelineGraph(const PipelineGraph& other) = delete;
         PipelineGraph(PipelineGraph&& other);
         ~PipelineGraph();
@@ -51,7 +63,7 @@ namespace RGL
 
         void ConfigureRayPosesNode(const AZStd::vector<rgl_mat3x4f>& rayPoses);
         void ConfigureRayRangesNode(float minRange, float maxRange);
-        void ConfigureFormatNode(const AZStd::vector<rgl_field_t>& fields);
+        void ConfigureFormatNode(const rgl_field_t* fields, size_t size);
         void ConfigureLidarTransformNode(const AZ::Matrix3x4& lidarTransform);
         void ConfigurePcTransformNode(const AZ::Matrix3x4& pcTransform);
         void ConfigureAngularNoiseNode(float angularNoiseStdDev);
@@ -93,8 +105,6 @@ namespace RGL
             ConditionType m_condition;
             rgl_node_t m_parent, m_child;
         };
-
-        static const std::vector<rgl_field_t> DefaultFields;
 
         [[nodiscard]] bool IsFeatureEnabled(PipelineFeatureFlags feature) const;
 
