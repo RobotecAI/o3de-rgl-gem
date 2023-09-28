@@ -84,12 +84,13 @@ namespace RGL
     {
         ValidateRayRange(range);
         m_range.second = range;
-        m_graph.ConfigureRayTraceNode(range);
+        m_graph.ConfigureRayRangesNode(m_range.first, m_range.second);
     }
 
     void LidarRaycaster::ConfigureMinimumRayRange(float range)
     {
         m_range.first = range;
+        m_graph.ConfigureRayRangesNode(m_range.first, m_range.second);
     }
 
     void LidarRaycaster::ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags)

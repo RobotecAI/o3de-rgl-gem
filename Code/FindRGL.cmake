@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set(RGL_VERSION 0.14.1)
+set(RGL_VERSION 0.15.0)
 set(RGL_TAG v${RGL_VERSION})
 
 set(RGL_LINUX_ZIP_URL https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/Linux-x64.zip)
