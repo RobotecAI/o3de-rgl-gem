@@ -95,6 +95,9 @@ namespace RGL
     {
         m_resultFlags = flags;
         m_rglRaycastResults.m_fields.clear();
+        m_rglRaycastResults.m_isHit.clear();
+        m_rglRaycastResults.m_xyz.clear();
+        m_rglRaycastResults.m_distance.clear();
 
         if ((flags & ROS2::RaycastResultFlags::Points) == ROS2::RaycastResultFlags::Points)
         {
@@ -107,7 +110,7 @@ namespace RGL
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_DISTANCE_F32);
         }
 
-        m_graph.ConfigureFormatNode(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
+        m_graph.ConfigureYieldNodes(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
 
         m_graph.SetIsCompactEnabled(ShouldEnableCompact());
         m_graph.SetIsPcPublishingEnabled(ShouldEnablePcPublishing());
@@ -145,14 +148,14 @@ namespace RGL
         }
 
         size_t usedPointIndex = 0LU;
-        const size_t ResultsSize = pointsExpected ? m_raycastResults.m_points.size() : m_raycastResults.m_ranges.size();
-        const float MaxRange = m_isMaxRangeEnabled ? m_range.second : AZStd::numeric_limits<float>::infinity();
-        for (size_t resultIndex = 0LU; resultIndex < ResultsSize; ++resultIndex)
+        const size_t resultsSize = pointsExpected ? m_raycastResults.m_points.size() : m_raycastResults.m_ranges.size();
+        const float maxRange = m_isMaxRangeEnabled ? m_range.second : AZStd::numeric_limits<float>::infinity();
+        for (size_t resultIndex = 0LU; resultIndex < resultsSize; ++resultIndex)
         {
             if (pointsExpected)
             {
-                const bool IsHit = (m_graph.IsCompactEnabled()) || aznumeric_cast<bool>(m_rglRaycastResults.m_isHit[resultIndex]);
-                if (IsHit)
+                const bool isHit = (m_graph.IsCompactEnabled()) || aznumeric_cast<bool>(m_rglRaycastResults.m_isHit[resultIndex]);
+                if (isHit)
                 {
                     m_raycastResults.m_points[usedPointIndex] = Utils::AzVector3FromRglVec3f(m_rglRaycastResults.m_xyz[resultIndex]);
                 }
@@ -162,7 +165,7 @@ namespace RGL
                     m_raycastResults.m_points[usedPointIndex] = maxVector.GetAsVector3();
                 }
 
-                if (IsHit || m_isMaxRangeEnabled)
+                if (isHit || m_isMaxRangeEnabled)
                 {
                     ++usedPointIndex;
                 }
@@ -177,7 +180,7 @@ namespace RGL
                 }
                 else if (distance > m_range.second)
                 {
-                    distance = MaxRange;
+                    distance = maxRange;
                 }
 
                 m_raycastResults.m_ranges[resultIndex] = distance;

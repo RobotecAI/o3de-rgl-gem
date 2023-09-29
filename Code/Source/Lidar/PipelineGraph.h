@@ -18,18 +18,17 @@
 #include <AzCore/std/containers/array.h>
 #include <ROS2/Communication/QoS.h>
 #include <rgl/api/core.h>
+#include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
-    class RaycastResults;
-
     //! Class that manages the RGL pipeline graph construction, which depends on
     //! three conditions: point-cloud compact, noise and publication. The diagram
     //! representation of this graph can be found under static/PipelineGraph.mmd.
     class PipelineGraph
     {
     private:
-        static const AZStd::array<rgl_field_t, 2> DefaultFields;
+        static constexpr AZStd::array<rgl_field_t, 2> DefaultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_F32 };
 
     public:
         struct RaycastResults
@@ -63,7 +62,7 @@ namespace RGL
 
         void ConfigureRayPosesNode(const AZStd::vector<rgl_mat3x4f>& rayPoses);
         void ConfigureRayRangesNode(float minRange, float maxRange);
-        void ConfigureFormatNode(const rgl_field_t* fields, size_t size);
+        void ConfigureYieldNodes(const rgl_field_t* fields, size_t size);
         void ConfigureLidarTransformNode(const AZ::Matrix3x4& lidarTransform);
         void ConfigurePcTransformNode(const AZ::Matrix3x4& pcTransform);
         void ConfigureAngularNoiseNode(float angularNoiseStdDev);
@@ -75,6 +74,7 @@ namespace RGL
         void SetIsNoiseEnabled(bool value);
 
         void Run();
+
         //! Get the raycast results.
         //! @param results Raycast results destination.
         //! @return If successful returns true, otherwise returns false.
@@ -107,6 +107,27 @@ namespace RGL
         };
 
         [[nodiscard]] bool IsFeatureEnabled(PipelineFeatureFlags feature) const;
+
+        //! Get a raycast result of specified field.
+        //! @param result Raycast field result vector.
+        //! @param rglFieldType Enum value representing the field type.
+        //! @return If successful returns true, otherwise returns false.
+        template<typename FieldType>
+        bool GetResult(AZStd::vector<FieldType>& result, rgl_field_t rglFieldType) const
+        {
+            int32_t resultSize = -1;
+            RGL_CHECK(rgl_graph_get_result_size(m_nodes.m_pointsYield, rglFieldType, &resultSize, nullptr));
+
+            if (resultSize <= 0)
+            {
+                return false;
+            }
+
+            result.resize(resultSize);
+            bool success = false;
+            Utils::ErrorCheck(rgl_graph_get_result_data(m_nodes.m_pointsYield, rglFieldType, result.data()), __FILE__, __LINE__, &success);
+            return success;
+        }
 
         void SetIsFeatureEnabled(PipelineFeatureFlags feature, bool value);
         void InitializeConditionalConnections();

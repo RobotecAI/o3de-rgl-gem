@@ -18,8 +18,6 @@
 
 namespace RGL
 {
-    const AZStd::array<rgl_field_t, 2> PipelineGraph::DefaultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_F32 };
-
     PipelineGraph::PipelineGraph()
     {
         ConfigureRayPosesNode({Utils::IdentityTransform});
@@ -29,7 +27,7 @@ namespace RGL
         RGL_CHECK(rgl_node_points_compact(&m_nodes.m_pointsCompact));
         ConfigureAngularNoiseNode(0.0f);
         ConfigureDistanceNoiseNode(0.0f, 0.0f);
-        ConfigureFormatNode(DefaultFields.data(), DefaultFields.size());
+        ConfigureYieldNodes(DefaultFields.data(), DefaultFields.size());
 
         ConfigurePcTransformNode(AZ::Matrix3x4::CreateIdentity());
         RGL_CHECK(rgl_node_points_format(&m_nodes.m_pcPublishFormat, DefaultFields.data(), aznumeric_cast<int32_t>(DefaultFields.size())));
@@ -99,9 +97,9 @@ namespace RGL
         RGL_CHECK(rgl_node_rays_set_range(&m_nodes.m_rayRanges, &range, 1));
     }
 
-    void PipelineGraph::ConfigureFormatNode(const rgl_field_t* fields, size_t size)
+    void PipelineGraph::ConfigureYieldNodes(const rgl_field_t* fields, size_t size)
     {
-        RGL_CHECK(rgl_node_points_format(&m_nodes.m_pointsYield, fields, aznumeric_cast<int32_t>(size)));
+        RGL_CHECK(rgl_node_points_yield(&m_nodes.m_pointsYield, fields, aznumeric_cast<int32_t>(size)));
         RGL_CHECK(rgl_node_points_yield(&m_nodes.m_rayTraceYield, fields, aznumeric_cast<int32_t>(size)));
         RGL_CHECK(rgl_node_points_yield(&m_nodes.m_compactYield, fields, aznumeric_cast<int32_t>(size)));
     }
@@ -177,37 +175,28 @@ namespace RGL
 
     bool PipelineGraph::GetResults(RaycastResults& results) const
     {
-        int32_t resultSize = -1;
-        RGL_CHECK(rgl_graph_get_result_size(m_nodes.m_pointsYield, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, &resultSize, nullptr));
-
-        if (resultSize <= 0)
-        {
-            return false;
-        }
-
+        bool success = true;
         for (rgl_field_t field : results.m_fields)
         {
             switch (field)
             {
             case RGL_FIELD_IS_HIT_I32:
-                results.m_isHit.resize(resultSize);
-                RGL_CHECK(rgl_graph_get_result_data(m_nodes.m_pointsYield, rgl_field_t::RGL_FIELD_IS_HIT_I32, results.m_isHit.data()));
+                success = success && GetResult(results.m_isHit, RGL_FIELD_IS_HIT_I32);
                 break;
             case RGL_FIELD_XYZ_F32:
-                results.m_xyz.resize(resultSize);
-                RGL_CHECK(rgl_graph_get_result_data(m_nodes.m_pointsYield, rgl_field_t::RGL_FIELD_XYZ_F32, results.m_xyz.data()));
+                success = success && GetResult(results.m_xyz, RGL_FIELD_XYZ_F32);
                 break;
             case RGL_FIELD_DISTANCE_F32:
-                results.m_distance.resize(resultSize);
-                RGL_CHECK(rgl_graph_get_result_data(m_nodes.m_pointsYield, rgl_field_t::RGL_FIELD_DISTANCE_F32, results.m_distance.data()));
+                success = success && GetResult(results.m_distance, RGL_FIELD_DISTANCE_F32);
                 break;
             default:
+                success = false;
                 AZ_Assert(false, "Invalid result field type!");
                 break;
             }
         }
 
-        return true;
+        return success;
     }
 
     bool PipelineGraph::IsFeatureEnabled(PipelineGraph::PipelineFeatureFlags feature) const
