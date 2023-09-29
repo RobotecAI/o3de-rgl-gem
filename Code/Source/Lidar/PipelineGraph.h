@@ -30,9 +30,10 @@ namespace RGL
     public:
         struct Nodes
         {
-            rgl_node_t m_rayPoses{ nullptr }, m_lidarTransform{ nullptr }, m_angularNoise{ nullptr }, m_rayTrace{ nullptr },
-                m_distanceNoise{ nullptr }, m_rayTraceYield{ nullptr }, m_pointsCompact{ nullptr }, m_compactYield{ nullptr },
-                m_pointsFormat{ nullptr }, m_pointCloudTransform{ nullptr }, m_pcPublishFormat{ nullptr }, m_pointCloudPublish{ nullptr };
+            rgl_node_t m_rayPoses{ nullptr }, m_rayRanges{ nullptr }, m_lidarTransform{ nullptr }, m_angularNoise{ nullptr },
+                m_rayTrace{ nullptr }, m_distanceNoise{ nullptr }, m_rayTraceYield{ nullptr }, m_pointsCompact{ nullptr },
+                m_compactYield{ nullptr }, m_pointsFormat{ nullptr }, m_pointCloudTransform{ nullptr }, m_pcPublishFormat{ nullptr },
+                m_pointCloudPublish{ nullptr };
         };
 
         PipelineGraph(float maxRange, AZStd::vector<rgl_field_t>& resultFields);
@@ -49,7 +50,7 @@ namespace RGL
         }
 
         void ConfigureRayPosesNode(const AZStd::vector<rgl_mat3x4f>& rayPoses);
-        void ConfigureRayTraceNode(float maxRange);
+        void ConfigureRayRangesNode(float minRange, float maxRange);
         void ConfigureFormatNode(const AZStd::vector<rgl_field_t>& fields);
         void ConfigureLidarTransformNode(const AZ::Matrix3x4& lidarTransform);
         void ConfigurePcTransformNode(const AZ::Matrix3x4& pcTransform);
@@ -65,7 +66,7 @@ namespace RGL
         //! Get the raycast results.
         //! @param results Raycast results destination.
         //! @return If successful returns true, otherwise returns false.
-        bool GetResults(RaycastResults& results);
+        bool GetResults(RaycastResults& results) const;
 
     private:
         enum PipelineFeatureFlags : uint8_t

@@ -23,21 +23,21 @@ namespace RGL
 
     PipelineGraph::PipelineGraph(float maxRange, AZStd::vector<rgl_field_t>& resultFields)
     {
-        RGL_CHECK(rgl_node_rays_from_mat3x4f(&m_nodes.m_rayPoses, &Utils::IdentityTransform, 1));
-        RGL_CHECK(rgl_node_rays_transform(&m_nodes.m_lidarTransform, &Utils::IdentityTransform));
-        RGL_CHECK(rgl_node_gaussian_noise_angular_ray(&m_nodes.m_angularNoise, 0.0f, 0.0f, RGL_AXIS_Z));
-        RGL_CHECK(rgl_node_raytrace(&m_nodes.m_rayTrace, nullptr, maxRange));
-        RGL_CHECK(rgl_node_gaussian_noise_distance(&m_nodes.m_distanceNoise, 0.0f, 0.0f, 0.0f));
-        RGL_CHECK(rgl_node_points_yield(&m_nodes.m_rayTraceYield, resultFields.data(), aznumeric_cast<int32_t>(resultFields.size())));
+        ConfigureRayPosesNode({Utils::IdentityTransform});
+        ConfigureRayRangesNode(0.0f, maxRange);
+        ConfigureLidarTransformNode(AZ::Matrix3x4::CreateIdentity());
+        RGL_CHECK(rgl_node_raytrace(&m_nodes.m_rayTrace, nullptr));
         RGL_CHECK(rgl_node_points_compact(&m_nodes.m_pointsCompact));
-        RGL_CHECK(rgl_node_points_yield(&m_nodes.m_compactYield, resultFields.data(), aznumeric_cast<int32_t>(resultFields.size())));
-        RGL_CHECK(rgl_node_points_format(&m_nodes.m_pointsFormat, resultFields.data(), aznumeric_cast<int32_t>(resultFields.size())));
+        ConfigureAngularNoiseNode(0.0f);
+        ConfigureDistanceNoiseNode(0.0f, 0.0f);
+        ConfigureFormatNode(resultFields);
 
-        RGL_CHECK(rgl_node_points_transform(&m_nodes.m_pointCloudTransform, &Utils::IdentityTransform));
+        ConfigurePcTransformNode(AZ::Matrix3x4::CreateIdentity());
         RGL_CHECK(rgl_node_points_format(&m_nodes.m_pcPublishFormat, DefaultFields.data(), aznumeric_cast<int32_t>(DefaultFields.size())));
 
         // Non-conditional connections
-        RGL_CHECK(rgl_graph_node_add_child(m_nodes.m_rayPoses, m_nodes.m_lidarTransform));
+        RGL_CHECK(rgl_graph_node_add_child(m_nodes.m_rayPoses, m_nodes.m_rayRanges));
+        RGL_CHECK(rgl_graph_node_add_child(m_nodes.m_rayRanges, m_nodes.m_lidarTransform));
         RGL_CHECK(rgl_graph_node_add_child(m_nodes.m_compactYield, m_nodes.m_pointsFormat));
         RGL_CHECK(rgl_graph_node_add_child(m_nodes.m_pointCloudTransform, m_nodes.m_pcPublishFormat));
 
@@ -94,9 +94,10 @@ namespace RGL
         RGL_CHECK(rgl_node_rays_from_mat3x4f(&m_nodes.m_rayPoses, rayPoses.data(), aznumeric_cast<int32_t>(rayPoses.size())));
     }
 
-    void PipelineGraph::ConfigureRayTraceNode(float maxRange)
+    void PipelineGraph::ConfigureRayRangesNode(float minRange, float maxRange)
     {
-        RGL_CHECK(rgl_node_raytrace(&m_nodes.m_rayTrace, nullptr, maxRange));
+        rgl_vec2f range = { .value = { minRange, maxRange } };
+        RGL_CHECK(rgl_node_rays_set_range(&m_nodes.m_rayRanges, &range, 1));
     }
 
     void PipelineGraph::ConfigureFormatNode(const AZStd::vector<rgl_field_t>& fields)
@@ -175,7 +176,7 @@ namespace RGL
         RGL_CHECK(rgl_graph_run(m_nodes.m_rayPoses));
     }
 
-    bool PipelineGraph::GetResults(RaycastResults& results)
+    bool PipelineGraph::GetResults(RaycastResults& results) const
     {
         int32_t resultSize = -1;
         RGL_CHECK(rgl_graph_get_result_size(m_nodes.m_pointsFormat, rgl_field_t::RGL_FIELD_DYNAMIC_FORMAT, &resultSize, nullptr));

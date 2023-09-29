@@ -84,12 +84,14 @@ namespace RGL
     {
         ValidateRayRange(range);
         m_range.second = range;
-        m_graph.ConfigureRayTraceNode(range);
+        // We set the graph-side value of min range to zero to be able to distinguish rays below min range from the ones above max range.
+        m_graph.ConfigureRayRangesNode(0.0f, m_range.second);
     }
 
     void LidarRaycaster::ConfigureMinimumRayRange(float range)
     {
         m_range.first = range;
+        // We omit updating the graph-side value of min range to be able to distinguish rays below min range from the ones above max range.
     }
 
     void LidarRaycaster::ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags)
