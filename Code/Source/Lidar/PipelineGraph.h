@@ -15,28 +15,39 @@
 #pragma once
 
 #include <AzCore/Math/Matrix3x3.h>
+#include <AzCore/std/containers/array.h>
 #include <ROS2/Communication/QoS.h>
 #include <rgl/api/core.h>
+#include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
-    class RaycastResults;
-
     //! Class that manages the RGL pipeline graph construction, which depends on
     //! three conditions: point-cloud compact, noise and publication. The diagram
     //! representation of this graph can be found under static/PipelineGraph.mmd.
     class PipelineGraph
     {
+    private:
+        static constexpr AZStd::array<rgl_field_t, 2> DefaultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_F32 };
+
     public:
+        struct RaycastResults
+        {
+            AZStd::vector<rgl_field_t> m_fields{ DefaultFields.data(), DefaultFields.data() + DefaultFields.size() };
+            AZStd::vector<int32_t> m_isHit;
+            AZStd::vector<rgl_vec3f> m_xyz;
+            AZStd::vector<float> m_distance;
+        };
+
         struct Nodes
         {
             rgl_node_t m_rayPoses{ nullptr }, m_rayRanges{ nullptr }, m_lidarTransform{ nullptr }, m_angularNoise{ nullptr },
                 m_rayTrace{ nullptr }, m_distanceNoise{ nullptr }, m_rayTraceYield{ nullptr }, m_pointsCompact{ nullptr },
-                m_compactYield{ nullptr }, m_pointsFormat{ nullptr }, m_pointCloudTransform{ nullptr }, m_pcPublishFormat{ nullptr },
+                m_compactYield{ nullptr }, m_pointsYield{ nullptr }, m_pointCloudTransform{ nullptr }, m_pcPublishFormat{ nullptr },
                 m_pointCloudPublish{ nullptr };
         };
 
-        PipelineGraph(float maxRange, AZStd::vector<rgl_field_t>& resultFields);
+        PipelineGraph();
         PipelineGraph(const PipelineGraph& other) = delete;
         PipelineGraph(PipelineGraph&& other);
         ~PipelineGraph();
@@ -51,7 +62,7 @@ namespace RGL
 
         void ConfigureRayPosesNode(const AZStd::vector<rgl_mat3x4f>& rayPoses);
         void ConfigureRayRangesNode(float minRange, float maxRange);
-        void ConfigureFormatNode(const AZStd::vector<rgl_field_t>& fields);
+        void ConfigureYieldNodes(const rgl_field_t* fields, size_t size);
         void ConfigureLidarTransformNode(const AZ::Matrix3x4& lidarTransform);
         void ConfigurePcTransformNode(const AZ::Matrix3x4& pcTransform);
         void ConfigureAngularNoiseNode(float angularNoiseStdDev);
@@ -63,6 +74,7 @@ namespace RGL
         void SetIsNoiseEnabled(bool value);
 
         void Run();
+
         //! Get the raycast results.
         //! @param results Raycast results destination.
         //! @return If successful returns true, otherwise returns false.
@@ -94,9 +106,28 @@ namespace RGL
             rgl_node_t m_parent, m_child;
         };
 
-        static const std::vector<rgl_field_t> DefaultFields;
-
         [[nodiscard]] bool IsFeatureEnabled(PipelineFeatureFlags feature) const;
+
+        //! Get a raycast result of specified field.
+        //! @param result Raycast field result vector.
+        //! @param rglFieldType Enum value representing the field type.
+        //! @return If successful returns true, otherwise returns false.
+        template<typename FieldType>
+        bool GetResult(AZStd::vector<FieldType>& result, rgl_field_t rglFieldType) const
+        {
+            int32_t resultSize = -1;
+            RGL_CHECK(rgl_graph_get_result_size(m_nodes.m_pointsYield, rglFieldType, &resultSize, nullptr));
+
+            if (resultSize <= 0)
+            {
+                return false;
+            }
+
+            result.resize(resultSize);
+            bool success = false;
+            Utils::ErrorCheck(rgl_graph_get_result_data(m_nodes.m_pointsYield, rglFieldType, result.data()), __FILE__, __LINE__, &success);
+            return success;
+        }
 
         void SetIsFeatureEnabled(PipelineFeatureFlags feature, bool value);
         void InitializeConditionalConnections();
