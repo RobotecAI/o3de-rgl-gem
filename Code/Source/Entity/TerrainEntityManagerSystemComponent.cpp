@@ -142,10 +142,10 @@ namespace RGL
         {
             for (size_t sectorIndexY = 0LU; sectorIndexY < heighfieldGridRows - 1; ++sectorIndexY)
             {
-                const auto upperLeft = aznumeric_cast<int32_t>(sectorIndexY + 1 + sectorIndexX * heighfieldGridRows);
-                const auto upperRight = aznumeric_cast<int32_t>(upperLeft + heighfieldGridRows);
-                const auto lowerLeft = aznumeric_cast<int32_t>(upperLeft - 1);
-                const auto lowerRight = aznumeric_cast<int32_t>(upperRight - 1);
+                const auto lowerLeft = aznumeric_cast<int32_t>(sectorIndexY + sectorIndexX * heighfieldGridRows);
+                const auto lowerRight = aznumeric_cast<int32_t>(lowerLeft + heighfieldGridRows);
+                const auto upperLeft = aznumeric_cast<int32_t>(lowerLeft + 1);
+                const auto upperRight = aznumeric_cast<int32_t>(lowerRight + 1);
 
                 m_indices.emplace_back(rgl_vec3i{ upperLeft, upperRight, lowerLeft });
                 m_indices.emplace_back(rgl_vec3i{ lowerLeft, upperRight, lowerRight });
