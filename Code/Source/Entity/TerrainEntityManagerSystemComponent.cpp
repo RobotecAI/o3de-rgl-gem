@@ -188,7 +188,7 @@ namespace RGL
                 float height = AZStd::numeric_limits<float>::lowest();
                 bool terrainExists = false;
 
-                // Sampler::Exact is used because
+                // Sampler::Exact is used because mesh vertices are created directly on grid provided from heightfield.
                 AzFramework::Terrain::TerrainDataRequestBus::BroadcastResult(
                     height,
                     &AzFramework::Terrain::TerrainDataRequestBus::Events::GetHeightFromFloats,
