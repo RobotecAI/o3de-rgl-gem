@@ -62,7 +62,5 @@ namespace RGL
         AZStd::vector<rgl_vec3i> m_indices;
 
         static constexpr size_t TrianglesPerSector = 2LU;
-        // Length of each sector side (in meters);
-        static constexpr float SectorSideLength = 1.0f;
     };
 } // namespace RGL
