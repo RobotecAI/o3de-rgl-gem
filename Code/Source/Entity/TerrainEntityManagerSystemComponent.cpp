@@ -12,10 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <Entity/TerrainEntityManagerSystemComponent.h>
-#include <Utilities/RGLUtils.h>
 #include <AzCore/Serialization/EditContext.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <AzFramework/Physics/HeightfieldProviderBus.h>
+#include <Entity/TerrainEntityManagerSystemComponent.h>
+#include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
@@ -96,47 +97,55 @@ namespace RGL
         AzFramework::Terrain::TerrainDataRequestBus::BroadcastResult(
             newWorldBounds, &AzFramework::Terrain::TerrainDataRequests::GetTerrainAabb);
 
-        const AZ::Vector3 newWorldMin = newWorldBounds.GetMin();
-        const AZ::Vector3 newWorldSize = newWorldBounds.GetExtents();
-
-        if (newWorldBounds == m_currentWorldBounds || newWorldSize.GetX() < SectorSideLength || newWorldSize.GetY() < SectorSideLength)
+        if (newWorldBounds == m_currentWorldBounds)
         {
-            return; // No need to update.
+            // This is only for world bound creation, not for update.
+            return;
         }
 
         m_currentWorldBounds = newWorldBounds;
-        const auto sectorCountX = aznumeric_cast<size_t>(newWorldSize.GetX() / SectorSideLength);
-        const auto sectorCountY = aznumeric_cast<size_t>(newWorldSize.GetY() / SectorSideLength);
 
-        // To create a mesh constructed out of n * m sectors we need (n + 1) * (m + 1) vertices.
-        // Each vertex is positioned in one of the sector's corners.
-        size_t vertexCountX = sectorCountX + 1LU;
-        size_t vertexCountY = sectorCountY + 1LU;
+        size_t heightfieldGridColumns, heighfieldGridRows;
+        Physics::HeightfieldProviderRequestsBus::BroadcastResult(
+            heightfieldGridColumns, &Physics::HeightfieldProviderRequests::GetHeightfieldGridColumns);
+        Physics::HeightfieldProviderRequestsBus::BroadcastResult(
+            heighfieldGridRows, &Physics::HeightfieldProviderRequests::GetHeightfieldGridRows);
+
+        if (heightfieldGridColumns < 2 || heighfieldGridRows < 2)
+        {
+            return;
+        }
+
+        AZ::Vector2 heightfieldGridSpacing{};
+        Physics::HeightfieldProviderRequestsBus::BroadcastResult(
+            heightfieldGridSpacing, &Physics::HeightfieldProviderRequests::GetHeightfieldGridSpacing);
 
         m_vertices.clear();
-        m_vertices.reserve(vertexCountX * vertexCountY);
-        for (size_t vertexIndexX = 0LU; vertexIndexX < vertexCountX; ++vertexIndexX)
+        m_vertices.reserve(heightfieldGridColumns * heighfieldGridRows);
+        const AZ::Vector3 worldMin = m_currentWorldBounds.GetMin();
+
+        for (size_t vertexIndexX = 0LU; vertexIndexX < heightfieldGridColumns; ++vertexIndexX)
         {
-            for (size_t vertexIndexY = 0LU; vertexIndexY < vertexCountY; ++vertexIndexY)
+            for (size_t vertexIndexY = 0LU; vertexIndexY < heighfieldGridRows; ++vertexIndexY)
             {
                 m_vertices.emplace_back(rgl_vec3f{
-                    newWorldMin.GetX() + aznumeric_cast<float>(vertexIndexX) * SectorSideLength,
-                    newWorldMin.GetY() + aznumeric_cast<float>(vertexIndexY) * SectorSideLength,
+                    worldMin.GetX() + aznumeric_cast<float>(vertexIndexX) * heightfieldGridSpacing.GetX(),
+                    worldMin.GetY() + aznumeric_cast<float>(vertexIndexY) * heightfieldGridSpacing.GetY(),
                     0.0f,
                 });
             }
         }
 
         m_indices.clear();
-        m_indices.reserve(sectorCountX * sectorCountY * TrianglesPerSector);
-        for (size_t sectorIndexX = 0LU; sectorIndexX < sectorCountX; ++sectorIndexX)
+        m_indices.reserve((heightfieldGridColumns - 1) * (heighfieldGridRows - 1) * TrianglesPerSector);
+        for (size_t sectorIndexX = 0LU; sectorIndexX < heightfieldGridColumns - 1; ++sectorIndexX)
         {
-            for (size_t sectorIndexY = 0LU; sectorIndexY < sectorCountY; ++sectorIndexY)
+            for (size_t sectorIndexY = 0LU; sectorIndexY < heighfieldGridRows - 1; ++sectorIndexY)
             {
-                const auto upperLeft = aznumeric_cast<int32_t>(sectorIndexY * vertexCountX + sectorIndexX);
-                const auto upperRight = aznumeric_cast<int32_t>(upperLeft + 1LU);
-                const auto lowerLeft = aznumeric_cast<int32_t>(upperLeft + vertexCountX);
-                const auto lowerRight = aznumeric_cast<int32_t>(upperRight + vertexCountX);
+                const auto lowerLeft = aznumeric_cast<int32_t>(sectorIndexY + sectorIndexX * heighfieldGridRows);
+                const auto lowerRight = aznumeric_cast<int32_t>(lowerLeft + heighfieldGridRows);
+                const auto upperLeft = aznumeric_cast<int32_t>(lowerLeft + 1);
+                const auto upperRight = aznumeric_cast<int32_t>(lowerRight + 1);
 
                 m_indices.emplace_back(rgl_vec3i{ upperLeft, upperRight, lowerLeft });
                 m_indices.emplace_back(rgl_vec3i{ lowerLeft, upperRight, lowerRight });
@@ -178,12 +187,14 @@ namespace RGL
             {
                 float height = AZStd::numeric_limits<float>::lowest();
                 bool terrainExists = false;
+
+                // Sampler::Exact is used because mesh vertices are created directly on grid provided from heightfield.
                 AzFramework::Terrain::TerrainDataRequestBus::BroadcastResult(
                     height,
                     &AzFramework::Terrain::TerrainDataRequestBus::Events::GetHeightFromFloats,
                     vertex.value[0],
                     vertex.value[1],
-                    AzFramework::Terrain::TerrainDataRequests::Sampler::BILINEAR,
+                    AzFramework::Terrain::TerrainDataRequests::Sampler::EXACT,
                     &terrainExists);
 
                 if (height != AZStd::numeric_limits<float>::lowest() && terrainExists)
