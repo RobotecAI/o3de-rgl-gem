@@ -13,7 +13,6 @@
 # limitations under the License.
 
 include(FindRGL.cmake)
-link_directories(/home/michalpelka/github/o3de-rgl-gem/Code/3rdParty/RobotecGPULidar/)
 ly_add_target(
     NAME RGL.Static STATIC
     NAMESPACE Gem
