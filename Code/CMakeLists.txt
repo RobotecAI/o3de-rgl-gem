@@ -13,7 +13,6 @@
 # limitations under the License.
 
 include(FindRGL.cmake)
-
 ly_add_target(
     NAME RGL.Static STATIC
     NAMESPACE Gem
@@ -39,6 +38,13 @@ ly_add_target(
 )
 
 ly_target_link_libraries(RGL.Static PUBLIC ${RGL_SO_DIR})
+
+ly_add_target_files(
+        TARGETS
+        RGL.Static
+        FILES
+        ${RGL_SO_DIR}
+)
 
 ly_add_target(
     NAME RGL.API HEADERONLY
