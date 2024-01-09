@@ -16,6 +16,7 @@
 #include <Entity/EntityManager.h>
 #include <Utilities/RGLUtils.h>
 #include <AzCore/Component/TransformBus.h>
+#include <AzCore/Component/NonUniformScaleBus.h>
 
 namespace RGL
 {
@@ -73,8 +74,11 @@ namespace RGL
         AZ::Transform transform = AZ::Transform::CreateIdentity();
         AZ::TransformBus::EventResult(transform, m_entityId, &AZ::TransformBus::Events::GetWorldTM);
 
-        const rgl_mat3x4f entityPose = Utils::RglMat3x4FromAzMatrix3x4(AZ::Matrix3x4::CreateFromTransform(transform));
+        AZ::Vector3 scale {AZ::Vector3::CreateOne()};
+        AZ::NonUniformScaleRequestBus::EventResult(scale, m_entityId, &AZ::NonUniformScaleRequests::GetScale);
 
+        const AZ::Matrix3x4 transformWithScale = AZ::Matrix3x4::CreateFromTransform(transform) * AZ::Matrix3x4::CreateScale(scale);
+        const rgl_mat3x4f entityPose = Utils::RglMat3x4FromAzMatrix3x4(transformWithScale);
         for (rgl_entity_t entity : m_entities)
         {
             RGL_CHECK(rgl_entity_set_pose(entity, &entityPose));
