@@ -105,7 +105,7 @@ namespace RGL
 
         m_currentWorldBounds = newWorldBounds;
 
-        size_t heightfieldGridColumns, heighfieldGridRows;
+        size_t heightfieldGridColumns{}, heighfieldGridRows{};
         Physics::HeightfieldProviderRequestsBus::BroadcastResult(
             heightfieldGridColumns, &Physics::HeightfieldProviderRequests::GetHeightfieldGridColumns);
         Physics::HeightfieldProviderRequestsBus::BroadcastResult(
@@ -121,6 +121,7 @@ namespace RGL
             heightfieldGridSpacing, &Physics::HeightfieldProviderRequests::GetHeightfieldGridSpacing);
 
         m_vertices.clear();
+        AZ_Printf("TerrainEntityManagerSystemComponent", "Creating terrain mesh with %zu columns and %zu rows.", heightfieldGridColumns, heighfieldGridRows);
         m_vertices.reserve(heightfieldGridColumns * heighfieldGridRows);
         const AZ::Vector3 worldMin = m_currentWorldBounds.GetMin();
 
