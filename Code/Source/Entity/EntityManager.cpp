@@ -15,8 +15,6 @@
 
 #include <Entity/EntityManager.h>
 #include <Utilities/RGLUtils.h>
-#include <AzCore/Component/TransformBus.h>
-#include <AzCore/Component/NonUniformScaleBus.h>
 
 namespace RGL
 {
@@ -29,7 +27,6 @@ namespace RGL
     EntityManager::EntityManager(EntityManager&& other)
         : m_entityId{ other.m_entityId }
         , m_entities{ AZStd::move(other.m_entities) }
-        , m_isStatic{ other.m_isStatic }
     {
         AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
@@ -46,7 +43,7 @@ namespace RGL
 
     void EntityManager::Update()
     {
-        if (IsStatic())
+        if (!m_isPoseUpdateNeeded)
         {
             return;
         }
@@ -54,34 +51,47 @@ namespace RGL
         UpdatePose();
     }
 
-    bool EntityManager::IsStatic() const
-    {
-        return m_isStatic;
-    }
-
     void EntityManager::OnEntityActivated(const AZ::EntityId& entityId)
     {
-        AZ::TransformBus::EventResult(m_isStatic, m_entityId, &AZ::TransformBus::Events::IsStaticTransform);
+        //// Transform
+        // Register transform changed event handler
+        AZ::TransformBus::Event(entityId, &AZ::TransformBus::Events::BindTransformChangedEventHandler, m_transformChangedHandler);
+        // Get current transform
+        AZ::TransformBus::EventResult(m_worldTm, entityId, &AZ::TransformBus::Events::GetWorldTM);
+
+        //// Non-uniform scale
+        // Register non-uniform scale changed event handler
+        AZ::NonUniformScaleRequestBus::Event(entityId, &AZ::NonUniformScaleRequests::RegisterScaleChangedEvent, m_nonUniformScaleChangedHandler);
+        // Get current non-uniform scale (if there is no non-uniform scale added, the value won't be changed (nullopt))
+        AZ::NonUniformScaleRequestBus::EventResult(m_nonUniformScale, entityId, &AZ::NonUniformScaleRequests::GetScale);
+
+        m_isPoseUpdateNeeded = true;
+    }
+
+    void EntityManager::OnEntityDeactivated(const AZ::EntityId& entityId)
+    {
+        m_transformChangedHandler.Disconnect();
+        m_nonUniformScaleChangedHandler.Disconnect();
     }
 
     void EntityManager::UpdatePose()
     {
         if (m_entities.empty())
         {
+            m_isPoseUpdateNeeded = false;
             return;
         }
 
-        AZ::Transform transform = AZ::Transform::CreateIdentity();
-        AZ::TransformBus::EventResult(transform, m_entityId, &AZ::TransformBus::Events::GetWorldTM);
-
-        AZ::Vector3 scale {AZ::Vector3::CreateOne()};
-        AZ::NonUniformScaleRequestBus::EventResult(scale, m_entityId, &AZ::NonUniformScaleRequests::GetScale);
-
-        const AZ::Matrix3x4 transformWithScale = AZ::Matrix3x4::CreateFromTransform(transform) * AZ::Matrix3x4::CreateScale(scale);
-        const rgl_mat3x4f entityPose = Utils::RglMat3x4FromAzMatrix3x4(transformWithScale);
+        AZ::Matrix3x4 transform3x4f = AZ::Matrix3x4::CreateFromTransform(m_worldTm);
+        if (m_nonUniformScale.has_value())
+        {
+            transform3x4f *= AZ::Matrix3x4::CreateScale(m_nonUniformScale.value());
+        }
+        const rgl_mat3x4f entityPoseRgl = Utils::RglMat3x4FromAzMatrix3x4(transform3x4f);
         for (rgl_entity_t entity : m_entities)
         {
-            RGL_CHECK(rgl_entity_set_pose(entity, &entityPose));
+            RGL_CHECK(rgl_entity_set_pose(entity, &entityPoseRgl));
         }
+        m_isPoseUpdateNeeded = false;
     }
 } // namespace RGL

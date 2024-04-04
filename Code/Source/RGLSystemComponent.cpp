@@ -160,7 +160,7 @@ namespace RGL
 
     void RGLSystemComponent::OnTick(float deltaTime, AZ::ScriptTimePoint time)
     {
-        for (auto& [entityId, entityManager] : m_entityManagers)
+        for (auto&& [entityId, entityManager] : m_entityManagers)
         {
             entityManager->Update();
         }

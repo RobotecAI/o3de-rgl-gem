@@ -16,7 +16,10 @@
 
 #include <AzCore/Component/EntityBus.h>
 #include <AzCore/Component/EntityId.h>
+#include <AzCore/Component/NonUniformScaleBus.h>
+#include <AzCore/Component/TransformBus.h>
 #include <AzCore/std/containers/vector.h>
+#include <AzCore/std/optional.h>
 #include <rgl/api/core.h>
 
 namespace RGL
@@ -32,11 +35,10 @@ namespace RGL
         virtual void Update();
 
     protected:
-        //! Is this Entity static?
-        [[nodiscard]] bool IsStatic() const;
 
         // AZ::EntityBus::Handler implementation overrides
         void OnEntityActivated(const AZ::EntityId& entityId) override;
+        void OnEntityDeactivated(const AZ::EntityId& entityId) override;
 
         //! Updates poses of all RGL entities managed by this EntityManager.
         virtual void UpdatePose();
@@ -44,6 +46,23 @@ namespace RGL
         AZ::EntityId m_entityId;
         AZStd::vector<rgl_entity_t> m_entities;
     private:
-        bool m_isStatic{ false };
+
+        AZ::TransformChangedEvent::Handler m_transformChangedHandler{[this](
+            [[maybe_unused]] const AZ::Transform& local, const AZ::Transform& world)
+            {
+                m_worldTm = world;
+                m_isPoseUpdateNeeded = true;
+            }};
+
+        AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler{[this](
+                const AZ::Vector3& scale)
+            {
+                m_nonUniformScale = scale;
+                m_isPoseUpdateNeeded = true;
+            }};
+
+        bool m_isPoseUpdateNeeded{ false };
+        AZ::Transform m_worldTm{ AZ::Transform::CreateIdentity() };
+        AZStd::optional<AZ::Vector3> m_nonUniformScale{ AZStd::nullopt };
     };
 } // namespace RGL

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <AzCore/Component/TransformBus.h>
+
 #include <Entity/MeshEntityManager.h>
 #include <Mesh/MeshLibraryBus.h>
 #include <Utilities/RGLUtils.h>
@@ -57,11 +57,6 @@ namespace RGL
             {
                 m_entities.emplace_back(entity);
             }
-        }
-
-        if (!m_entities.empty())
-        {
-            UpdatePose();
         }
     }
 } // namespace RGL
