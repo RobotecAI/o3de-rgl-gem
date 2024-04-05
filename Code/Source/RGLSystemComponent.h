@@ -15,7 +15,7 @@
 #pragma once
 
 #include <AzCore/Component/Component.h>
-#include <AzCore/Component/TickBus.h>
+#include <AzCore/Script/ScriptTimePoint.h>
 #include <AzCore/Math/Vector3.h>
 #include <AzFramework/Entity/EntityContextBus.h>
 #include <Lidar/LidarSystem.h>
@@ -30,8 +30,6 @@ namespace RGL
         : public AZ::Component
         , protected RGLRequestBus::Handler
         , protected AzFramework::EntityContextEventBus::Handler
-        , protected AZ::TickBus::Handler
-
     {
     public:
         AZ_COMPONENT(RGL::RGLSystemComponent, "{dbd5b1c5-249f-4eca-a142-2533ebe7f680}");
@@ -55,14 +53,12 @@ namespace RGL
         void ExcludeEntity(const AZ::EntityId& excludedEntityId) override;
         void SetSceneConfiguration(const SceneConfiguration& config) override;
         [[nodiscard]] const SceneConfiguration& GetSceneConfiguration() const override;
+        void UpdateScene() override;
 
         // AzFramework::EntityContextEventBus overrides
         void OnEntityContextCreateEntity(AZ::Entity& entity) override;
         void OnEntityContextDestroyEntity(const AZ::EntityId& id) override;
         void OnEntityContextReset() override;
-
-        // AZ::TickBus overrides
-        void OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time) override;
 
     private:
         LidarSystem m_rglLidarSystem;
@@ -71,5 +67,6 @@ namespace RGL
         AZStd::set<AZ::EntityId> m_excludedEntities;
         SceneConfiguration m_sceneConfig;
         AZStd::unordered_map<AZ::EntityId, AZStd::shared_ptr<EntityManager>> m_entityManagers;
+        AZ::ScriptTimePoint m_sceneUpdateLastTime {};
     };
 } // namespace RGL

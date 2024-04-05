@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <AzCore/Component/TickBus.h>
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentConstants.h>
 #include <AzFramework/Entity/EntityContext.h>
 #include <AzFramework/Entity/GameEntityContextBus.h>
@@ -78,8 +80,6 @@ namespace RGL
 
     void RGLSystemComponent::Activate()
     {
-        AZ::TickBus::Handler::BusConnect();
-
         AzFramework::EntityContextId gameEntityContextId;
         AzFramework::GameEntityContextRequestBus::BroadcastResult(
             gameEntityContextId, &AzFramework::GameEntityContextRequestBus::Events::GetGameEntityContextId);
@@ -94,7 +94,6 @@ namespace RGL
     {
         m_rglLidarSystem.Deactivate();
         AzFramework::EntityContextEventBus::Handler::BusDisconnect();
-        AZ::TickBus::Handler::BusDisconnect();
 
         m_entityManagers.clear();
         m_meshLibrary.Clear();
@@ -158,8 +157,17 @@ namespace RGL
         RGL_CHECK(rgl_cleanup());
     }
 
-    void RGLSystemComponent::OnTick(float deltaTime, AZ::ScriptTimePoint time)
+    void RGLSystemComponent::UpdateScene()
     {
+        AZ::ScriptTimePoint currentTime;
+        AZ::TickRequestBus::BroadcastResult(currentTime, &AZ::TickRequestBus::Events::GetTimeAtCurrentTick);
+        // Skip if already updated
+        if (m_sceneUpdateLastTime.Get() == currentTime.Get())
+        {
+            return;
+        }
+        m_sceneUpdateLastTime = currentTime;
+
         for (auto&& [entityId, entityManager] : m_entityManagers)
         {
             entityManager->Update();

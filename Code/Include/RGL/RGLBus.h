@@ -33,6 +33,9 @@ namespace RGL
         virtual void SetSceneConfiguration(const SceneConfiguration& config) = 0;
         [[nodiscard]] virtual const SceneConfiguration& GetSceneConfiguration() const = 0;
 
+        //! Updates scene to the RGL
+        virtual void UpdateScene() = 0;
+
     protected:
         ~RGLRequests() = default;
     };
