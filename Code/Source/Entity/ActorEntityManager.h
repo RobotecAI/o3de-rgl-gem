@@ -32,8 +32,10 @@ namespace RGL
     {
     public:
         explicit ActorEntityManager(AZ::EntityId entityId);
-        ActorEntityManager(const ActorEntityManager& other) = default;
-        ActorEntityManager(ActorEntityManager&& other);
+        ActorEntityManager(const ActorEntityManager& other) = delete;
+        ActorEntityManager(ActorEntityManager&& other) = delete;
+        ActorEntityManager& operator=(ActorEntityManager&& rhs) = delete;
+        ActorEntityManager& operator=(const ActorEntityManager&) = delete;
         ~ActorEntityManager();
 
         void Update() override;

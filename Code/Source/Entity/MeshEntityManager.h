@@ -25,9 +25,11 @@ namespace RGL
         , protected AZ::Render::MeshComponentNotificationBus::Handler
     {
     public:
-        MeshEntityManager(AZ::EntityId entityId);
-        MeshEntityManager(const MeshEntityManager& other) = default;
-        MeshEntityManager(MeshEntityManager&& other);
+        explicit MeshEntityManager(AZ::EntityId entityId);
+        MeshEntityManager(const MeshEntityManager& other) = delete;
+        MeshEntityManager(MeshEntityManager&& other) = delete;
+        MeshEntityManager& operator=(MeshEntityManager&& rhs) = delete;
+        MeshEntityManager& operator=(const MeshEntityManager&) = delete;
         ~MeshEntityManager() override;
 
     protected:

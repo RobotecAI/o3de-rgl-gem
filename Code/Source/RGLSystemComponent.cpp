@@ -126,21 +126,21 @@ namespace RGL
             return;
         }
 
-        AZStd::shared_ptr<EntityManager> entityManager;
+        AZStd::unique_ptr<EntityManager> entityManager;
         if (entity.FindComponent<EMotionFX::Integration::ActorComponent>())
         {
-            entityManager = AZStd::make_shared<ActorEntityManager>(entity.GetId());
+            entityManager = AZStd::make_unique<ActorEntityManager>(entity.GetId());
         }
         else if (entity.FindComponent(AZ::Render::MeshComponentTypeId))
         {
-            entityManager = AZStd::make_shared<MeshEntityManager>(entity.GetId());
+            entityManager = AZStd::make_unique<MeshEntityManager>(entity.GetId());
         }
         else
         {
             return;
         }
 
-        [[maybe_unused]] bool inserted = m_entityManagers.emplace(entity.GetId(), entityManager).second;
+        [[maybe_unused]] bool inserted = m_entityManagers.emplace(entity.GetId(), AZStd::move(entityManager)).second;
         AZ_Error(__func__, inserted, "Object with provided entityId already exists.");
     }
 

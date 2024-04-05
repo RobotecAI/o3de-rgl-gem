@@ -66,7 +66,7 @@ namespace RGL
         MeshLibrary m_meshLibrary;
         AZStd::set<AZ::EntityId> m_excludedEntities;
         SceneConfiguration m_sceneConfig;
-        AZStd::unordered_map<AZ::EntityId, AZStd::shared_ptr<EntityManager>> m_entityManagers;
+        AZStd::unordered_map<AZ::EntityId, AZStd::unique_ptr<EntityManager>> m_entityManagers;
         AZ::ScriptTimePoint m_sceneUpdateLastTime {};
     };
 } // namespace RGL

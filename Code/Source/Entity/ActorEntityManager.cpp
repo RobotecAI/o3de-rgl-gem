@@ -32,12 +32,6 @@ namespace RGL
         EMotionFX::Integration::ActorComponentNotificationBus::Handler::BusConnect(entityId);
     }
 
-    ActorEntityManager::ActorEntityManager(ActorEntityManager&& other)
-        : EntityManager(std::move(other))
-    {
-        EMotionFX::Integration::ActorComponentNotificationBus::Handler::BusDisconnect();
-    }
-
     ActorEntityManager::~ActorEntityManager()
     {
         for (MeshPair mesh : m_meshes)

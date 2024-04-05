@@ -25,12 +25,6 @@ namespace RGL
         AZ::Render::MeshComponentNotificationBus::Handler::BusConnect(entityId);
     }
 
-    MeshEntityManager::MeshEntityManager(MeshEntityManager&& other)
-        : EntityManager{ AZStd::move(other) }
-    {
-        AZ::Render::MeshComponentNotificationBus::Handler::BusConnect(m_entityId);
-    }
-
     MeshEntityManager::~MeshEntityManager()
     {
         AZ::Render::MeshComponentNotificationBus::Handler::BusDisconnect();

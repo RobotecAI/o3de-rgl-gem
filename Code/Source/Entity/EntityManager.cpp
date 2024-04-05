@@ -24,13 +24,6 @@ namespace RGL
         AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
 
-    EntityManager::EntityManager(EntityManager&& other)
-        : m_entityId{ other.m_entityId }
-        , m_entities{ AZStd::move(other.m_entities) }
-    {
-        AZ::EntityBus::Handler::BusConnect(m_entityId);
-    }
-
     EntityManager::~EntityManager()
     {
         AZ::EntityBus::Handler::BusDisconnect();
