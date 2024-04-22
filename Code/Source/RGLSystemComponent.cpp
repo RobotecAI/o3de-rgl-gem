@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <AzCore/Component/TickBus.h>
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentConstants.h>
 #include <AzFramework/Entity/EntityContext.h>
 #include <AzFramework/Entity/GameEntityContextBus.h>
@@ -78,8 +80,6 @@ namespace RGL
 
     void RGLSystemComponent::Activate()
     {
-        AZ::TickBus::Handler::BusConnect();
-
         AzFramework::EntityContextId gameEntityContextId;
         AzFramework::GameEntityContextRequestBus::BroadcastResult(
             gameEntityContextId, &AzFramework::GameEntityContextRequestBus::Events::GetGameEntityContextId);
@@ -94,7 +94,6 @@ namespace RGL
     {
         m_rglLidarSystem.Deactivate();
         AzFramework::EntityContextEventBus::Handler::BusDisconnect();
-        AZ::TickBus::Handler::BusDisconnect();
 
         m_entityManagers.clear();
         m_meshLibrary.Clear();
@@ -127,21 +126,21 @@ namespace RGL
             return;
         }
 
-        AZStd::shared_ptr<EntityManager> entityManager;
+        AZStd::unique_ptr<EntityManager> entityManager;
         if (entity.FindComponent<EMotionFX::Integration::ActorComponent>())
         {
-            entityManager = AZStd::make_shared<ActorEntityManager>(entity.GetId());
+            entityManager = AZStd::make_unique<ActorEntityManager>(entity.GetId());
         }
         else if (entity.FindComponent(AZ::Render::MeshComponentTypeId))
         {
-            entityManager = AZStd::make_shared<MeshEntityManager>(entity.GetId());
+            entityManager = AZStd::make_unique<MeshEntityManager>(entity.GetId());
         }
         else
         {
             return;
         }
 
-        [[maybe_unused]] bool inserted = m_entityManagers.emplace(entity.GetId(), entityManager).second;
+        [[maybe_unused]] bool inserted = m_entityManagers.emplace(entity.GetId(), AZStd::move(entityManager)).second;
         AZ_Error(__func__, inserted, "Object with provided entityId already exists.");
     }
 
@@ -158,9 +157,18 @@ namespace RGL
         RGL_CHECK(rgl_cleanup());
     }
 
-    void RGLSystemComponent::OnTick(float deltaTime, AZ::ScriptTimePoint time)
+    void RGLSystemComponent::UpdateScene()
     {
-        for (auto& [entityId, entityManager] : m_entityManagers)
+        AZ::ScriptTimePoint currentTime;
+        AZ::TickRequestBus::BroadcastResult(currentTime, &AZ::TickRequestBus::Events::GetTimeAtCurrentTick);
+        // Skip if already updated
+        if (m_sceneUpdateLastTime.Get() == currentTime.Get())
+        {
+            return;
+        }
+        m_sceneUpdateLastTime = currentTime;
+
+        for (auto&& [entityId, entityManager] : m_entityManagers)
         {
             entityManager->Update();
         }

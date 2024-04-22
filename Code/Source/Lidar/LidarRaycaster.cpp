@@ -118,6 +118,8 @@ namespace RGL
 
     ROS2::RaycastResult LidarRaycaster::PerformRaycast(const AZ::Transform& lidarTransform)
     {
+        RGLInterface::Get()->UpdateScene();
+
         const AZ::Matrix3x4 lidarPose = AZ::Matrix3x4::CreateFromTransform(lidarTransform);
 
         m_graph.ConfigureLidarTransformNode(lidarPose);
