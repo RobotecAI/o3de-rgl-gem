@@ -47,6 +47,7 @@ namespace RGL
 
         AZ::EntityId m_entityId;
         AZStd::vector<rgl_entity_t> m_entities;
+        bool m_isPoseUpdateNeeded{ false };
     private:
 
         AZ::TransformChangedEvent::Handler m_transformChangedHandler{[this](
@@ -63,7 +64,6 @@ namespace RGL
                 m_isPoseUpdateNeeded = true;
             }};
 
-        bool m_isPoseUpdateNeeded{ false };
         AZ::Transform m_worldTm{ AZ::Transform::CreateIdentity() };
         AZStd::optional<AZ::Vector3> m_nonUniformScale{ AZStd::nullopt };
     };
