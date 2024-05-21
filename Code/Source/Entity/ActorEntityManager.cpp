@@ -100,6 +100,8 @@ namespace RGL
                     ActorEntity->GetId().ToString().c_str());
             }
         }
+
+        m_isPoseUpdateNeeded = true;
     }
 
     void ActorEntityManager::UpdateMeshVertices()

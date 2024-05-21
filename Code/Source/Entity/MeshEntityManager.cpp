@@ -52,5 +52,7 @@ namespace RGL
                 m_entities.emplace_back(entity);
             }
         }
+
+        m_isPoseUpdateNeeded = true;
     }
 } // namespace RGL
