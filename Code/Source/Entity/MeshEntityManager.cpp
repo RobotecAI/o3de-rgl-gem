@@ -42,17 +42,26 @@ namespace RGL
             return;
         }
 
+        // TODO: Segment counter is a work-in-progress entity id substitute. Target solution depends on the requirements, e.g.
+        //  - if we want to set id manually, we probably need dedicated component.
+        //  - if we want to set id based on assets, we need a way to serialize them (their names? e.g. static hash map with asset names and
+        //      id from static counter - different instances should have the same id).
+        // TODO: May also be worth to double check if OnModelReady may not be called asynchronously. However, this probably would have risen
+        // problems earlier in RGL.
+        static int32_t segmentCounter = 1;
         m_entities.reserve(meshes.size());
+
         for (rgl_mesh_t mesh : meshes)
         {
             rgl_entity_t entity = nullptr;
-            Utils::SafeRglEntityCreate(entity, mesh);
+            Utils::SafeRglEntityCreate(entity, mesh, segmentCounter);
             if (entity)
             {
                 m_entities.emplace_back(entity);
             }
         }
 
+        ++segmentCounter;
         m_isPoseUpdateNeeded = true;
     }
 } // namespace RGL

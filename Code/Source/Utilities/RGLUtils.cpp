@@ -42,6 +42,17 @@ namespace RGL::Utils
         }
     }
 
+    void SafeRglEntityCreate(rgl_entity_t& targetEntity, rgl_mesh_t mesh, int32_t entityId)
+    {
+        SafeRglEntityCreate(targetEntity, mesh);
+        if (targetEntity)
+        {
+            // Error check with a log was chosen here intentionally, instead of failing entity creation - should be safe and easy to notice
+            // in case of a problem.
+            ErrorCheck(rgl_entity_set_id(targetEntity, entityId), __FILE__, __LINE__);
+        }
+    }
+
     void ErrorCheck(const rgl_status_t& status, const char* file, int line, bool* successDest)
     {
         static const AZStd::unordered_set<rgl_status_t> UnrecoverableStatuses = {

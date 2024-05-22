@@ -186,6 +186,9 @@ namespace RGL
             case RGL_FIELD_XYZ_F32:
                 success = success && GetResult(results.m_xyz, RGL_FIELD_XYZ_F32);
                 break;
+            case RGL_FIELD_ENTITY_ID_I32:
+                success = success && GetResult(results.m_entityId, RGL_FIELD_ENTITY_ID_I32);
+                break;
             case RGL_FIELD_DISTANCE_F32:
                 success = success && GetResult(results.m_distance, RGL_FIELD_DISTANCE_F32);
                 break;

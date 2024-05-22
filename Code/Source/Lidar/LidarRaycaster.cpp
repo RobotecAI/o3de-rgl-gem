@@ -103,6 +103,7 @@ namespace RGL
         {
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_IS_HIT_I32);
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_XYZ_F32);
+            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_ENTITY_ID_I32);
         }
 
         if ((flags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges)
@@ -142,6 +143,7 @@ namespace RGL
         if (pointsExpected)
         {
             m_raycastResults.m_points.resize(m_rglRaycastResults.m_xyz.size());
+            m_raycastResults.m_ids.resize(m_raycastResults.m_points.size()); // TODO: Decide on desired default value here.
         }
 
         if (distanceExpected)
@@ -169,6 +171,7 @@ namespace RGL
 
                 if (isHit || m_isMaxRangeEnabled)
                 {
+                    m_raycastResults.m_ids[usedPointIndex] = m_rglRaycastResults.m_entityId[resultIndex];
                     ++usedPointIndex;
                 }
             }
@@ -192,6 +195,7 @@ namespace RGL
         if (pointsExpected)
         {
             m_raycastResults.m_points.resize(usedPointIndex);
+            m_raycastResults.m_ids.resize(usedPointIndex);
         }
 
         return m_raycastResults;

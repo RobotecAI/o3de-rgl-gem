@@ -21,6 +21,10 @@ namespace RGL::Utils
     //! This function should be preferred over the rgl_entity_create function.
     void SafeRglEntityCreate(rgl_entity_t& targetEntity, rgl_mesh_t mesh);
 
+    //! Creates an RGL entity ensuring that if it cannot be created the targetEntity is set to nullptr.
+    //! Compared to other SafeRglEntityCreate this function also sets the RGL entityId.
+    void SafeRglEntityCreate(rgl_entity_t& targetEntity, rgl_mesh_t mesh, int32_t entityId);
+
     //! If the provided status signifies an error, prints the last RGL error message.
     //! @param status Status returned by an API call.
     //! @param file String representing the file path of the file in which the API call was made
