@@ -16,11 +16,12 @@
 #include <Entity/MeshEntityManager.h>
 #include <Mesh/MeshLibraryBus.h>
 #include <Utilities/RGLUtils.h>
+#include "LmbrCentral/Scripting/TagComponentBus.h"
 
 namespace RGL
 {
-    MeshEntityManager::MeshEntityManager(AZ::EntityId entityId)
-        : EntityManager{ entityId }
+    MeshEntityManager::MeshEntityManager(AZ::EntityId entityId,AZStd::vector<AZStd::pair<AZStd::string,int32_t>> tags)
+        : EntityManager{ entityId },  m_tags{tags}
     {
         AZ::Render::MeshComponentNotificationBus::Handler::BusConnect(entityId);
     }
@@ -48,20 +49,31 @@ namespace RGL
         //      id from static counter - different instances should have the same id).
         // TODO: May also be worth to double check if OnModelReady may not be called asynchronously. However, this probably would have risen
         // problems earlier in RGL.
-        static int32_t segmentCounter = 1;
+        int32_t entity_id = 1;
+        bool has_tag;
+        for (int i = 0; i < m_tags.size(); i++)
+        {
+            LmbrCentral::Tag tag_to_test(m_tags[i].first);
+            LmbrCentral::TagComponentRequestBus::EventResult(has_tag,m_entityId, &LmbrCentral::TagComponentRequests::HasTag,tag_to_test);
+            if (has_tag)
+            {
+                entity_id = m_tags[i].second;
+                break;
+            }
+        }
+
         m_entities.reserve(meshes.size());
 
         for (rgl_mesh_t mesh : meshes)
         {
             rgl_entity_t entity = nullptr;
-            Utils::SafeRglEntityCreate(entity, mesh, segmentCounter);
+            Utils::SafeRglEntityCreate(entity, mesh, entity_id);
             if (entity)
             {
                 m_entities.emplace_back(entity);
             }
         }
-
-        ++segmentCounter;
+        
         m_isPoseUpdateNeeded = true;
     }
 } // namespace RGL

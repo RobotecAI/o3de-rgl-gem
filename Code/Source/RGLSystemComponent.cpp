@@ -78,6 +78,40 @@ namespace RGL
         }
     }
 
+    void RGLSystemComponent::InitializeTags() {
+        AZ::IO::FileIOBase *fileIO = AZ::IO::FileIOBase::GetInstance();
+        AZ::IO::HandleType fileHandle;
+        auto result = fileIO->Open("tags.csv",AZ::IO::OpenMode::ModeRead,fileHandle);
+        if (result != AZ::IO::ResultCode::Success)
+        {
+            AZ_Warning("RGL",false,"Failed to open tags.csv");
+            return;
+        }
+        AZ::u64 fileSize = 0;
+        fileIO->Size("tags.csv",fileSize);
+        AZStd::vector<char> fileData(fileSize);
+        fileIO->Read(fileHandle,fileData.data(),fileSize);
+
+        AZStd::string file_data_str(fileData.data(),fileSize);
+        AZStd::vector<AZStd::string> lines;
+        AZStd::tokenize(file_data_str, {'\n'},lines);
+        // skip the first line
+        lines.erase(lines.begin());
+        for (AZStd::string line : lines)
+        {
+            // check if there is a comma
+            if (line.find(',') == AZStd::string::npos)
+            {
+                continue;
+            }
+            AZStd::vector<AZStd::string> tokens;
+            AZStd::tokenize(line, {','},tokens );
+            m_tags.push_back(AZStd::pair<AZStd::string,int32_t>(tokens[0],AZStd::stoi(tokens[1])));
+            printf("Tag: %s, Segment: %d\n",tokens[0].c_str(),AZStd::stoi(tokens[1]));
+        }
+
+    }
+
     void RGLSystemComponent::Activate()
     {
         AzFramework::EntityContextId gameEntityContextId;
@@ -85,8 +119,8 @@ namespace RGL
             gameEntityContextId, &AzFramework::GameEntityContextRequestBus::Events::GetGameEntityContextId);
         AZ_Assert(!gameEntityContextId.IsNull(), "Invalid GameEntityContextId");
 
+        InitializeTags();
         AzFramework::EntityContextEventBus::Handler::BusConnect(gameEntityContextId);
-
         m_rglLidarSystem.Activate();
     }
 
@@ -133,7 +167,7 @@ namespace RGL
         }
         else if (entity.FindComponent(AZ::Render::MeshComponentTypeId))
         {
-            entityManager = AZStd::make_unique<MeshEntityManager>(entity.GetId());
+            entityManager = AZStd::make_unique<MeshEntityManager>(entity.GetId(),m_tags);
         }
         else
         {

@@ -61,12 +61,15 @@ namespace RGL
         void OnEntityContextReset() override;
 
     private:
-        LidarSystem m_rglLidarSystem;
+        void InitializeTags();
 
+        LidarSystem m_rglLidarSystem;
         MeshLibrary m_meshLibrary;
         AZStd::set<AZ::EntityId> m_excludedEntities;
         SceneConfiguration m_sceneConfig;
         AZStd::unordered_map<AZ::EntityId, AZStd::unique_ptr<EntityManager>> m_entityManagers;
         AZ::ScriptTimePoint m_sceneUpdateLastTime {};
+        
+        AZStd::vector<AZStd::pair<AZStd::string,int32_t>>  m_tags;
     };
 } // namespace RGL
