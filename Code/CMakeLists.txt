@@ -35,6 +35,7 @@ ly_add_target(
             Gem::AtomLyIntegration_CommonFeatures.Static
             Gem::ROS2.Static
             Gem::EMotionFX.Static
+            Gem::LmbrCentral
 )
 
 ly_target_link_libraries(RGL.Static PUBLIC ${RGL_SO_DIR})
@@ -95,6 +96,7 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
             PUBLIC
                 AZ::AzToolsFramework
                 Gem::RGL.Static
+                Gem::LmbrCentral.Static
     )
 
     ly_add_target(

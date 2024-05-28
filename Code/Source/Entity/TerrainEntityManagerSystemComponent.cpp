@@ -161,8 +161,8 @@ namespace RGL
             AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL mesh.");
             return;
         }
-
-        Utils::SafeRglEntityCreate(m_rglEntity, m_rglMesh, 1);
+        const int32_t rglId = Utils::PackClassAndEntityIdToRglId(Utils::TerrainRGLClassTag, Utils::GetRemappedEntityId());
+        Utils::SafeRglEntityCreate(m_rglEntity, m_rglMesh, rglId);
         if (!m_rglEntity)
         {
             AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL entity.");

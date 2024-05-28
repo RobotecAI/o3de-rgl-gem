@@ -25,10 +25,7 @@
 #include <Utilities/RGLUtils.h>
 
 #include <ROS2/ROS2Bus.h>
-#include <ROS2/ROS2GemUtilities.h>
 #include <ROS2/Utilities/ROS2Conversions.h>
-#include <ROS2/Utilities/ROS2Names.h>
-#include <ROS2/Frame/ROS2FrameComponent.h>
 
 namespace RGL
 {
@@ -84,66 +81,12 @@ namespace RGL
         }
     }
 
-    void RGLSystemComponent::InitializeTags() {
-        AZ::IO::FileIOBase *fileIO = AZ::IO::FileIOBase::GetInstance();
-        AZ::IO::HandleType fileHandle;
-        auto result = fileIO->Open("tags.csv",AZ::IO::OpenMode::ModeRead,fileHandle);
-        if (result != AZ::IO::ResultCode::Success)
-        {
-            AZ_Warning("RGL",false,"Failed to open tags.csv");
-            return;
-        }
-        AZ::u64 fileSize = 0;
-        fileIO->Size("tags.csv",fileSize);
-        AZStd::vector<char> fileData(fileSize);
-        fileIO->Read(fileHandle,fileData.data(),fileSize);
-
-        AZStd::string file_data_str(fileData.data(),fileSize);
-        AZStd::vector<AZStd::string> lines;
-        AZStd::tokenize(file_data_str, {'\n'},lines);
-        // skip the first line
-        lines.erase(lines.begin());
-        for (AZStd::string line : lines)
-        {
-            // check if there is a comma
-            if (line.find(',') == AZStd::string::npos)
-            {
-                continue;
-            }
-            AZStd::vector<AZStd::string> tokens;
-            AZStd::tokenize(line, {','},tokens );
-            m_tags.insert(AZStd::pair<AZStd::string,int32_t>(tokens[0],AZStd::stoi(tokens[1])));
-            printf("Tag: %s, Segment: %d\n",tokens[0].c_str(),AZStd::stoi(tokens[1]));
-        }
-
-        //
-        // auto ros2Node = ROS2::ROS2Interface::Get()->GetNode();
-        // const auto *ros2_frame_component = m_entity->FindComponent<ROS2::ROS2FrameComponent>();
-        // auto namespaced_topic_name = ROS2::ROS2Names::GetNamespacedName(ros2_frame_component->GetNamespace(),
-        //                                                                 m_configuration.m_poseTopicConfiguration.
-        //                                                                 m_topic);
-        // m_poseSubscription = ros2Node->create_subscription<geometry_msgs::msg::PoseStamped>(
-        //     namespaced_topic_name.data(),
-        //     m_configuration.m_poseTopicConfiguration.GetQoS(),
-        //     [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
-        //         if (m_configuration.m_tracking_mode != ROS2PoseControlConfiguration::TrackingMode::PoseMessages || !
-        //             m_isTracking) {
-        //             return;
-        //         }
-        //         const AZ::Transform transform = ROS2::ROS2Conversions::FromROS2Pose(msg->pose);
-        //         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, transform);
-        //     });
-
-    }
-
     void RGLSystemComponent::Activate()
     {
         AzFramework::EntityContextId gameEntityContextId;
         AzFramework::GameEntityContextRequestBus::BroadcastResult(
             gameEntityContextId, &AzFramework::GameEntityContextRequestBus::Events::GetGameEntityContextId);
         AZ_Assert(!gameEntityContextId.IsNull(), "Invalid GameEntityContextId");
-
-        InitializeTags();
         AzFramework::EntityContextEventBus::Handler::BusConnect(gameEntityContextId);
         m_rglLidarSystem.Activate();
     }
@@ -187,17 +130,17 @@ namespace RGL
         AZStd::unique_ptr<EntityManager> entityManager;
         if (entity.FindComponent<EMotionFX::Integration::ActorComponent>())
         {
-            entityManager = AZStd::make_unique<ActorEntityManager>(entity.GetId(), m_tags);
+            entityManager = AZStd::make_unique<ActorEntityManager>(entity.GetId());
         }
         else if (entity.FindComponent(AZ::Render::MeshComponentTypeId))
         {
-            entityManager = AZStd::make_unique<MeshEntityManager>(entity.GetId(),m_tags);
+            entityManager = AZStd::make_unique<MeshEntityManager>(entity.GetId());
         }
         else
         {
             return;
         }
-
+        entityManager->UpdateSegmentationClass(m_tagNamesToClassIds);
         [[maybe_unused]] bool inserted = m_entityManagers.emplace(entity.GetId(), AZStd::move(entityManager)).second;
         AZ_Error(__func__, inserted, "Object with provided entityId already exists.");
     }
@@ -229,6 +172,16 @@ namespace RGL
         for (auto&& [entityId, entityManager] : m_entityManagers)
         {
             entityManager->Update();
+        }
+    }
+
+    void RGLSystemComponent::UpdateSegmentationClassesMappingDefinitions(
+        const AZStd::unordered_set<AZStd::pair<AZStd::string, uint8_t>>& classTagsDefinitions)
+    {
+        m_tagNamesToClassIds = AZStd::make_shared<AZStd::unordered_set<AZStd::pair<AZStd::string, uint8_t>>>(classTagsDefinitions);
+        for (auto&& [entityId, entityManager] : m_entityManagers)
+        {
+            entityManager->UpdateSegmentationClass(m_tagNamesToClassIds);
         }
     }
 } // namespace RGL

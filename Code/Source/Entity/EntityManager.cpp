@@ -15,31 +15,13 @@
 
 #include <Entity/EntityManager.h>
 #include <Utilities/RGLUtils.h>
+#include <LmbrCentral/Scripting/TagComponentBus.h>
 
 namespace RGL
 {
-    AZStd::atomic_int32_t EntityManager::m_compresedIdCounter = { 0 };
-
-    EntityManager::EntityManager(AZ::EntityId entityId, AZStd::set<AZStd::pair<AZStd::string,uint8_t>> &class_tags)
-        : m_entityId{ entityId }
-    {
-        m_compresedId = m_compresedIdCounter.fetch_add(1);
-        m_compresedId = m_compresedId%(1<<COMPRESSED_ID_BIT_DEPTH);
-        
-        for (const auto& tag : class_tags)
-        {
-            LmbrCentral::Tag tag_to_test(tag.first);
-            bool has_tag=false;
-            LmbrCentral::TagComponentRequestBus::EventResult(has_tag,m_entityId, &LmbrCentral::TagComponentRequests::HasTag,tag_to_test);
-            if (has_tag)
-            {
-                if (m_classId != 0)
-                {
-                    AZ_Warning("EntityManager", false, "Entity with ID: %s has more than one class tag. Assigning tag: %s", m_entityId.ToString().c_str(), tag.first.c_str());
-                }
-                m_classId = tag.second;
-            }
-        }
+    EntityManager::EntityManager(AZ::EntityId entityId)
+        : m_entityId{entityId} {
+        m_compressedId = Utils::GetRemappedEntityId();
         AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
 
@@ -63,6 +45,20 @@ namespace RGL
         UpdatePose();
     }
 
+    void EntityManager::UpdateSegmentationClass(Utils::ClassTags classTags)
+    {
+        if (!classTags)
+        {
+            return;
+        }
+        m_classNameToClassIdMapping = classTags;
+        const int32_t rglId = GetRglId();
+        for (rgl_entity_t entity : m_entities)
+        {
+            Utils::SafeRglSetEntityId(entity, rglId);
+        }
+    }
+
     void EntityManager::OnEntityActivated(const AZ::EntityId& entityId)
     {
         //// Transform
@@ -79,6 +75,7 @@ namespace RGL
 
         m_isPoseUpdateNeeded = true;
     }
+
 
     void EntityManager::OnEntityDeactivated(const AZ::EntityId& entityId)
     {
@@ -105,5 +102,47 @@ namespace RGL
             RGL_CHECK(rgl_entity_set_pose(entity, &entityPoseRgl));
         }
         m_isPoseUpdateNeeded = false;
+    }
+
+    int32_t EntityManager::GetRglId() const
+    {
+        uint8_t classId = 0;
+        if (!m_classNameToClassIdMapping)
+        {
+            return Utils::PackClassAndEntityIdToRglId(classId, m_compressedId);
+        }
+        for (const auto& tagNameAndClassId : *m_classNameToClassIdMapping)
+        {
+            LmbrCentral::Tag tag(tagNameAndClassId.first);
+            bool hasTag = false;
+            LmbrCentral::TagComponentRequestBus::EventResult(hasTag, m_entityId, &LmbrCentral::TagComponentRequests::HasTag, tag);
+            if (hasTag)
+            {
+                if (classId != 0)
+                {
+                    AZ_Warning(
+                        "EntityManager",
+                        false,
+                        "Entity with ID: %s has more than one class tag. Assigning first class id %d",
+                        m_entityId.ToString().c_str(),
+                        classId);
+                }
+                else
+                {
+                    classId = tagNameAndClassId.second;
+                }
+            }
+        }
+        if (classId == 0)
+        {
+            AZ_Warning(
+                "EntityManager",
+                false,
+                "Entity with ID: %s has no class tag. Assigning default class ID: %d",
+                m_entityId.ToString().c_str(),
+                classId);
+        }
+        const auto rglId = Utils::PackClassAndEntityIdToRglId(classId, m_compressedId);
+        return rglId;
     }
 } // namespace RGL

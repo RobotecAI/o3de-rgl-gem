@@ -143,8 +143,8 @@ namespace RGL
         if (pointsExpected)
         {
             m_raycastResults.m_points.resize(m_rglRaycastResults.m_xyz.size());
-            m_raycastResults.m_ids.resize(m_raycastResults.m_points.size()); // TODO: Decide on desired default value here.
-            m_raycastResults.m_classes.resize(m_raycastResults.m_points.size()); // TODO: Decide on desired default value here.
+            m_raycastResults.m_ids.emplace(m_raycastResults.m_points.size());
+            m_raycastResults.m_classes.emplace(m_raycastResults.m_points.size());
         }
 
         if (distanceExpected)
@@ -170,13 +170,10 @@ namespace RGL
                     m_raycastResults.m_points[usedPointIndex] = maxVector.GetAsVector3();
                 }
 
-                if (isHit || m_isMaxRangeEnabled)
-                {
-                    int32_t rgl_entity_id = m_rglRaycastResults.m_entityId[resultIndex];
-                    uint8 classId = rgl_entity_id>>20;
-                    int32_t entityId = rgl_entity_id & 0xFFFFF;
-                    m_raycastResults.m_ids[usedPointIndex] = entityId;
-                    m_raycastResults.m_classes[usedPointIndex] = classId; // TODO: Decide on desired default value here.
+                if (isHit || m_isMaxRangeEnabled) {
+                    auto [classId, entityId] = Utils::UnpackClassAndEntityIdFromRglId(m_rglRaycastResults.m_entityId[resultIndex]);
+                    m_raycastResults.m_ids.value()[usedPointIndex] = entityId;
+                    m_raycastResults.m_classes.value()[usedPointIndex] = classId;
                     ++usedPointIndex;
                 }
             }
@@ -200,8 +197,8 @@ namespace RGL
         if (pointsExpected)
         {
             m_raycastResults.m_points.resize(usedPointIndex);
-            m_raycastResults.m_ids.resize(usedPointIndex);
-            m_raycastResults.m_classes.resize(usedPointIndex);
+            m_raycastResults.m_ids.value().resize(usedPointIndex);
+            m_raycastResults.m_classes.value().resize(usedPointIndex);
         }
 
         return m_raycastResults;
@@ -230,6 +227,11 @@ namespace RGL
         // We need to configure if points should be compacted to minimize the CPU operations when retrieving raycast results.
         m_graph.SetIsCompactEnabled(ShouldEnableCompact());
         m_graph.SetIsPcPublishingEnabled(ShouldEnablePcPublishing());
+    }
+
+    void LidarRaycaster::ConfigureSegmentationClasses(
+        const AZStd::unordered_set<AZStd::pair<AZStd::string, uint8_t> > & classTagsDefinitions) {
+        RGLInterface::Get()->UpdateSegmentationClassesMappingDefinitions(classTagsDefinitions);
     }
 
     void LidarRaycaster::ConfigurePointCloudPublisher(

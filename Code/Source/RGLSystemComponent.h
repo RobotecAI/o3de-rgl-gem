@@ -21,6 +21,7 @@
 #include <Lidar/LidarSystem.h>
 #include <Mesh/MeshLibrary.h>
 #include <RGL/RGLBus.h>
+#include "Utilities/RGLUtils.h"
 
 namespace RGL
 {
@@ -55,21 +56,21 @@ namespace RGL
         [[nodiscard]] const SceneConfiguration& GetSceneConfiguration() const override;
         void UpdateScene() override;
 
+        void UpdateSegmentationClassesMappingDefinitions(
+            const AZStd::unordered_set<AZStd::pair<AZStd::string, uint8_t>>& classTagsDefinitions) override;
+
         // AzFramework::EntityContextEventBus overrides
         void OnEntityContextCreateEntity(AZ::Entity& entity) override;
         void OnEntityContextDestroyEntity(const AZ::EntityId& id) override;
         void OnEntityContextReset() override;
 
     private:
-        void InitializeTags();
-
         LidarSystem m_rglLidarSystem;
         MeshLibrary m_meshLibrary;
         AZStd::set<AZ::EntityId> m_excludedEntities;
         SceneConfiguration m_sceneConfig;
         AZStd::unordered_map<AZ::EntityId, AZStd::unique_ptr<EntityManager>> m_entityManagers;
         AZ::ScriptTimePoint m_sceneUpdateLastTime {};
-        
-        AZStd::set<AZStd::pair<AZStd::string,uint8_t>>  m_tags;
+        Utils::ClassTags m_tagNamesToClassIds;
     };
 } // namespace RGL

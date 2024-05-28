@@ -46,6 +46,9 @@ namespace RGL
         void ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities) override;
         void ConfigureMaxRangePointAddition(bool addMaxRangePoints) override;
 
+        void ConfigureSegmentationClasses(
+            const AZStd::unordered_set<AZStd::pair<AZStd::string, uint8_t> > & classTagsDefinitions) override;
+
         void ConfigurePointCloudPublisher(
             [[maybe_unused]] const AZStd::string& topicName,
             [[maybe_unused]] const AZStd::string& frameId,

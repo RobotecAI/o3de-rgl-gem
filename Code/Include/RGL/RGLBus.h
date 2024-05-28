@@ -30,6 +30,9 @@ namespace RGL
         //! @param excludedEntityId EntityId of the excluded entity.
         virtual void ExcludeEntity(const AZ::EntityId& excludedEntityId) = 0;
 
+        virtual void UpdateSegmentationClassesMappingDefinitions(
+            const AZStd::unordered_set<AZStd::pair<AZStd::string, uint8_t>>& classTagsDefinitions) = 0;
+
         virtual void SetSceneConfiguration(const SceneConfiguration& config) = 0;
         [[nodiscard]] virtual const SceneConfiguration& GetSceneConfiguration() const = 0;
 

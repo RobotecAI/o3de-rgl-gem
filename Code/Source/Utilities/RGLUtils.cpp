@@ -11,6 +11,7 @@
 #include <Utilities/RGLUtils.h>
 #include <iostream>
 #include <rgl/api/core.h>
+#include <AzCore/std/parallel/atomic.h>
 
 namespace RGL::Utils
 {
@@ -47,6 +48,14 @@ namespace RGL::Utils
         SafeRglEntityCreate(targetEntity, mesh);
         if (targetEntity)
         {
+            // Error check with a log was chosen here intentionally, instead of failing entity creation - should be safe and easy to notice
+            // in case of a problem.
+            ErrorCheck(rgl_entity_set_id(targetEntity, entityId), __FILE__, __LINE__);
+        }
+    }
+
+    void SafeRglSetEntityId(rgl_entity_t &targetEntity, int32_t entityId) {
+        if (targetEntity) {
             // Error check with a log was chosen here intentionally, instead of failing entity creation - should be safe and easy to notice
             // in case of a problem.
             ErrorCheck(rgl_entity_set_id(targetEntity, entityId), __FILE__, __LINE__);
@@ -107,6 +116,18 @@ namespace RGL::Utils
         }
     }
 
+    int32_t PackClassAndEntityIdToRglId(const uint8_t &classId, const int32_t &entityId) {
+        AZ_Assert(entityId < (1 << CompressedIdBitDepth), "Entity ID is too large to be packed into RGL ID");
+        const int32_t id = (static_cast<int32_t>(classId) << CompressedIdBitDepth) | (entityId & ((1 << CompressedIdBitDepth) - 1));
+        return id;
+    }
+
+    AZStd::pair<uint8_t, int32_t> UnpackClassAndEntityIdFromRglId(const int32_t &rglId) {
+        const uint8_t classId = rglId >> CompressedIdBitDepth;
+        const int32_t entityId = rglId & ((1 << CompressedIdBitDepth) - 1);
+        return {classId, entityId};
+    }
+
     rgl_mat3x4f RglMat3x4FromAzMatrix3x4(const AZ::Matrix3x4& azMatrix)
     {
         return {
@@ -136,5 +157,13 @@ namespace RGL::Utils
     rgl_vec3f RglVector3FromAzVec3f(const AZ::Vector3& azVector)
     {
         return { azVector.GetX(), azVector.GetY(), azVector.GetZ() };
+    }
+
+    int32_t GetRemappedEntityId()
+    {
+        static_assert(CompressedIdBitDepth <= 31, "CompressedIdBitDepth must be less than or equal to 31");
+        static AZStd::atomic_uint32_t compressedIdCounter = { 1 };
+        const auto generatedId = static_cast<int32_t>(compressedIdCounter.fetch_add(1) % (1 << RGL::Utils::CompressedIdBitDepth));
+        return generatedId;
     }
 } // namespace RGL::Utils

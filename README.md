@@ -38,6 +38,7 @@ You can fully customize the LiDAR's settings using the O3DE Level Editor. Those 
 - configurable raycasting pattern
 - lidar range
 - entities excluded from raycasting
+- instance and semantic segmentation
 
 You can also choose one of the presets provided by the ROS2 Gem to create a LiDAR model that fits your needs.
 
@@ -113,6 +114,15 @@ the **RUNTIME** requirements.*
 
    After following through all previous instructions, you can customize the `ROS2 Lidar Sensor` component in the Entity
    Inspector to fit all your needs.
+4. **Select Classes for Semantic Segmentation**
+
+    Using the `Semantic Classes` field, you can add tuples describing the class name, the class ID, and its color (to view the color in RViz2 select Color Transformer: RGBF32). 
+    Additionally, incorporate a `Tag` component for each entity containing a mesh, assigning it a tag that matches the class name.
+    The mapping of class IDs to names will also be published alongside point cloud data under `segmentation_classes` topic.
+    
+    **Important:** Class ID 0 is reserved for unclassified points, and class ID 1 is reserved for ground points (coming from the terrain gem).
+      <img src="static/png/segmentation_classes.png" alt="drawing" width="500"/>
+          
 
 ### Scene configuration
 

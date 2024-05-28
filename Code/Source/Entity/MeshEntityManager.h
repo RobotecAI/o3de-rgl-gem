@@ -25,7 +25,8 @@ namespace RGL
         , protected AZ::Render::MeshComponentNotificationBus::Handler
     {
     public:
-        explicit MeshEntityManager(AZ::EntityId entityId, AZStd::set<AZStd::pair<AZStd::string,uint8_t>> &class_tags);
+        explicit MeshEntityManager(AZ::EntityId entityId);
+
         MeshEntityManager(const MeshEntityManager& other) = delete;
         MeshEntityManager(MeshEntityManager&& other) = delete;
         MeshEntityManager& operator=(MeshEntityManager&& rhs) = delete;
@@ -33,7 +34,7 @@ namespace RGL
         ~MeshEntityManager() override;
 
     protected:
-        AZStd::vector<AZStd::pair<AZStd::string,int32_t>> m_tags;
+        // AZ::Render::MeshComponentNotificationBus overrides
 
         void OnModelReady(
             const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset,

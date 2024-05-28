@@ -20,9 +20,8 @@
 
 namespace RGL
 {
-    MeshEntityManager::MeshEntityManager(AZ::EntityId entityId, AZStd::set<AZStd::pair<AZStd::string,uint8_t>> &class_tags)
-        : EntityManager{ entityId ,class_tags}
-    {
+    MeshEntityManager::MeshEntityManager(AZ::EntityId entityId)
+        : EntityManager{entityId} {
         AZ::Render::MeshComponentNotificationBus::Handler::BusConnect(entityId);
     }
 
@@ -43,20 +42,12 @@ namespace RGL
             return;
         }
 
-        // TODO: Segment counter is a work-in-progress entity id substitute. Target solution depends on the requirements, e.g.
-        //  - if we want to set id manually, we probably need dedicated component.
-        //  - if we want to set id based on assets, we need a way to serialize them (their names? e.g. static hash map with asset names and
-        //      id from static counter - different instances should have the same id).
-        // TODO: May also be worth to double check if OnModelReady may not be called asynchronously. However, this probably would have risen
-        // problems earlier in RGL.
-
-
         m_entities.reserve(meshes.size());
 
         for (rgl_mesh_t mesh : meshes)
         {
             rgl_entity_t entity = nullptr;
-            Utils::SafeRglEntityCreate(entity, mesh, get_rgl_id());
+            Utils::SafeRglEntityCreate(entity, mesh, GetRglId());
             if (entity)
             {
                 m_entities.emplace_back(entity);

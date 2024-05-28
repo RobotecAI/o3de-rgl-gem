@@ -26,9 +26,8 @@
 
 namespace RGL
 {
-    ActorEntityManager::ActorEntityManager(AZ::EntityId entityId,
-                                           AZStd::set<AZStd::pair<AZStd::string, uint8_t> > &class_tags)
-        : EntityManager(entityId, class_tags) {
+    ActorEntityManager::ActorEntityManager(AZ::EntityId entityId)
+        : EntityManager(entityId) {
         EMotionFX::Integration::ActorComponentNotificationBus::Handler::BusConnect(entityId);
     }
 
@@ -85,7 +84,7 @@ namespace RGL
         for (MeshPair& mesh : m_meshes)
         {
             rgl_entity_t entity = nullptr;
-            Utils::SafeRglEntityCreate(entity, mesh.m_rglMesh, get_rgl_id());
+            Utils::SafeRglEntityCreate(entity, mesh.m_rglMesh, GetRglId());
             if (entity)
             {
                 m_entities.emplace_back(entity);

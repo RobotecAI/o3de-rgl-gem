@@ -31,8 +31,7 @@ namespace RGL
         , public EMotionFX::Integration::ActorComponentNotificationBus::Handler
     {
     public:
-        explicit ActorEntityManager(AZ::EntityId entityId,
-                                    AZStd::set<AZStd::pair<AZStd::string, uint8_t> > &class_tags);
+        explicit ActorEntityManager(AZ::EntityId entityId);
 
         ActorEntityManager(const ActorEntityManager& other) = delete;
         ActorEntityManager(ActorEntityManager&& other) = delete;
