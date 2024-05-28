@@ -70,6 +70,6 @@ namespace RGL
         AZStd::unordered_map<AZ::EntityId, AZStd::unique_ptr<EntityManager>> m_entityManagers;
         AZ::ScriptTimePoint m_sceneUpdateLastTime {};
         
-        AZStd::vector<AZStd::pair<AZStd::string,int32_t>>  m_tags;
+        AZStd::set<AZStd::pair<AZStd::string,uint8_t>>  m_tags;
     };
 } // namespace RGL

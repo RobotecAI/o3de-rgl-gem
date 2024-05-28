@@ -144,6 +144,7 @@ namespace RGL
         {
             m_raycastResults.m_points.resize(m_rglRaycastResults.m_xyz.size());
             m_raycastResults.m_ids.resize(m_raycastResults.m_points.size()); // TODO: Decide on desired default value here.
+            m_raycastResults.m_classes.resize(m_raycastResults.m_points.size()); // TODO: Decide on desired default value here.
         }
 
         if (distanceExpected)
@@ -171,7 +172,11 @@ namespace RGL
 
                 if (isHit || m_isMaxRangeEnabled)
                 {
-                    m_raycastResults.m_ids[usedPointIndex] = m_rglRaycastResults.m_entityId[resultIndex];
+                    int32_t rgl_entity_id = m_rglRaycastResults.m_entityId[resultIndex];
+                    uint8 classId = rgl_entity_id>>20;
+                    int32_t entityId = rgl_entity_id & 0xFFFFF;
+                    m_raycastResults.m_ids[usedPointIndex] = entityId;
+                    m_raycastResults.m_classes[usedPointIndex] = classId; // TODO: Decide on desired default value here.
                     ++usedPointIndex;
                 }
             }
@@ -196,6 +201,7 @@ namespace RGL
         {
             m_raycastResults.m_points.resize(usedPointIndex);
             m_raycastResults.m_ids.resize(usedPointIndex);
+            m_raycastResults.m_classes.resize(usedPointIndex);
         }
 
         return m_raycastResults;

@@ -162,7 +162,7 @@ namespace RGL
             return;
         }
 
-        Utils::SafeRglEntityCreate(m_rglEntity, m_rglMesh);
+        Utils::SafeRglEntityCreate(m_rglEntity, m_rglMesh, 1);
         if (!m_rglEntity)
         {
             AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL entity.");

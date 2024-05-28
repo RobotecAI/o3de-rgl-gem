@@ -18,9 +18,28 @@
 
 namespace RGL
 {
-    EntityManager::EntityManager(AZ::EntityId entityId)
+    AZStd::atomic_int32_t EntityManager::m_compresedIdCounter = { 0 };
+
+    EntityManager::EntityManager(AZ::EntityId entityId, AZStd::set<AZStd::pair<AZStd::string,uint8_t>> &class_tags)
         : m_entityId{ entityId }
     {
+        m_compresedId = m_compresedIdCounter.fetch_add(1);
+        m_compresedId = m_compresedId%(1<<COMPRESSED_ID_BIT_DEPTH);
+        
+        for (const auto& tag : class_tags)
+        {
+            LmbrCentral::Tag tag_to_test(tag.first);
+            bool has_tag=false;
+            LmbrCentral::TagComponentRequestBus::EventResult(has_tag,m_entityId, &LmbrCentral::TagComponentRequests::HasTag,tag_to_test);
+            if (has_tag)
+            {
+                if (m_classId != 0)
+                {
+                    AZ_Warning("EntityManager", false, "Entity with ID: %s has more than one class tag. Assigning tag: %s", m_entityId.ToString().c_str(), tag.first.c_str());
+                }
+                m_classId = tag.second;
+            }
+        }
         AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
 

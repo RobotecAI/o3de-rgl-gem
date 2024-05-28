@@ -27,7 +27,8 @@ namespace RGL
     class EntityManager : public AZ::EntityBus::Handler
     {
     public:
-        explicit EntityManager(AZ::EntityId entityId);
+        explicit EntityManager(AZ::EntityId entityId, AZStd::set<AZStd::pair<AZStd::string, uint8_t> > &class_tags);
+
         EntityManager(const EntityManager& other) = delete;
         EntityManager(EntityManager&& other) = delete;
         EntityManager& operator=(EntityManager&& rhs) = delete;
@@ -36,6 +37,9 @@ namespace RGL
 
         virtual void Update();
 
+        // Unique id of the class 0 is the unknown class
+        uint8_t m_classId{0};
+        
     protected:
 
         // AZ::EntityBus::Handler implementation overrides
@@ -48,6 +52,7 @@ namespace RGL
         AZ::EntityId m_entityId;
         AZStd::vector<rgl_entity_t> m_entities;
         bool m_isPoseUpdateNeeded{ false };
+        int32_t get_rgl_id() const { return static_cast<int32_t>(m_classId) << COMPRESSED_ID_BIT_DEPTH | m_compresedId;}
     private:
 
         AZ::TransformChangedEvent::Handler m_transformChangedHandler{[this](
@@ -66,5 +71,13 @@ namespace RGL
 
         AZ::Transform m_worldTm{ AZ::Transform::CreateIdentity() };
         AZStd::optional<AZ::Vector3> m_nonUniformScale{ AZStd::nullopt };
+
+
+
+
+        // Temporary solution to generate unique ids for RGL entities
+        static constexpr uint8_t COMPRESSED_ID_BIT_DEPTH = 20;
+        int32_t m_compresedId{0};
+        static AZStd::atomic_int32_t m_compresedIdCounter;
     };
 } // namespace RGL

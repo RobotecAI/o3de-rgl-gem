@@ -24,6 +24,12 @@
 #include <RGLSystemComponent.h>
 #include <Utilities/RGLUtils.h>
 
+#include <ROS2/ROS2Bus.h>
+#include <ROS2/ROS2GemUtilities.h>
+#include <ROS2/Utilities/ROS2Conversions.h>
+#include <ROS2/Utilities/ROS2Names.h>
+#include <ROS2/Frame/ROS2FrameComponent.h>
+
 namespace RGL
 {
     void RGLSystemComponent::Reflect(AZ::ReflectContext* context)
@@ -106,9 +112,27 @@ namespace RGL
             }
             AZStd::vector<AZStd::string> tokens;
             AZStd::tokenize(line, {','},tokens );
-            m_tags.push_back(AZStd::pair<AZStd::string,int32_t>(tokens[0],AZStd::stoi(tokens[1])));
+            m_tags.insert(AZStd::pair<AZStd::string,int32_t>(tokens[0],AZStd::stoi(tokens[1])));
             printf("Tag: %s, Segment: %d\n",tokens[0].c_str(),AZStd::stoi(tokens[1]));
         }
+
+        //
+        // auto ros2Node = ROS2::ROS2Interface::Get()->GetNode();
+        // const auto *ros2_frame_component = m_entity->FindComponent<ROS2::ROS2FrameComponent>();
+        // auto namespaced_topic_name = ROS2::ROS2Names::GetNamespacedName(ros2_frame_component->GetNamespace(),
+        //                                                                 m_configuration.m_poseTopicConfiguration.
+        //                                                                 m_topic);
+        // m_poseSubscription = ros2Node->create_subscription<geometry_msgs::msg::PoseStamped>(
+        //     namespaced_topic_name.data(),
+        //     m_configuration.m_poseTopicConfiguration.GetQoS(),
+        //     [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
+        //         if (m_configuration.m_tracking_mode != ROS2PoseControlConfiguration::TrackingMode::PoseMessages || !
+        //             m_isTracking) {
+        //             return;
+        //         }
+        //         const AZ::Transform transform = ROS2::ROS2Conversions::FromROS2Pose(msg->pose);
+        //         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, transform);
+        //     });
 
     }
 
@@ -163,7 +187,7 @@ namespace RGL
         AZStd::unique_ptr<EntityManager> entityManager;
         if (entity.FindComponent<EMotionFX::Integration::ActorComponent>())
         {
-            entityManager = AZStd::make_unique<ActorEntityManager>(entity.GetId());
+            entityManager = AZStd::make_unique<ActorEntityManager>(entity.GetId(), m_tags);
         }
         else if (entity.FindComponent(AZ::Render::MeshComponentTypeId))
         {
