@@ -32,7 +32,7 @@ namespace RGL
         static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
 
         TerrainEntityManagerEditorSystemComponent() = default;
-        ~TerrainEntityManagerEditorSystemComponent() override = default;
+        ~TerrainEntityManagerEditorSystemComponent() = default;
 
     private:
         void Activate() override;

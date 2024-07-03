@@ -14,26 +14,29 @@
  */
 #pragma once
 
-#include <rgl/api/core.h>
-
 #include <AzCore/Math/Aabb.h>
+#include <rgl/api/core.h>
 
 namespace RGL
 {
-    struct TerrainData
+    class TerrainData
     {
-        AZ::Aabb m_currentWorldBounds = { AZ::Aabb::CreateFromPoint(AZ::Vector3::CreateZero()) };
-        AZStd::vector<rgl_vec3f> m_vertices;
-        AZStd::vector<rgl_vec3i> m_indices;
-
+    public:
         //! Returns whether or not newWorldBounds resulted in terrain update.
-        bool UpdateBounds(AZ::Aabb newWorldBounds);
+        bool UpdateBounds(const AZ::Aabb& newWorldBounds);
         void UpdateDirtyRegion(const AZ::Aabb& dirtyRegion);
 
         void Clear();
 
+        [[nodiscard]] const AZStd::vector<rgl_vec3f>& GetVertices() const;
+        [[nodiscard]] const AZStd::vector<rgl_vec3i>& GetIndices() const;
+
     private:
         static constexpr size_t TrianglesPerSector = 2LU;
+
+        AZ::Aabb m_currentWorldBounds = { AZ::Aabb::CreateFromPoint(AZ::Vector3::CreateZero()) };
+        AZStd::vector<rgl_vec3f> m_vertices;
+        AZStd::vector<rgl_vec3i> m_indices;
     };
 
 } // namespace RGL

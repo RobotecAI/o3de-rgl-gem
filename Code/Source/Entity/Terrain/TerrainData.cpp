@@ -12,22 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <Entity/Terrain/TerrainData.h>
-
 #include <AzFramework/Physics/HeightfieldProviderBus.h>
 #include <AzFramework/Terrain/TerrainDataRequestBus.h>
+#include <Utilities/RGLUtils.h>
+#include <Entity/Terrain/TerrainData.h>
 
 namespace RGL
 {
-    bool TerrainData::UpdateBounds(AZ::Aabb newWorldBounds)
+    bool TerrainData::UpdateBounds(const AZ::Aabb& newWorldBounds)
     {
         if (newWorldBounds == m_currentWorldBounds)
         {
             // This is only for world bound creation, not for update.
             return false;
         }
-
-        m_currentWorldBounds = newWorldBounds;
 
         size_t heightfieldGridColumns{}, heighfieldGridRows{};
         Physics::HeightfieldProviderRequestsBus::BroadcastResult(
@@ -39,6 +37,8 @@ namespace RGL
         {
             return false;
         }
+
+        m_currentWorldBounds = newWorldBounds;
 
         AZ::Vector2 heightfieldGridSpacing{};
         Physics::HeightfieldProviderRequestsBus::BroadcastResult(
@@ -123,5 +123,15 @@ namespace RGL
         m_currentWorldBounds = AZ::Aabb::CreateFromPoint(AZ::Vector3::CreateZero());
         m_vertices.clear();
         m_indices.clear();
+    }
+
+    const AZStd::vector<rgl_vec3f>& TerrainData::GetVertices() const
+    {
+        return m_vertices;
+    }
+
+    const AZStd::vector<rgl_vec3i>& TerrainData::GetIndices() const
+    {
+        return m_indices;
     }
 } // namespace RGL

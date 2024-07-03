@@ -103,12 +103,9 @@ namespace RGL
 
         EnsureRGLEntityDestroyed();
 
-        Utils::SafeRglMeshCreate(
-            m_rglMesh,
-            m_terrainData.m_vertices.data(),
-            m_terrainData.m_vertices.size(),
-            m_terrainData.m_indices.data(),
-            m_terrainData.m_indices.size());
+        const auto& vertices = m_terrainData.GetVertices();
+        const auto& indices = m_terrainData.GetIndices();
+        Utils::SafeRglMeshCreate(m_rglMesh, vertices.data(), vertices.size(), indices.data(), indices.size());
 
         if (!m_rglMesh)
         {
@@ -128,15 +125,15 @@ namespace RGL
 
     void TerrainEntityManagerSystemComponent::UpdateDirtyRegion(const AZ::Aabb& dirtyRegion)
     {
-        if (m_terrainData.m_vertices.empty())
+        const auto& vertices = m_terrainData.GetVertices();
+        if (vertices.empty())
         {
             // Dirty regions can only be updated after data creation and before destruction. (See TerrainDataRequests).
             return;
         }
 
         m_terrainData.UpdateDirtyRegion(dirtyRegion);
-        RGL_CHECK(
-            rgl_mesh_update_vertices(m_rglMesh, m_terrainData.m_vertices.data(), aznumeric_cast<int32_t>(m_terrainData.m_vertices.size())));
+        RGL_CHECK(rgl_mesh_update_vertices(m_rglMesh, vertices.data(), aznumeric_cast<int32_t>(vertices.size())));
     }
 
     void TerrainEntityManagerSystemComponent::OnTerrainDataChanged(const AZ::Aabb& dirtyRegion, TerrainDataChangedMask dataChangedMask)

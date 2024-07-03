@@ -14,13 +14,11 @@
  */
 #pragma once
 
-#include <rgl/api/core.h>
-
 #include <AzCore/Component/Component.h>
 #include <AzFramework/Terrain/TerrainDataRequestBus.h>
 #include <AzFramework/Visibility/BoundsBus.h>
-
 #include <Entity/Terrain/TerrainData.h>
+#include <rgl/api/core.h>
 
 namespace RGL
 {
