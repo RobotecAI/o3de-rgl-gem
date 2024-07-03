@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include <AzCore/Serialization/SerializeContext.h>
-#include <Entity/TerrainEntityManagerEditorSystemComponent.h>
+#include <Entity/Terrain/TerrainEntityManagerEditorSystemComponent.h>
 
 namespace RGL
 {
@@ -41,12 +41,6 @@ namespace RGL
         [[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
     {
         BaseSystemComponent::GetRequiredServices(required);
-    }
-
-    void TerrainEntityManagerEditorSystemComponent::GetDependentServices(
-        [[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
-    {
-        BaseSystemComponent::GetDependentServices(dependent);
     }
 
     void TerrainEntityManagerEditorSystemComponent::Activate()

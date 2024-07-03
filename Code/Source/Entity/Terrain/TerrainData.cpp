@@ -12,95 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <AzCore/Serialization/EditContext.h>
-#include <AzCore/Serialization/SerializeContext.h>
+#include <Entity/Terrain/TerrainData.h>
+
 #include <AzFramework/Physics/HeightfieldProviderBus.h>
-#include <Entity/TerrainEntityManagerSystemComponent.h>
-#include <Utilities/RGLUtils.h>
+#include <AzFramework/Terrain/TerrainDataRequestBus.h>
 
 namespace RGL
 {
-    TerrainEntityManagerSystemComponent::~TerrainEntityManagerSystemComponent()
+    bool TerrainData::UpdateBounds(AZ::Aabb newWorldBounds)
     {
-        EnsureManagedEntityDestroyed();
-    }
-
-    void TerrainEntityManagerSystemComponent::Init()
-    {
-    }
-
-    void TerrainEntityManagerSystemComponent::Activate()
-    {
-        UpdateWorldBounds();
-        AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusConnect();
-    }
-
-    void TerrainEntityManagerSystemComponent::Deactivate()
-    {
-        AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusDisconnect();
-    }
-
-    void TerrainEntityManagerSystemComponent::Reflect(AZ::ReflectContext* context)
-    {
-        if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
-        {
-            serializeContext->Class<TerrainEntityManagerSystemComponent, AZ::Component>()->Version(0);
-
-            if (AZ::EditContext* editContext = serializeContext->GetEditContext())
-            {
-                editContext->Class<TerrainEntityManagerSystemComponent>("Terrain Entity Manager", "Manages the RGL Terrain entity.")
-                    ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
-                    ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("System"))
-                    ->Attribute(AZ::Edit::Attributes::Category, "RGL")
-                    ->Attribute(AZ::Edit::Attributes::AutoExpand, true);
-            }
-        }
-    }
-
-    void TerrainEntityManagerSystemComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
-    {
-        provided.push_back(AZ_CRC_CE("TerrainEntityManagerService"));
-    }
-
-    void TerrainEntityManagerSystemComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
-    {
-        incompatible.push_back(AZ_CRC_CE("TerrainEntityManagerService"));
-    }
-
-    void TerrainEntityManagerSystemComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
-    {
-        required.push_back(AZ_CRC_CE("RGLService"));
-    }
-
-    void TerrainEntityManagerSystemComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
-    {
-    }
-
-    void TerrainEntityManagerSystemComponent::EnsureManagedEntityDestroyed()
-    {
-        if (m_rglEntity)
-        {
-            RGL_CHECK(rgl_entity_destroy(m_rglEntity));
-            m_rglEntity = nullptr;
-        }
-
-        if (m_rglMesh)
-        {
-            RGL_CHECK(rgl_mesh_destroy(m_rglMesh));
-            m_rglMesh = nullptr;
-        }
-    }
-
-    void TerrainEntityManagerSystemComponent::UpdateWorldBounds()
-    {
-        AZ::Aabb newWorldBounds = AZ::Aabb::CreateFromPoint(AZ::Vector3::CreateZero());
-        AzFramework::Terrain::TerrainDataRequestBus::BroadcastResult(
-            newWorldBounds, &AzFramework::Terrain::TerrainDataRequests::GetTerrainAabb);
-
         if (newWorldBounds == m_currentWorldBounds)
         {
             // This is only for world bound creation, not for update.
-            return;
+            return false;
         }
 
         m_currentWorldBounds = newWorldBounds;
@@ -113,7 +37,7 @@ namespace RGL
 
         if (heightfieldGridColumns < 2 || heighfieldGridRows < 2)
         {
-            return;
+            return false;
         }
 
         AZ::Vector2 heightfieldGridSpacing{};
@@ -121,7 +45,11 @@ namespace RGL
             heightfieldGridSpacing, &Physics::HeightfieldProviderRequests::GetHeightfieldGridSpacing);
 
         m_vertices.clear();
-        AZ_Printf("TerrainEntityManagerSystemComponent", "Creating terrain mesh with %zu columns and %zu rows.", heightfieldGridColumns, heighfieldGridRows);
+        AZ_Printf(
+            "TerrainEntityManagerSystemComponent",
+            "Creating terrain mesh with %zu columns and %zu rows.",
+            heightfieldGridColumns,
+            heighfieldGridRows);
         m_vertices.reserve(heightfieldGridColumns * heighfieldGridRows);
         const AZ::Vector3 worldMin = m_currentWorldBounds.GetMin();
 
@@ -153,26 +81,10 @@ namespace RGL
             }
         }
 
-        EnsureManagedEntityDestroyed();
-
-        Utils::SafeRglMeshCreate(m_rglMesh, m_vertices.data(), m_vertices.size(), m_indices.data(), m_indices.size());
-        if (!m_rglMesh)
-        {
-            AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL mesh.");
-            return;
-        }
-
-        Utils::SafeRglEntityCreate(m_rglEntity, m_rglMesh);
-        if (!m_rglEntity)
-        {
-            AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL entity.");
-            return;
-        }
-
-        RGL_CHECK(rgl_entity_set_pose(m_rglEntity, &Utils::IdentityTransform));
+        return true;
     }
 
-    void TerrainEntityManagerSystemComponent::UpdateDirtyRegion(const AZ::Aabb& dirtyRegion)
+    void TerrainData::UpdateDirtyRegion(const AZ::Aabb& dirtyRegion)
     {
         const AZ::Aabb dirtyRegion2D = AZ::Aabb::CreateFromMinMaxValues(
             dirtyRegion.GetMin().GetX(),
@@ -204,20 +116,12 @@ namespace RGL
                 }
             }
         }
-
-        RGL_CHECK(rgl_mesh_update_vertices(m_rglMesh, m_vertices.data(), aznumeric_cast<int32_t>(m_vertices.size())));
     }
 
-    void TerrainEntityManagerSystemComponent::OnTerrainDataChanged(const AZ::Aabb& dirtyRegion, TerrainDataChangedMask dataChangedMask)
+    void TerrainData::Clear()
     {
-        if ((dataChangedMask & TerrainDataChangedMask::Settings) != TerrainDataChangedMask::None)
-        {
-            UpdateWorldBounds();
-        }
-
-        if ((dataChangedMask & TerrainDataChangedMask::HeightData) != TerrainDataChangedMask::None)
-        {
-            UpdateDirtyRegion(dirtyRegion);
-        }
+        m_currentWorldBounds = AZ::Aabb::CreateFromPoint(AZ::Vector3::CreateZero());
+        m_vertices.clear();
+        m_indices.clear();
     }
 } // namespace RGL
