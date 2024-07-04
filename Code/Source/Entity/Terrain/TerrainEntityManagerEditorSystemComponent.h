@@ -14,7 +14,7 @@
  */
 #pragma once
 
-#include <Entity/TerrainEntityManagerSystemComponent.h>
+#include <Entity/Terrain/TerrainEntityManagerSystemComponent.h>
 
 namespace RGL
 {
@@ -30,7 +30,6 @@ namespace RGL
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
         static void GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible);
         static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
-        static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
         TerrainEntityManagerEditorSystemComponent() = default;
         ~TerrainEntityManagerEditorSystemComponent() = default;

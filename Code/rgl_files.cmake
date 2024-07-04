@@ -18,8 +18,10 @@ set(FILES
         Source/Entity/MeshEntityManager.h
         Source/Entity/EntityManager.cpp
         Source/Entity/EntityManager.h
-        Source/Entity/TerrainEntityManagerSystemComponent.cpp
-        Source/Entity/TerrainEntityManagerSystemComponent.h
+        Source/Entity/Terrain/TerrainData.cpp
+        Source/Entity/Terrain/TerrainData.h
+        Source/Entity/Terrain/TerrainEntityManagerSystemComponent.cpp
+        Source/Entity/Terrain/TerrainEntityManagerSystemComponent.h
         Source/Lidar/LidarRaycaster.cpp
         Source/Lidar/LidarRaycaster.h
         Source/Lidar/LidarSystem.cpp

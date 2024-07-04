@@ -16,7 +16,7 @@
 
 #include <AzCore/Memory/SystemAllocator.h>
 #include <AzCore/Module/Module.h>
-#include <Entity/TerrainEntityManagerSystemComponent.h>
+#include <Entity/Terrain/TerrainEntityManagerSystemComponent.h>
 #include <RGLSystemComponent.h>
 
 namespace RGL

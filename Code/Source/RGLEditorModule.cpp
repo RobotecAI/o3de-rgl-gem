@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <Entity/TerrainEntityManagerEditorSystemComponent.h>
+#include <Entity/Terrain/TerrainEntityManagerEditorSystemComponent.h>
 #include <RGLEditorSystemComponent.h>
 #include <RGLModuleInterface.h>
 #include <SceneConfigurationComponent.h>

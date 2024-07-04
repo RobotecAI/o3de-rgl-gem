@@ -17,6 +17,7 @@
 #include <AzCore/Component/Component.h>
 #include <AzFramework/Terrain/TerrainDataRequestBus.h>
 #include <AzFramework/Visibility/BoundsBus.h>
+#include <Entity/Terrain/TerrainData.h>
 #include <rgl/api/core.h>
 
 namespace RGL
@@ -35,21 +36,20 @@ namespace RGL
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
         static void GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible);
         static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
-        static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
         TerrainEntityManagerSystemComponent() = default;
-        ~TerrainEntityManagerSystemComponent();
 
         // AzFramework::Terrain::TerrainDataNotificationBus overrides
+        void OnTerrainDataCreateEnd() override;
+        void OnTerrainDataDestroyEnd() override;
         void OnTerrainDataChanged(const AZ::Aabb& dirtyRegion, TerrainDataChangedMask dataChangedMask) override;
 
     protected:
-        void Init() override;
         void Activate() override;
         void Deactivate() override;
 
     private:
-        void EnsureManagedEntityDestroyed();
+        void EnsureRGLEntityDestroyed();
 
         void UpdateWorldBounds();
         void UpdateDirtyRegion(const AZ::Aabb& dirtyRegion);
@@ -57,10 +57,6 @@ namespace RGL
         rgl_mesh_t m_rglMesh{ nullptr };
         rgl_entity_t m_rglEntity{ nullptr };
 
-        AZ::Aabb m_currentWorldBounds = AZ::Aabb::CreateFromPoint(AZ::Vector3::CreateZero());
-        AZStd::vector<rgl_vec3f> m_vertices;
-        AZStd::vector<rgl_vec3i> m_indices;
-
-        static constexpr size_t TrianglesPerSector = 2LU;
+        TerrainData m_terrainData;
     };
 } // namespace RGL
