@@ -45,8 +45,7 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
 
 ## Requirements
 
-- [**Runtime requirements
-  ** of the Robotec GPU Lidar](https://github.com/RobotecAI/RobotecGPULidar#runtime-requirements).
+- [**Runtime requirements** of the Robotec GPU Lidar](https://github.com/RobotecAI/RobotecGPULidar#runtime-requirements).
 - Any O3DE project with the [O3DE ROS2 Gem](https://github.com/o3de/o3de-extras/tree/development/Gems/ROS2) enabled.
 
 ***IMPORTANT:*** *You do not need to download or set up the RobotecGPULidar library itself and only have to meet
@@ -93,14 +92,14 @@ the **RUNTIME** requirements.*
 
     <img src="static/png/usage_instruction1.png" alt="drawing" width="400"/>
 
-   Select the newly created entity within the Entity Outliner. Next, within the Entity Inspector select **Add Component
-   **. Then, search for `ROS2 Lidar Sensor` and add it to your entity using the left mouse button.
+   Select the newly created entity within the Entity Outliner. Next, within the Entity Inspector select **Add Component**.
+   Then, search for `ROS2 Lidar Sensor` and add it to your entity using the left mouse button.
 
     <img src="static/png/usage_instruction2.png" alt="drawing" width="400"/>
 
    ***Note:** You need to add the required `ROS2 Frame` component as well.*
 
-2. **Select `RobotecGPULidar` as your LiDAR implementation.**
+3. **Select `RobotecGPULidar` as your LiDAR implementation.**
 
    In the Entity Inspector find the `ROS2 Lidar Sensor` component and change the **Lidar Implementation**
    to `RobotecGPULidar`.
@@ -109,7 +108,7 @@ the **RUNTIME** requirements.*
 
    ***Note:** If you do not see the `RobotecGPULidar` implementation, please make sure you followed the **Setup**
    instructions correctly.*
-3. **Customize your LiDAR.**
+4. **Customize your LiDAR.**
 
    After following through all previous instructions, you can customize the `ROS2 Lidar Sensor` component in the Entity
    Inspector to fit all your needs.
