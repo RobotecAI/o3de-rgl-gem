@@ -14,14 +14,21 @@
  */
 #pragma once
 
+#include <Atom/RPI.Reflect/Model/ModelAsset.h>
+#include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/EBus/EBus.h>
 #include <AzCore/Interface/Interface.h>
 
-struct Mesh;
-
 namespace RGL
 {
+    namespace Wrappers
+    {
+        class Mesh;
+    }
+
+    using MeshList = AZStd::vector<Wrappers::Mesh>;
+
     class MeshLibraryRequests
     {
     public:
@@ -32,7 +39,7 @@ namespace RGL
         //! On the other hand if the RGL meshes associated with the provided modelAsset were stored it will simply retrieve them.
         //! @param modelAsset Model asset provided for storage.
         //! @return List of RGL meshes created using the provided model asset.
-        virtual AZStd::vector<Mesh*> StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) = 0;
+        virtual const MeshList& StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) = 0;
 
     protected:
         ~MeshLibraryRequests() = default;

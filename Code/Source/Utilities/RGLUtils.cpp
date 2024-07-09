@@ -14,34 +14,6 @@
 
 namespace RGL::Utils
 {
-    void SafeRglMeshCreate(
-        rgl_mesh_t& targetMesh, const rgl_vec3f* vertices, size_t vertexCount, const rgl_vec3i* indices, size_t indexCount)
-    {
-        bool success = false;
-        ErrorCheck(
-            rgl_mesh_create(&targetMesh, vertices, aznumeric_cast<int32_t>(vertexCount), indices, aznumeric_cast<int32_t>(indexCount)),
-            __FILE__,
-            __LINE__,
-            &success);
-
-        if (!success && !targetMesh)
-        {
-            RGL_CHECK(rgl_mesh_destroy(targetMesh));
-            targetMesh = nullptr;
-        }
-    }
-
-    void SafeRglEntityCreate(rgl_entity_t& targetEntity, rgl_mesh_t mesh)
-    {
-        bool success = false;
-        ErrorCheck(rgl_entity_create(&targetEntity, nullptr, mesh), __FILE__, __LINE__, &success);
-        if (!success && !targetEntity)
-        {
-            RGL_CHECK(rgl_entity_destroy(targetEntity));
-            targetEntity = nullptr;
-        }
-    }
-
     void ErrorCheck(const rgl_status_t& status, const char* file, int line, bool* successDest)
     {
         static const AZStd::unordered_set<rgl_status_t> UnrecoverableStatuses = {

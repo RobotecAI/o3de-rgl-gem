@@ -17,6 +17,8 @@
 #include <Entity/EntityManager.h>
 #include <Integration/ActorComponentBus.h>
 #include <rgl/api/core.h>
+#include <AzCore/std/containers/vector.h>
+#include <Wrappers/Mesh.h>
 
 namespace EMotionFX
 {
@@ -36,7 +38,7 @@ namespace RGL
         ActorEntityManager(ActorEntityManager&& other) = delete;
         ActorEntityManager& operator=(ActorEntityManager&& rhs) = delete;
         ActorEntityManager& operator=(const ActorEntityManager&) = delete;
-        ~ActorEntityManager();
+        ~ActorEntityManager() = default;
 
         void Update() override;
 
@@ -45,21 +47,16 @@ namespace RGL
         void OnActorInstanceCreated(EMotionFX::ActorInstance* actorInstance) override;
 
     private:
-        struct MeshPair
-        {
-            EMotionFX::Mesh* m_eMotionMesh; // might need to change (depends on its lifetime)
-            rgl_mesh_t m_rglMesh;
-        };
-
         EMotionFX::ActorInstance* m_actorInstance = nullptr;
         // We do not use the MeshLibrary since the actor mesh is
         // skinned and the mesh sharing would not be useful.
-        AZStd::vector<MeshPair> m_meshes;
+        AZStd::vector<EMotionFX::Mesh*> m_emotionFxMeshes;
+        AZStd::vector<Wrappers::Mesh> m_rglMeshes;
         AZStd::vector<rgl_vec3f> m_positions;
 
         void UpdateMeshVertices();
         void UpdateVertexPositions(const EMotionFX::Mesh& mesh);
         AZStd::vector<rgl_vec3i> CollectIndexData(const EMotionFX::Mesh& mesh);
-        Mesh* EMotionFXMeshToRglMesh(const EMotionFX::Mesh& mesh);
+        Wrappers::Mesh EMotionFXMeshToRglMesh(const EMotionFX::Mesh& mesh);
     };
 } // namespace RGL

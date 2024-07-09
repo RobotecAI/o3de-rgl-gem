@@ -13,16 +13,19 @@
  * limitations under the License.
  */
 
+#include <Entity/ActorEntityManager.h>
+
 #include <AzCore/std/string/string.h>
 #include <EMotionFX/Source/ActorInstance.h>
 #include <EMotionFX/Source/Mesh.h>
 #include <EMotionFX/Source/Node.h>
 #include <EMotionFX/Source/SubMesh.h>
 #include <EMotionFX/Source/TransformData.h>
-#include <Entity/ActorEntityManager.h>
-#include <Utilities/RGLUtils.h>
-#include <rgl/api/core.h>
 #include <RGL/RGLBus.h>
+#include <Utilities/RGLUtils.h>
+#include <Wrappers/Entity.h>
+#include <Wrappers/Mesh.h>
+#include <rgl/api/core.h>
 
 namespace RGL
 {
@@ -30,14 +33,6 @@ namespace RGL
         : EntityManager(entityId)
     {
         EMotionFX::Integration::ActorComponentNotificationBus::Handler::BusConnect(entityId);
-    }
-
-    ActorEntityManager::~ActorEntityManager()
-    {
-        for (MeshPair mesh : m_meshes)
-        {
-            RGL_CHECK(rgl_mesh_destroy(mesh.m_rglMesh));
-        }
     }
 
     void ActorEntityManager::Update()
@@ -65,10 +60,11 @@ namespace RGL
                 continue;
             }
 
-            rgl_mesh_t rglMesh;
-            if (rglMesh = EMotionFXMeshToRglMesh(*mesh))
+            Wrappers::Mesh rglMesh = AZStd::move(EMotionFXMeshToRglMesh(*mesh));
+            if (rglMesh.IsValid())
             {
-                m_meshes.push_back({ mesh, rglMesh });
+                m_emotionFxMeshes.emplace_back(mesh);
+                m_rglMeshes.emplace_back(AZStd::move(rglMesh));
             }
             else
             {
@@ -81,14 +77,13 @@ namespace RGL
             }
         }
 
-        m_entities.reserve(m_meshes.size());
-        for (MeshPair& mesh : m_meshes)
+        m_entities.reserve(m_emotionFxMeshes.size());
+        for (const Wrappers::Mesh& rglMesh : m_rglMeshes)
         {
-            rgl_entity_t entity = nullptr;
-            Utils::SafeRglEntityCreate(entity, mesh.m_rglMesh);
-            if (entity)
+            Wrappers::Entity entity(rglMesh);
+            if (entity.IsValid())
             {
-                m_entities.emplace_back(entity);
+                m_entities.emplace_back(AZStd::move(entity));
             }
             else
             {
@@ -108,10 +103,10 @@ namespace RGL
     {
         m_actorInstance->UpdateMeshDeformers(0.0f);
 
-        for (MeshPair& mesh : m_meshes)
+        for (size_t i = 0; i < m_emotionFxMeshes.size(); ++i)
         {
-            UpdateVertexPositions(*mesh.m_eMotionMesh);
-            RGL_CHECK(rgl_mesh_update_vertices(mesh.m_rglMesh, m_positions.data(), m_positions.size()));
+            UpdateVertexPositions(*m_emotionFxMeshes[i]);
+            m_rglMeshes[i].UpdateVertices(m_positions.data(), m_positions.size());
         }
     }
 
@@ -162,14 +157,10 @@ namespace RGL
         return rglIndices;
     }
 
-    rgl_mesh_t ActorEntityManager::EMotionFXMeshToRglMesh(const EMotionFX::Mesh& mesh)
+    Wrappers::Mesh ActorEntityManager::EMotionFXMeshToRglMesh(const EMotionFX::Mesh& mesh)
     {
         UpdateVertexPositions(mesh);
         const AZStd::vector<rgl_vec3i> RglIndices = CollectIndexData(mesh);
-
-        rgl_mesh_t rglMesh = nullptr;
-        Utils::SafeRglMeshCreate(rglMesh, m_positions.data(), m_positions.size(), RglIndices.data(), RglIndices.size());
-
-        return rglMesh;
+        return { m_positions.data(), m_positions.size(), RglIndices.data(), RglIndices.size() };
     }
 } // namespace RGL

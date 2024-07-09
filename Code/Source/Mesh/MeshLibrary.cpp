@@ -29,7 +29,7 @@ namespace RGL
     }
 
     MeshLibrary::MeshLibrary(MeshLibrary&& meshLibrary)
-        : m_meshPointersMap{ AZStd::move(meshLibrary.m_meshPointersMap) }
+        : m_modelMeshesMap{ AZStd::move(meshLibrary.m_modelMeshesMap) }
     {
         meshLibrary.BusDisconnect();
         MeshLibraryInterface::Unregister(&meshLibrary);
@@ -51,22 +51,14 @@ namespace RGL
 
     void MeshLibrary::Clear()
     {
-        for (auto mapEntry : m_meshPointersMap)
-        {
-            for (rgl_mesh_t mesh : mapEntry.second)
-            {
-                RGL_CHECK(rgl_mesh_destroy(mesh));
-            }
-        }
-
-        m_meshPointersMap.clear();
+        m_modelMeshesMap.clear();
     }
 
-    AZStd::vector<rgl_mesh_t> MeshLibrary::StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset)
+    const MeshList& MeshLibrary::StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset)
     {
         const AZ::Data::AssetId& assetId = modelAsset.GetId();
 
-        if (auto meshPointersIt = m_meshPointersMap.find(assetId); meshPointersIt != m_meshPointersMap.end())
+        if (auto meshPointersIt = m_modelMeshesMap.find(assetId); meshPointersIt != m_modelMeshesMap.end())
         {
             return meshPointersIt->second;
         }
@@ -76,24 +68,26 @@ namespace RGL
         const auto modelLodAsset = lodAssets.begin()->Get();
         const auto meshes = modelLodAsset->GetMeshes();
 
-        AZStd::vector<rgl_mesh_t> meshPointers;
-        meshPointers.reserve(meshes.size());
+        MeshList modelMeshes;
+        modelMeshes.reserve(meshes.size());
         for (auto& mesh : meshes)
         {
             const AZStd::span<const rgl_vec3f> vertices = mesh.GetSemanticBufferTyped<rgl_vec3f>(AZ::Name("POSITION"));
             const AZStd::span<const rgl_vec3i> indices = mesh.GetIndexBufferTyped<rgl_vec3i>();
 
-            rgl_mesh_t meshPointer = nullptr;
-            Utils::SafeRglMeshCreate(meshPointer, vertices.data(), vertices.size(), indices.data(), indices.size());
-            if (meshPointer == nullptr)
+            Wrappers::Mesh rglMesh(vertices.data(), vertices.size(), indices.data(), indices.size());
+            if (!rglMesh.IsValid())
             {
                 continue;
             }
 
-            meshPointers.emplace_back(meshPointer);
+            const AZStd::span<const rgl_vec2f> uvs = mesh.GetSemanticBufferTyped<rgl_vec2f>(AZ::Name("UV"));
+            rglMesh.SetTextureCoordinates(uvs.data(), uvs.size());
+
+            modelMeshes.emplace_back(AZStd::move(rglMesh));
         }
 
-        m_meshPointersMap.insert({ assetId, meshPointers });
-        return meshPointers;
+        const auto entryIt = m_modelMeshesMap.emplace(assetId, AZStd::move(modelMeshes));
+        return entryIt.first->second;
     }
 } // namespace RGL

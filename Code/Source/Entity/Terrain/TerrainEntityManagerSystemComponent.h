@@ -19,6 +19,8 @@
 #include <AzFramework/Visibility/BoundsBus.h>
 #include <Entity/Terrain/TerrainData.h>
 #include <rgl/api/core.h>
+#include <Wrappers/Mesh.h>
+#include <Wrappers/Entity.h>
 
 namespace RGL
 {
@@ -54,8 +56,8 @@ namespace RGL
         void UpdateWorldBounds();
         void UpdateDirtyRegion(const AZ::Aabb& dirtyRegion);
 
-        rgl_mesh_t m_rglMesh{ nullptr };
-        rgl_entity_t m_rglEntity{ nullptr };
+        AZStd::optional<Wrappers::Mesh> m_rglMesh;
+        AZStd::optional<Wrappers::Entity> m_rglEntity;
 
         TerrainData m_terrainData;
     };

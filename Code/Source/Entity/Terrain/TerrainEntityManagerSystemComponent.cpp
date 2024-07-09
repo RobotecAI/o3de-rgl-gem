@@ -76,17 +76,8 @@ namespace RGL
 
     void TerrainEntityManagerSystemComponent::EnsureRGLEntityDestroyed()
     {
-        if (m_rglEntity)
-        {
-            RGL_CHECK(rgl_entity_destroy(m_rglEntity));
-            m_rglEntity = nullptr;
-        }
-
-        if (m_rglMesh)
-        {
-            RGL_CHECK(rgl_mesh_destroy(m_rglMesh));
-            m_rglMesh = nullptr;
-        }
+        m_rglEntity.reset();
+        m_rglMesh.reset();
     }
 
     void TerrainEntityManagerSystemComponent::UpdateWorldBounds()
@@ -105,22 +96,24 @@ namespace RGL
 
         const auto& vertices = m_terrainData.GetVertices();
         const auto& indices = m_terrainData.GetIndices();
-        Utils::SafeRglMeshCreate(m_rglMesh, vertices.data(), vertices.size(), indices.data(), indices.size());
 
-        if (!m_rglMesh)
+        m_rglMesh = AZStd::move(Wrappers::Mesh(vertices.data(), vertices.size(), indices.data(), indices.size()));
+        if (!m_rglMesh->IsValid())
         {
+            m_rglMesh.reset();
             AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL mesh.");
             return;
         }
 
-        Utils::SafeRglEntityCreate(m_rglEntity, m_rglMesh);
-        if (!m_rglEntity)
+        m_rglEntity = AZStd::move(Wrappers::Entity(*m_rglMesh));
+        if (!m_rglEntity->IsValid())
         {
+            m_rglEntity.reset();
             AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL entity.");
             return;
         }
 
-        RGL_CHECK(rgl_entity_set_pose(m_rglEntity, &Utils::IdentityTransform));
+        m_rglEntity->SetPose(Utils::IdentityTransform);
     }
 
     void TerrainEntityManagerSystemComponent::UpdateDirtyRegion(const AZ::Aabb& dirtyRegion)
@@ -133,7 +126,7 @@ namespace RGL
         }
 
         m_terrainData.UpdateDirtyRegion(dirtyRegion);
-        RGL_CHECK(rgl_mesh_update_vertices(m_rglMesh, vertices.data(), aznumeric_cast<int32_t>(vertices.size())));
+        m_rglMesh->UpdateVertices(vertices.data(), vertices.size());
     }
 
     void TerrainEntityManagerSystemComponent::OnTerrainDataChanged(const AZ::Aabb& dirtyRegion, TerrainDataChangedMask dataChangedMask)

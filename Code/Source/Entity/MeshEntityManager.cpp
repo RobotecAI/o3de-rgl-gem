@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 
+#include "LmbrCentral/Scripting/TagComponentBus.h"
 #include <Entity/MeshEntityManager.h>
 #include <Mesh/MeshLibraryBus.h>
 #include <Utilities/RGLUtils.h>
+#include <Wrappers/Mesh.h>
+#include <Wrappers/Entity.h>
 
 namespace RGL
 {
@@ -34,7 +37,7 @@ namespace RGL
         const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset, [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model)
     {
         AZ_Assert(m_entities.empty(), "Entity Manager for entity with ID: %s has an invalid state.", m_entityId.ToString().c_str());
-        const auto meshes = MeshLibraryInterface::Get()->StoreModelAsset(modelAsset);
+        const MeshList& meshes = MeshLibraryInterface::Get()->StoreModelAsset(modelAsset);
 
         if (meshes.empty())
         {
@@ -43,13 +46,12 @@ namespace RGL
         }
 
         m_entities.reserve(meshes.size());
-        for (rgl_mesh_t mesh : meshes)
+        for (const Wrappers::Mesh& mesh : meshes)
         {
-            rgl_entity_t entity = nullptr;
-            Utils::SafeRglEntityCreate(entity, mesh);
-            if (entity)
+            Wrappers::Entity entity(mesh);
+            if (entity.IsValid())
             {
-                m_entities.emplace_back(entity);
+                m_entities.emplace_back(AZStd::move(entity));
             }
         }
 
