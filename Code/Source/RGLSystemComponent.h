@@ -19,7 +19,7 @@
 #include <AzCore/Math/Vector3.h>
 #include <AzFramework/Entity/EntityContextBus.h>
 #include <Lidar/LidarSystem.h>
-#include <Mesh/MeshLibrary.h>
+#include <Model/ModelLibrary.h>
 #include <RGL/RGLBus.h>
 
 namespace RGL
@@ -63,7 +63,7 @@ namespace RGL
     private:
         LidarSystem m_rglLidarSystem;
 
-        MeshLibrary m_meshLibrary;
+        ModelLibrary m_modelLibrary;
         AZStd::set<AZ::EntityId> m_excludedEntities;
         SceneConfiguration m_sceneConfig;
         AZStd::unordered_map<AZ::EntityId, AZStd::unique_ptr<EntityManager>> m_entityManagers;

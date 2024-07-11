@@ -96,7 +96,7 @@ namespace RGL
         AzFramework::EntityContextEventBus::Handler::BusDisconnect();
 
         m_entityManagers.clear();
-        m_meshLibrary.Clear();
+        m_modelLibrary.Clear();
         m_rglLidarSystem.Clear();
         RGL_CHECK(rgl_cleanup());
     }
@@ -152,7 +152,7 @@ namespace RGL
     void RGLSystemComponent::OnEntityContextReset()
     {
         m_entityManagers.clear();
-        m_meshLibrary.Clear();
+        m_modelLibrary.Clear();
         m_rglLidarSystem.Clear();
         RGL_CHECK(rgl_cleanup());
     }

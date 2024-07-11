@@ -28,9 +28,9 @@ namespace RGL
         const char* name = "RobotecGPULidar";
         const char* description = "Mesh-based lidar implementation that uses the RobotecGPULidar API for GPU-enabled raycasting.";
 
-        static constexpr auto SupportedFeatures = aznumeric_cast<ROS2::LidarSystemFeatures>(
-            ROS2::LidarSystemFeatures::EntityExclusion | ROS2::LidarSystemFeatures::MaxRangePoints | ROS2::LidarSystemFeatures::Noise |
-            ROS2::LidarSystemFeatures::PointcloudPublishing);
+        using Features = ROS2::LidarSystemFeatures;
+        static constexpr auto SupportedFeatures = aznumeric_cast<Features>(
+            Features::EntityExclusion | Features::MaxRangePoints | Features::Noise | Features::PointcloudPublishing | Features::Intensity);
 
         ROS2::LidarSystemRequestBus::Handler::BusConnect(AZ_CRC(name));
 

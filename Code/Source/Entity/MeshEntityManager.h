@@ -14,6 +14,7 @@
  */
 #pragma once
 
+#include <AtomLyIntegration/CommonFeatures/Material/MaterialComponentBus.h>
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentBus.h>
 #include <Entity/EntityManager.h>
 
@@ -23,6 +24,7 @@ namespace RGL
     class MeshEntityManager
         : public EntityManager
         , protected AZ::Render::MeshComponentNotificationBus::Handler
+        , protected AZ::Render::MaterialComponentNotificationBus::Handler
     {
     public:
         explicit MeshEntityManager(AZ::EntityId entityId);
@@ -30,12 +32,21 @@ namespace RGL
         MeshEntityManager(MeshEntityManager&& other) = delete;
         MeshEntityManager& operator=(MeshEntityManager&& rhs) = delete;
         MeshEntityManager& operator=(const MeshEntityManager&) = delete;
-        ~MeshEntityManager() override;
+        ~MeshEntityManager() = default;
 
     protected:
+        // AZ::EntityBus::Handler implementation overrides
+        void OnEntityActivated(const AZ::EntityId& entityId) override;
+        void OnEntityDeactivated(const AZ::EntityId& entityId) override;
+
         // AZ::Render::MeshComponentNotificationBus overrides
         void OnModelReady(
             const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset,
             [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model) override;
+
+        // AZ::Render::MaterialComponentNotificationBus implementation overrides
+        void OnMaterialsUpdated(const AZ::Render::MaterialAssignmentMap& materials) override;
+
+        AZStd::unordered_map<AZ::RPI::ModelMaterialSlot::StableId, size_t> m_materialSlotMeshIdMap;
     };
 } // namespace RGL

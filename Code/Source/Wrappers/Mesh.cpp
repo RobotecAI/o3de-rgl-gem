@@ -22,41 +22,41 @@ namespace RGL::Wrappers
     {
         bool success = false;
         Utils::ErrorCheck(
-            rgl_mesh_create(&m_mesh, vertices, aznumeric_cast<int32_t>(vertexCount), indices, aznumeric_cast<int32_t>(indexCount)),
+            rgl_mesh_create(&m_nativePtr, vertices, aznumeric_cast<int32_t>(vertexCount), indices, aznumeric_cast<int32_t>(indexCount)),
             __FILE__,
             __LINE__,
             &success);
 
-        if (!success && !m_mesh)
+        if (!success && !m_nativePtr)
         {
-            RGL_CHECK(rgl_mesh_destroy(m_mesh));
-            m_mesh = nullptr;
+            RGL_CHECK(rgl_mesh_destroy(m_nativePtr));
+            m_nativePtr = nullptr;
         }
     }
 
     Mesh::Mesh(Mesh&& other)
-        : m_mesh{ other.m_mesh }
+        : m_nativePtr{ other.m_nativePtr }
     {
-        other.m_mesh = nullptr;
+        other.m_nativePtr = nullptr;
     }
 
     Mesh::~Mesh()
     {
         if (IsValid())
         {
-            RGL_CHECK(rgl_mesh_destroy(m_mesh));
-            m_mesh = nullptr;
+            RGL_CHECK(rgl_mesh_destroy(m_nativePtr));
+            m_nativePtr = nullptr;
         }
     }
 
     void Mesh::UpdateVertices(const rgl_vec3f* vertices, size_t vertexCount)
     {
-        RGL_CHECK(rgl_mesh_update_vertices(m_mesh, vertices, aznumeric_cast<int32_t>(vertexCount)));
+        RGL_CHECK(rgl_mesh_update_vertices(m_nativePtr, vertices, aznumeric_cast<int32_t>(vertexCount)));
     }
 
     void Mesh::SetTextureCoordinates(const rgl_vec2f* uvs, size_t uvCount)
     {
-        RGL_CHECK(rgl_mesh_set_texture_coords(m_mesh, uvs, aznumeric_cast<int32_t>(uvCount)));
+        RGL_CHECK(rgl_mesh_set_texture_coords(m_nativePtr, uvs, aznumeric_cast<int32_t>(uvCount)));
     }
 
     Mesh& Mesh::operator=(Mesh&& other)
@@ -65,11 +65,11 @@ namespace RGL::Wrappers
         {
             if (IsValid())
             {
-                RGL_CHECK(rgl_mesh_destroy(m_mesh));
+                RGL_CHECK(rgl_mesh_destroy(m_nativePtr));
             }
 
-            m_mesh = other.m_mesh;
-            other.m_mesh = nullptr;
+            m_nativePtr = other.m_nativePtr;
+            other.m_nativePtr = nullptr;
         }
 
         return *this;

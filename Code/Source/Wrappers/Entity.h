@@ -31,17 +31,17 @@ namespace RGL::Wrappers
 
         [[nodiscard]] bool IsValid() const
         {
-            return m_entity;
+            return m_nativePtr;
         }
 
         void SetPose(const rgl_mat3x4f& pose);
         void SetId(int32_t id);
         void SetIntensityTexture(const Texture& texture);
 
-        Mesh& operator=(const Entity& other) = delete;
+        Entity& operator=(const Entity& other) = delete;
         Entity& operator=(Entity&& other);
 
     private:
-        rgl_entity_t m_entity{ nullptr };
+        rgl_entity_t m_nativePtr{ nullptr };
     };
 } // namespace RGL::Wrappers

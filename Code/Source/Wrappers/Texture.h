@@ -14,6 +14,9 @@
  */
 #pragma once
 
+#include <Atom/RPI.Reflect/Image/ImageAsset.h>
+#include <Atom/RPI.Reflect/Material/MaterialAsset.h>
+#include <AzCore/Asset/AssetCommon.h>
 #include <rgl/api/core.h>
 
 namespace RGL::Wrappers
@@ -23,16 +26,27 @@ namespace RGL::Wrappers
     class Texture
     {
     public:
+        static const Texture& GetGlobalDebugTexture();
+        static Texture CreatePlaceholder();
+        static Texture CreateFromMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset);
+
         Texture(const uint8_t* texels, size_t width, size_t height);
+        Texture(const Texture& other) = delete;
+        Texture(Texture&& other);
         ~Texture();
 
         [[nodiscard]] bool IsValid() const
         {
-            return m_texture;
+            return m_nativePtr;
         }
 
+        Texture& operator=(const Texture& other) = delete;
+        Texture& operator=(Texture&& other);
     private:
-        rgl_texture_t m_texture{ nullptr };
+        // 2x2 black and white checkerboard bitmap
+        static std::vector<uint8_t> DebugBitmap;
+
+        rgl_texture_t m_nativePtr{ nullptr };
 
         friend class Entity;
     };

@@ -15,30 +15,36 @@
 #pragma once
 
 #include <AzCore/std/containers/unordered_map.h>
-#include <Mesh/MeshLibraryBus.h>
+#include <Model/ModelLibraryBus.h>
 #include <Wrappers/Mesh.h>
+#include <Wrappers/Texture.h>
 #include <rgl/api/core.h>
 
 namespace RGL
 {
     //! Class providing easy access to RGL's meshes.
     //! Each mesh has a corresponding modelAsset by which it is accessed.
-    class MeshLibrary : protected MeshLibraryRequestBus::Handler
+    class ModelLibrary : protected ModelLibraryRequestBus::Handler
     {
     public:
-        MeshLibrary();
-        MeshLibrary(MeshLibrary&& meshLibrary);
-        MeshLibrary(const MeshLibrary& meshLibrary) = default;
-        ~MeshLibrary();
+        ModelLibrary();
+        ModelLibrary(ModelLibrary&& meshLibrary);
+        ModelLibrary(const ModelLibrary& meshLibrary) = default;
+        ~ModelLibrary();
 
         //! Deletes all meshes stored by the Library.
         void Clear();
 
     protected:
         // MeshLibraryRequestBus overrides
-        const MeshList& StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) override;
+        const MeshMaterialSlotPairList& StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) override;
+        const Wrappers::Texture& StoreMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset) override;
 
     private:
-        AZStd::unordered_map<AZ::Data::AssetId, MeshList> m_modelMeshesMap;
+        using MeshMap = AZStd::unordered_map<AZ::Data::AssetId, MeshMaterialSlotPairList>;
+        using TextureMap = AZStd::unordered_map<AZ::Data::AssetId, Wrappers::Texture>;
+
+        MeshMap m_meshMap;
+        TextureMap m_textureMap;
     };
 } // namespace RGL

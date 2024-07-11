@@ -28,8 +28,9 @@ set(FILES
         Source/Lidar/LidarSystem.h
         Source/Lidar/PipelineGraph.cpp
         Source/Lidar/PipelineGraph.h
-        Source/Mesh/MeshLibrary.cpp
-        Source/Mesh/MeshLibrary.h
+        Source/Model/ModelLibraryBus.h
+        Source/Model/ModelLibrary.cpp
+        Source/Model/ModelLibrary.h
         Source/RGLSystemComponent.cpp
         Source/RGLSystemComponent.h
         Source/Utilities/RGLUtils.cpp

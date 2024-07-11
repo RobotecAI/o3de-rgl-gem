@@ -31,7 +31,7 @@ namespace RGL::Wrappers
 
         [[nodiscard]] bool IsValid() const
         {
-            return m_mesh;
+            return m_nativePtr;
         }
 
         void UpdateVertices(const rgl_vec3f* vertices, size_t vertexCount);
@@ -41,7 +41,7 @@ namespace RGL::Wrappers
         Mesh& operator=(Mesh&& other);
 
     private:
-        rgl_mesh_t m_mesh{ nullptr };
+        rgl_mesh_t m_nativePtr{ nullptr };
 
         friend class Entity;
     };

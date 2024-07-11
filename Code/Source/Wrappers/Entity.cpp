@@ -22,41 +22,41 @@ namespace RGL::Wrappers
     Entity::Entity(const Mesh& mesh)
     {
         bool success = false;
-        Utils::ErrorCheck(rgl_entity_create(&m_entity, nullptr, mesh.m_mesh), __FILE__, __LINE__, &success);
-        if (!success && !m_entity)
+        Utils::ErrorCheck(rgl_entity_create(&m_nativePtr, nullptr, mesh.m_nativePtr), __FILE__, __LINE__, &success);
+        if (!success && !m_nativePtr)
         {
-            RGL_CHECK(rgl_entity_destroy(m_entity));
-            m_entity = nullptr;
+            RGL_CHECK(rgl_entity_destroy(m_nativePtr));
+            m_nativePtr = nullptr;
         }
     }
 
     Entity::Entity(Entity&& other)
-        : m_entity(other.m_entity)
+        : m_nativePtr(other.m_nativePtr)
     {
-        other.m_entity = nullptr;
+        other.m_nativePtr = nullptr;
     }
 
     Entity::~Entity()
     {
         if (IsValid())
         {
-            RGL_CHECK(rgl_entity_destroy(m_entity));
+            RGL_CHECK(rgl_entity_destroy(m_nativePtr));
         }
     }
 
     void Entity::SetPose(const rgl_mat3x4f& pose)
     {
-        RGL_CHECK(rgl_entity_set_pose(m_entity, &pose));
+        RGL_CHECK(rgl_entity_set_pose(m_nativePtr, &pose));
     }
 
     void Entity::SetId(int32_t id)
     {
-        RGL_CHECK(rgl_entity_set_id(m_entity, id));
+        RGL_CHECK(rgl_entity_set_id(m_nativePtr, id));
     }
 
     void Entity::SetIntensityTexture(const Texture& texture)
     {
-        RGL_CHECK(rgl_entity_set_intensity_texture(m_entity, texture.m_texture));
+        RGL_CHECK(rgl_entity_set_intensity_texture(m_nativePtr, texture.m_nativePtr));
     }
 
     Entity& Entity::operator=(Entity&& other)
@@ -65,11 +65,11 @@ namespace RGL::Wrappers
         {
             if (IsValid())
             {
-                RGL_CHECK(rgl_entity_destroy(m_entity));
+                RGL_CHECK(rgl_entity_destroy(m_nativePtr));
             }
 
-            m_entity = other.m_entity;
-            other.m_entity = nullptr;
+            m_nativePtr = other.m_nativePtr;
+            other.m_nativePtr = nullptr;
         }
 
         return *this;
