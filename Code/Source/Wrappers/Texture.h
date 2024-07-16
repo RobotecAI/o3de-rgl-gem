@@ -19,16 +19,33 @@
 #include <AzCore/Asset/AssetCommon.h>
 #include <rgl/api/core.h>
 
+namespace AZ::RPI
+{
+    struct BC1Block;
+    struct BC4Block;
+} // namespace AZ::RPI
+
 namespace RGL::Wrappers
 {
     class Entity;
 
     class Texture
     {
+        friend class Entity;
+
     public:
+        static Texture CreateInvalid()
+        {
+            return {};
+        }
+
         static const Texture& GetGlobalDebugTexture();
         static Texture CreatePlaceholder();
+        //! This function is not thread safe.
         static Texture CreateFromMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset);
+        static Texture CreateFromFactor(float factor);
+        //! This function is not thread safe. Currently, only images in the BC1 format are supported.
+        static Texture CreateFromImageAsset(const AZ::Data::AssetId& imageAssetId);
 
         Texture(const uint8_t* texels, size_t width, size_t height);
         Texture(const Texture& other) = delete;
@@ -42,12 +59,41 @@ namespace RGL::Wrappers
 
         Texture& operator=(const Texture& other) = delete;
         Texture& operator=(Texture&& other);
+
     private:
-        // 2x2 black and white checkerboard bitmap
-        static std::vector<uint8_t> DebugBitmap;
+        //! Creates an invalid texture.
+        //! To avoid creating an invalid texture by accident, it is private.
+        //! See CreateInvalid.
+        Texture()
+        {
+        }
+
+        static AZStd::string ConstructTraceWindow(const char* functionName)
+        {
+            return (AZStd::string("RGL::Texture::") + functionName);
+        }
+
+        static uint8_t Gray8FromColor(const AZ::Color& color);
+
+        template<typename BlockT>
+        static void LoadBlockToGrays(
+            const BlockT* block, AZStd::vector<uint8_t>& grayValues, size_t blockX, size_t blockY, size_t width)
+        {
+            size_t i = 0;
+            for (size_t y = blockY; y < blockY + 4; ++y)
+            {
+                for (size_t x = blockX; x < blockX + 4; ++x)
+                {
+                    grayValues[x + y * width] = Gray8FromColor(block->GetBlockColor(i));
+                    ++ i;
+                }
+            }
+        }
+
+        static constexpr float RedGrayMultiplier = 0.299f;
+        static constexpr float GreenGrayMultiplier = 0.587f;
+        static constexpr float BlueGrayMultiplier = 0.114f;
 
         rgl_texture_t m_nativePtr{ nullptr };
-
-        friend class Entity;
     };
 } // namespace RGL::Wrappers

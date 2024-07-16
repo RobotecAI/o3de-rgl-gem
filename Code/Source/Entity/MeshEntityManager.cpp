@@ -68,8 +68,13 @@ namespace RGL
             if (entity.IsValid())
             {
                 m_materialSlotMeshIdMap.emplace(matSlot.m_stableId, entityIdx);
-                const Wrappers::Texture& defaultTexture = modelLibrary->StoreMaterialAsset(matSlot.m_defaultMaterialAsset);
-                entity.SetIntensityTexture(defaultTexture);
+
+                const Wrappers::Texture& texture = modelLibrary->StoreMaterialAsset(matSlot.m_defaultMaterialAsset);
+                if (texture.IsValid())
+                {
+                    entity.SetIntensityTexture(texture);
+                }
+
                 m_entities.emplace_back(AZStd::move(entity));
                 ++entityIdx;
             }
@@ -82,8 +87,11 @@ namespace RGL
     {
         for (const auto& [assignmentId, assignment] : materials)
         {
-            const Wrappers::Texture& materialAssetTexture = ModelLibraryInterface::Get()->StoreMaterialAsset(assignment.m_materialAsset);
-            m_entities[m_materialSlotMeshIdMap[assignmentId.m_materialSlotStableId]].SetIntensityTexture(materialAssetTexture);
+            const Wrappers::Texture& materialTexture = ModelLibraryInterface::Get()->StoreMaterialAsset(assignment.m_materialAsset);
+            if (materialTexture.IsValid())
+            {
+                m_entities[m_materialSlotMeshIdMap[assignmentId.m_materialSlotStableId]].SetIntensityTexture(materialTexture);
+            }
         }
     }
 } // namespace RGL

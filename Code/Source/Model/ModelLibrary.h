@@ -29,7 +29,7 @@ namespace RGL
     public:
         ModelLibrary();
         ModelLibrary(ModelLibrary&& meshLibrary);
-        ModelLibrary(const ModelLibrary& meshLibrary) = default;
+        ModelLibrary(const ModelLibrary& meshLibrary) = delete;
         ~ModelLibrary();
 
         //! Deletes all meshes stored by the Library.
@@ -39,6 +39,7 @@ namespace RGL
         // MeshLibraryRequestBus overrides
         const MeshMaterialSlotPairList& StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) override;
         const Wrappers::Texture& StoreMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset) override;
+        Wrappers::Texture m_invalidTexture{ AZStd::move(Wrappers::Texture::CreateInvalid()) };
 
     private:
         using MeshMap = AZStd::unordered_map<AZ::Data::AssetId, MeshMaterialSlotPairList>;

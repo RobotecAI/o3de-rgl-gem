@@ -30,7 +30,8 @@ namespace RGL
 
     ModelLibrary::ModelLibrary(ModelLibrary&& modelLibrary)
         : m_meshMap{ AZStd::move(modelLibrary.m_meshMap) }
-        // , m_textureMap{ AZStd::move(modelLibrary.m_textureMap) }
+        , m_textureMap{ AZStd::move(modelLibrary.m_textureMap) }
+        , m_invalidTexture(AZStd::move(modelLibrary.m_invalidTexture))
     {
         modelLibrary.BusDisconnect();
         ModelLibraryInterface::Unregister(&modelLibrary);
@@ -100,6 +101,12 @@ namespace RGL
             return textureIt->second;
         }
 
-        return m_textureMap.emplace(assetId, AZStd::move(Wrappers::Texture::CreateFromMaterialAsset(materialAsset))).first->second;
+        Wrappers::Texture materialTexture = AZStd::move(Wrappers::Texture::CreateFromMaterialAsset(materialAsset));
+        if (materialTexture.IsValid())
+        {
+            return m_textureMap.emplace(assetId, AZStd::move(materialTexture)).first->second;
+        }
+
+        return m_invalidTexture;
     }
 } // namespace RGL

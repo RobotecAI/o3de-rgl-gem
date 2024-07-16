@@ -14,8 +14,8 @@
  */
 #pragma once
 
-#include <Atom/RPI.Reflect/Model/ModelAsset.h>
 #include <Atom/RPI.Reflect/Material/MaterialAsset.h>
+#include <Atom/RPI.Reflect/Model/ModelAsset.h>
 #include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/EBus/EBus.h>
@@ -27,7 +27,7 @@ namespace RGL
     {
         class Texture;
         class Mesh;
-    }
+    } // namespace Wrappers
 
     using MeshMaterialSlotPairList = AZStd::vector<AZStd::pair<Wrappers::Mesh, AZ::RPI::ModelMaterialSlot>>;
 
@@ -42,6 +42,9 @@ namespace RGL
         //! @param modelAsset Model asset provided for storage.
         //! @return List of RGL meshes created using the provided model asset.
         virtual const MeshMaterialSlotPairList& StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) = 0;
+
+        //! Returns the texture created using provided materialAsset.
+        //! The returned texture reference may point to an invalid texture.
         virtual const Wrappers::Texture& StoreMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset) = 0;
 
     protected:

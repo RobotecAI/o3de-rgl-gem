@@ -23,6 +23,8 @@ namespace RGL::Wrappers
 
     class Mesh
     {
+        friend class Entity;
+
     public:
         Mesh(const rgl_vec3f* vertices, size_t vertexCount, const rgl_vec3i* indices, size_t indexCount);
         Mesh(const Mesh& other) = delete;
@@ -42,7 +44,5 @@ namespace RGL::Wrappers
 
     private:
         rgl_mesh_t m_nativePtr{ nullptr };
-
-        friend class Entity;
     };
 } // namespace RGL::Wrappers
