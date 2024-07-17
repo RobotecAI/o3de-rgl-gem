@@ -73,11 +73,11 @@ namespace RGL::Wrappers
             return (AZStd::string("RGL::Texture::") + functionName);
         }
 
+        static float GrayFromColor(const AZ::Color& color);
         static uint8_t Gray8FromColor(const AZ::Color& color);
 
         template<typename BlockT>
-        static void LoadBlockToGrays(
-            const BlockT* block, AZStd::vector<uint8_t>& grayValues, size_t blockX, size_t blockY, size_t width)
+        static void LoadBlockToGrays(const BlockT* block, AZStd::vector<uint8_t>& grayValues, size_t blockX, size_t blockY, size_t width)
         {
             size_t i = 0;
             for (size_t y = blockY; y < blockY + 4; ++y)
@@ -85,7 +85,7 @@ namespace RGL::Wrappers
                 for (size_t x = blockX; x < blockX + 4; ++x)
                 {
                     grayValues[x + y * width] = Gray8FromColor(block->GetBlockColor(i));
-                    ++ i;
+                    ++i;
                 }
             }
         }

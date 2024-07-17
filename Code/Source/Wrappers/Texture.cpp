@@ -21,8 +21,8 @@ namespace RGL::Wrappers
     Texture Texture::CreateFromMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset)
     {
         static const AZStd::string TraceWindow = ConstructTraceWindow(__func__);
-        static const AZ::Name specTexName = AZ::Name::FromStringLiteral("specularF0.textureMap", AZ::Interface<AZ::NameDictionary>::Get());
-        static const AZ::Name specFactorName = AZ::Name::FromStringLiteral("specularF0.factor", AZ::Interface<AZ::NameDictionary>::Get());
+        static const AZ::Name albedoTexName = AZ::Name::FromStringLiteral("baseColor.textureMap", AZ::Interface<AZ::NameDictionary>::Get());
+        static const AZ::Name albedoColorName = AZ::Name::FromStringLiteral("baseColor.color", AZ::Interface<AZ::NameDictionary>::Get());
 
         Texture imageTexture = CreateInvalid();
 
@@ -47,10 +47,10 @@ namespace RGL::Wrappers
 
         auto& propertyValues = materialAsset->GetPropertyValues();
 
-        if (const auto specTexPropIdx = propLayout->FindPropertyIndex(specTexName); !specTexPropIdx.IsNull())
+        if (const auto albedoTexPropIdx = propLayout->FindPropertyIndex(albedoTexName); !albedoTexPropIdx.IsNull())
         {
-            const auto specTexImagePropVal = propertyValues.at(specTexPropIdx.GetIndex());
-            const auto& imageAsset = specTexImagePropVal.GetValue<AZ::Data::Asset<AZ::RPI::ImageAsset>>();
+            const auto albedoTexImagePropVal = propertyValues.at(albedoTexPropIdx.GetIndex());
+            const auto& imageAsset = albedoTexImagePropVal.GetValue<AZ::Data::Asset<AZ::RPI::ImageAsset>>();
             imageTexture = CreateFromImageAsset(imageAsset.GetId());
         }
 
@@ -59,9 +59,10 @@ namespace RGL::Wrappers
             return imageTexture;
         }
 
-        if (const auto specFactorPropIdx = propLayout->FindPropertyIndex(specFactorName); !specFactorPropIdx.IsNull())
+        if (const auto albedoColorPropIdx = propLayout->FindPropertyIndex(albedoColorName); !albedoColorPropIdx.IsNull())
         {
-            imageTexture = AZStd::move(CreateFromFactor(propertyValues.at(specFactorPropIdx.GetIndex()).GetValue<float>()));
+            imageTexture =
+                AZStd::move(CreateFromFactor(GrayFromColor(propertyValues.at(albedoColorPropIdx.GetIndex()).GetValue<AZ::Color>())));
         }
         else
         {
@@ -81,10 +82,14 @@ namespace RGL::Wrappers
         return Texture{ &factor8, 1, 1 };
     }
 
+    float Texture::GrayFromColor(const AZ::Color& color)
+    {
+        return RedGrayMultiplier * color.GetR() + GreenGrayMultiplier * color.GetG() + BlueGrayMultiplier * color.GetB();
+    }
+
     uint8_t Texture::Gray8FromColor(const AZ::Color& color)
     {
-        return static_cast<uint8_t>(
-            (GreenGrayMultiplier * color.GetR() + GreenGrayMultiplier * color.GetG() + BlueGrayMultiplier * color.GetB()) * 255.0f);
+        return static_cast<uint8_t>(GrayFromColor(color) * 255.0f);
     }
 
     Texture Texture::CreateFromImageAsset(const AZ::Data::AssetId& imageAssetId)
@@ -111,35 +116,38 @@ namespace RGL::Wrappers
 
         using Format = AZ::RHI::Format;
         const auto format = imageDescriptor.m_format;
+        const auto& size = imageDescriptor.m_size;
         if (format == Format::BC1_UNORM || format == Format::BC1_UNORM_SRGB || format == Format::BC4_UNORM)
         {
-            const size_t width = imageDescriptor.m_size.m_width;
-            const size_t height = imageDescriptor.m_size.m_height;
-
-            tempRglTextureData.resize(width * height);
-
-            // Only highest detail mip and first slice (2D texture).
+            tempRglTextureData.resize(size.m_width * size.m_height);
+            // Only highest detail mip.
             AZStd::span<const uint8_t> imageData = imageAsset->GetSubImageData(0, 0);
-            size_t srcIdx = 0;
-            for (size_t y = 0; y < width; y += 4)
+            size_t srcIdx = 0, sliceIdx = 0;
+            for (size_t y = 0; y < size.m_height; y += 4)
             {
-                for (size_t x = 0; x < width; x += 4)
+                for (size_t x = 0; x < size.m_width; x += 4)
                 {
                     if (format == Format::BC4_UNORM)
                     {
                         LoadBlockToGrays(
-                            reinterpret_cast<const AZ::RPI::BC4Block*>(imageData.data() + srcIdx), tempRglTextureData, x, y, width);
+                            reinterpret_cast<const AZ::RPI::BC4Block*>(imageData.data() + srcIdx), tempRglTextureData, x, y, size.m_width);
                     }
                     else
                     {
                         LoadBlockToGrays(
-                            reinterpret_cast<const AZ::RPI::BC1Block*>(imageData.data() + srcIdx), tempRglTextureData, x, y, width);
+                            reinterpret_cast<const AZ::RPI::BC1Block*>(imageData.data() + srcIdx), tempRglTextureData, x, y, size.m_width);
                     }
+
                     srcIdx += 8;
+                    if (srcIdx == imageData.size() && ++sliceIdx < imageDescriptor.m_arraySize)
+                    {
+                        imageData = imageAsset->GetSubImageData(0, sliceIdx);
+                        srcIdx = 0;
+                    }
                 }
             }
 
-            imageTexture = Texture{ tempRglTextureData.data(), width, height };
+            imageTexture = Texture{ tempRglTextureData.data(), size.m_width, size.m_height };
             tempRglTextureData.clear();
         }
         else
