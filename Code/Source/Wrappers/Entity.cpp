@@ -23,7 +23,7 @@ namespace RGL::Wrappers
     {
         bool success = false;
         Utils::ErrorCheck(rgl_entity_create(&m_nativePtr, nullptr, mesh.m_nativePtr), __FILE__, __LINE__, &success);
-        if (!success && !m_nativePtr)
+        if (!success && m_nativePtr)
         {
             RGL_CHECK(rgl_entity_destroy(m_nativePtr));
             m_nativePtr = nullptr;
@@ -46,16 +46,19 @@ namespace RGL::Wrappers
 
     void Entity::SetPose(const rgl_mat3x4f& pose)
     {
+        AZ_Assert(IsValid(), "Tried to set pose of an invalid entity.");
         RGL_CHECK(rgl_entity_set_pose(m_nativePtr, &pose));
     }
 
     void Entity::SetId(int32_t id)
     {
+        AZ_Assert(IsValid(), "Tried to set id of an invalid entity.");
         RGL_CHECK(rgl_entity_set_id(m_nativePtr, id));
     }
 
     void Entity::SetIntensityTexture(const Texture& texture)
     {
+        AZ_Assert(IsValid(), "Tried to set intensity texture of an invalid entity.");
         RGL_CHECK(rgl_entity_set_intensity_texture(m_nativePtr, texture.m_nativePtr));
     }
 

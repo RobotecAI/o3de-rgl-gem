@@ -162,11 +162,11 @@ namespace RGL
         {
             if (pointsExpected)
             {
-                const bool isHit = (m_graph.IsCompactEnabled()) || aznumeric_cast<bool>(m_rglRaycastResults.m_isHit[resultIndex]);
+                const bool isHit = m_graph.IsCompactEnabled() || aznumeric_cast<bool>(m_rglRaycastResults.m_isHit[resultIndex]);
                 if (isHit)
                 {
                     m_raycastResults.m_points[usedPointIndex] = Utils::AzVector3FromRglVec3f(m_rglRaycastResults.m_xyz[resultIndex]);
-                    m_raycastResults.m_intensity[usedPointIndex] = m_rglRaycastResults.m_intensity[usedPointIndex];
+                    m_raycastResults.m_intensity[usedPointIndex] = m_rglRaycastResults.m_intensity[resultIndex];
                 }
                 else if (m_isMaxRangeEnabled)
                 {

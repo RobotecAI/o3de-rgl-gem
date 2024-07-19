@@ -27,7 +27,7 @@ namespace RGL::Wrappers
             __LINE__,
             &success);
 
-        if (!success && !m_nativePtr)
+        if (!success && m_nativePtr)
         {
             RGL_CHECK(rgl_mesh_destroy(m_nativePtr));
             m_nativePtr = nullptr;
@@ -51,11 +51,13 @@ namespace RGL::Wrappers
 
     void Mesh::UpdateVertices(const rgl_vec3f* vertices, size_t vertexCount)
     {
+        AZ_Assert(IsValid(), "Tried to update vertices of an invalid mesh.");
         RGL_CHECK(rgl_mesh_update_vertices(m_nativePtr, vertices, aznumeric_cast<int32_t>(vertexCount)));
     }
 
     void Mesh::SetTextureCoordinates(const rgl_vec2f* uvs, size_t uvCount)
     {
+        AZ_Assert(IsValid(), "Tried to set texture coordinates of an invalid mesh.");
         RGL_CHECK(rgl_mesh_set_texture_coords(m_nativePtr, uvs, aznumeric_cast<int32_t>(uvCount)));
     }
 

@@ -18,18 +18,22 @@
 #include <AzFramework/Terrain/TerrainDataRequestBus.h>
 #include <AzFramework/Visibility/BoundsBus.h>
 #include <Entity/Terrain/TerrainData.h>
-#include <rgl/api/core.h>
-#include <Wrappers/Mesh.h>
+#include <RGL/RGLBus.h>
 #include <Wrappers/Entity.h>
+#include <Wrappers/Mesh.h>
+#include <Wrappers/Texture.h>
 
 namespace RGL
 {
+    struct TerrainIntensityConfiguration;
+
     //! Queries the TerrainDataRequestBus for terrain heights and constructs a mesh using them.
     //! Terrain area is split into square sectors of predetermined width.
     //! The constructed mesh has a uniform vertex distribution along the xy - plane.
     class TerrainEntityManagerSystemComponent
         : public AZ::Component
         , private AzFramework::Terrain::TerrainDataNotificationBus::Handler
+        , private RGLNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(TerrainEntityManagerSystemComponent, "{6de4556f-5621-4ec3-a587-b28988f79d8a}");
@@ -51,13 +55,19 @@ namespace RGL
         void Deactivate() override;
 
     private:
+        static Wrappers::Texture CreateTextureFromConfig(const TerrainIntensityConfiguration& intensityConfig);
+
+        // RGLNotificationBus overrides
+        void OnSceneConfigurationSet(const SceneConfiguration& config) override;
+
         void EnsureRGLEntityDestroyed();
 
         void UpdateWorldBounds();
         void UpdateDirtyRegion(const AZ::Aabb& dirtyRegion);
 
-        AZStd::optional<Wrappers::Mesh> m_rglMesh;
-        AZStd::optional<Wrappers::Entity> m_rglEntity;
+        Wrappers::Mesh m_rglMesh{ AZStd::move(Wrappers::Mesh::CreateInvalid()) };
+        Wrappers::Entity m_rglEntity{ AZStd::move(Wrappers::Entity::CreateInvalid()) };
+        Wrappers::Texture m_rglTexture{ AZStd::move(Wrappers::Texture::CreateInvalid()) };
 
         TerrainData m_terrainData;
     };

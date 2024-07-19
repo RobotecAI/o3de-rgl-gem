@@ -26,6 +26,11 @@ namespace RGL::Wrappers
         friend class Entity;
 
     public:
+        static Mesh CreateInvalid()
+        {
+            return {};
+        }
+
         Mesh(const rgl_vec3f* vertices, size_t vertexCount, const rgl_vec3i* indices, size_t indexCount);
         Mesh(const Mesh& other) = delete;
         Mesh(Mesh&& other);
@@ -43,6 +48,11 @@ namespace RGL::Wrappers
         Mesh& operator=(Mesh&& other);
 
     private:
+        //! Creates an invalid mesh.
+        //! To avoid creating an invalid mesh by accident, it is private.
+        //! See CreateInvalid.
+        Mesh() {}
+
         rgl_mesh_t m_nativePtr{ nullptr };
     };
 } // namespace RGL::Wrappers

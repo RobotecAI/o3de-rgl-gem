@@ -14,8 +14,8 @@
  */
 #include <AzFramework/Physics/HeightfieldProviderBus.h>
 #include <AzFramework/Terrain/TerrainDataRequestBus.h>
-#include <Utilities/RGLUtils.h>
 #include <Entity/Terrain/TerrainData.h>
+#include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
@@ -27,16 +27,19 @@ namespace RGL
             return false;
         }
 
-        size_t heightfieldGridColumns{}, heighfieldGridRows{};
+        size_t heightfieldGridColumns{}, heightfieldGridRows{};
         Physics::HeightfieldProviderRequestsBus::BroadcastResult(
             heightfieldGridColumns, &Physics::HeightfieldProviderRequests::GetHeightfieldGridColumns);
         Physics::HeightfieldProviderRequestsBus::BroadcastResult(
-            heighfieldGridRows, &Physics::HeightfieldProviderRequests::GetHeightfieldGridRows);
+            heightfieldGridRows, &Physics::HeightfieldProviderRequests::GetHeightfieldGridRows);
 
-        if (heightfieldGridColumns < 2 || heighfieldGridRows < 2)
+        if (heightfieldGridColumns < 3 || heightfieldGridRows < 3)
         {
             return false;
         }
+
+        m_gridColumns = heightfieldGridColumns - 1U;
+        m_gridRows = heightfieldGridRows - 1U;
 
         m_currentWorldBounds = newWorldBounds;
 
@@ -45,17 +48,14 @@ namespace RGL
             heightfieldGridSpacing, &Physics::HeightfieldProviderRequests::GetHeightfieldGridSpacing);
 
         m_vertices.clear();
-        AZ_Printf(
-            "TerrainEntityManagerSystemComponent",
-            "Creating terrain mesh with %zu columns and %zu rows.",
-            heightfieldGridColumns,
-            heighfieldGridRows);
-        m_vertices.reserve(heightfieldGridColumns * heighfieldGridRows);
+
+        const size_t vertexCount = m_gridColumns * m_gridRows;
+        m_vertices.reserve(vertexCount);
         const AZ::Vector3 worldMin = m_currentWorldBounds.GetMin();
 
-        for (size_t vertexIndexX = 0LU; vertexIndexX < heightfieldGridColumns; ++vertexIndexX)
+        for (size_t vertexIndexX = 0LU; vertexIndexX < m_gridColumns; ++vertexIndexX)
         {
-            for (size_t vertexIndexY = 0LU; vertexIndexY < heighfieldGridRows; ++vertexIndexY)
+            for (size_t vertexIndexY = 0LU; vertexIndexY < m_gridRows; ++vertexIndexY)
             {
                 m_vertices.emplace_back(rgl_vec3f{
                     worldMin.GetX() + aznumeric_cast<float>(vertexIndexX) * heightfieldGridSpacing.GetX(),
@@ -65,19 +65,21 @@ namespace RGL
             }
         }
 
+        UpdateUvs();
+
         m_indices.clear();
-        m_indices.reserve((heightfieldGridColumns - 1) * (heighfieldGridRows - 1) * TrianglesPerSector);
-        for (size_t sectorIndexX = 0LU; sectorIndexX < heightfieldGridColumns - 1; ++sectorIndexX)
+        m_indices.reserve((m_gridColumns - 1) * (m_gridRows - 1) * TrianglesPerSector);
+        for (size_t sectorIndexX = 0LU; sectorIndexX < m_gridColumns - 1; ++sectorIndexX)
         {
-            for (size_t sectorIndexY = 0LU; sectorIndexY < heighfieldGridRows - 1; ++sectorIndexY)
+            for (size_t sectorIndexY = 0LU; sectorIndexY < m_gridRows - 1; ++sectorIndexY)
             {
-                const auto lowerLeft = aznumeric_cast<int32_t>(sectorIndexY + sectorIndexX * heighfieldGridRows);
-                const auto lowerRight = aznumeric_cast<int32_t>(lowerLeft + heighfieldGridRows);
+                const auto lowerLeft = aznumeric_cast<int32_t>(sectorIndexY + sectorIndexX * m_gridRows);
+                const auto lowerRight = aznumeric_cast<int32_t>(lowerLeft + m_gridRows);
                 const auto upperLeft = aznumeric_cast<int32_t>(lowerLeft + 1);
                 const auto upperRight = aznumeric_cast<int32_t>(lowerRight + 1);
 
-                m_indices.emplace_back(rgl_vec3i{ upperLeft, upperRight, lowerLeft });
-                m_indices.emplace_back(rgl_vec3i{ lowerLeft, upperRight, lowerRight });
+                m_indices.emplace_back(rgl_vec3i{ upperLeft, upperRight, lowerRight });
+                m_indices.emplace_back(rgl_vec3i{ upperLeft, lowerLeft, lowerRight });
             }
         }
 
@@ -121,8 +123,21 @@ namespace RGL
     void TerrainData::Clear()
     {
         m_currentWorldBounds = AZ::Aabb::CreateFromPoint(AZ::Vector3::CreateZero());
+        m_gridColumns = m_gridRows = 0U;
         m_vertices.clear();
         m_indices.clear();
+        m_uvs.clear();
+    }
+
+    void TerrainData::SetIsTiled(bool isTiled)
+    {
+        if (m_isTiled == isTiled)
+        {
+            return;
+        }
+
+        m_isTiled = isTiled;
+        UpdateUvs();
     }
 
     const AZStd::vector<rgl_vec3f>& TerrainData::GetVertices() const
@@ -133,5 +148,38 @@ namespace RGL
     const AZStd::vector<rgl_vec3i>& TerrainData::GetIndices() const
     {
         return m_indices;
+    }
+
+    const AZStd::vector<rgl_vec2f>& TerrainData::GetUvs() const
+    {
+        return m_uvs;
+    }
+
+    void TerrainData::UpdateUvs()
+    {
+        m_uvs.clear();
+        m_uvs.reserve(m_gridColumns * m_gridRows);
+
+        for (size_t x = 0; x < m_gridColumns; ++x)
+        {
+            for (size_t y = 0; y < m_gridRows; ++y)
+            {
+                auto uv = rgl_vec2f{
+                    aznumeric_cast<float>(x),
+                    aznumeric_cast<float>(y),
+                };
+
+                // Terrain Macro Material's image
+                // is inverted on the v axis.
+                if (!m_isTiled)
+                {
+                    uv.value[0] /= aznumeric_cast<float>(m_gridColumns);
+                    uv.value[1] /= aznumeric_cast<float>(m_gridRows);
+                    uv.value[1] = 1.0f - uv.value[1];
+                }
+
+                m_uvs.emplace_back(uv);
+            }
+        }
     }
 } // namespace RGL

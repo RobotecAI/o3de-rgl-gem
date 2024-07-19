@@ -171,7 +171,7 @@ namespace RGL::Wrappers
             __LINE__,
             &success);
 
-        if (!success && !m_nativePtr)
+        if (!success && m_nativePtr)
         {
             RGL_CHECK(rgl_texture_destroy(m_nativePtr));
             m_nativePtr = nullptr;

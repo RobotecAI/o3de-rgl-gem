@@ -19,12 +19,6 @@
 #include <AzCore/Asset/AssetCommon.h>
 #include <rgl/api/core.h>
 
-namespace AZ::RPI
-{
-    struct BC1Block;
-    struct BC4Block;
-} // namespace AZ::RPI
-
 namespace RGL::Wrappers
 {
     class Entity;

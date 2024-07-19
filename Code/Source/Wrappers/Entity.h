@@ -24,6 +24,11 @@ namespace RGL::Wrappers
     class Entity
     {
     public:
+        static Entity CreateInvalid()
+        {
+            return {};
+        }
+
         explicit Entity(const Mesh& mesh);
         Entity(const Entity& other) = delete;
         Entity(Entity&& other);
@@ -42,6 +47,13 @@ namespace RGL::Wrappers
         Entity& operator=(Entity&& other);
 
     private:
+        //! Creates an invalid entity.
+        //! To avoid creating an invalid entity by accident, it is private.
+        //! See CreateInvalid.
+        Entity()
+        {
+        }
+
         rgl_entity_t m_nativePtr{ nullptr };
     };
 } // namespace RGL::Wrappers
