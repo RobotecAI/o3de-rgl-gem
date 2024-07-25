@@ -112,7 +112,7 @@ namespace RGL::Wrappers
         imageAsset.QueueLoad();
         imageAsset.BlockUntilLoadComplete();
 
-        const AZ::RHI::ImageDescriptor imageDescriptor = imageAsset->GetImageDescriptorForMipLevel(0);
+        const AZ::RHI::ImageDescriptor imageDescriptor = imageAsset->GetImageDescriptor();
 
         using Format = AZ::RHI::Format;
         const auto format = imageDescriptor.m_format;

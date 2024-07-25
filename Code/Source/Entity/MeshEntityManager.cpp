@@ -32,12 +32,6 @@ namespace RGL
     {
         EntityManager::OnEntityActivated(entityId);
         AZ::Render::MeshComponentNotificationBus::Handler::BusConnect(entityId);
-
-        AZ::Entity* entity = AZ::Interface<AZ::ComponentApplicationRequests>::Get()->FindEntity(entityId);
-        if (entity->FindComponent(AZ::Render::MaterialComponentTypeId))
-        {
-            AZ::Render::MaterialComponentNotificationBus::Handler::BusConnect(entityId);
-        }
     }
 
     void MeshEntityManager::OnEntityDeactivated(const AZ::EntityId& entityId)
@@ -81,10 +75,23 @@ namespace RGL
         }
 
         m_isPoseUpdateNeeded = true;
+
+        // We can use material info only when the model is ready.
+        AZ::Entity* entity = AZ::Interface<AZ::ComponentApplicationRequests>::Get()->FindEntity(m_entityId);
+        if (entity->FindComponent(AZ::Render::MaterialComponentTypeId))
+        {
+            AZ::Render::MaterialComponentNotificationBus::Handler::BusConnect(m_entityId);
+        }
     }
 
     void MeshEntityManager::OnMaterialsUpdated(const AZ::Render::MaterialAssignmentMap& materials)
     {
+        if (m_entities.empty())
+        {
+            AZ_Warning(__func__, false, "Skipping material update. The entities were not yet created.");
+            return;
+        }
+
         for (const auto& [assignmentId, assignment] : materials)
         {
             const Wrappers::Texture& materialTexture = ModelLibraryInterface::Get()->StoreMaterialAsset(assignment.m_materialAsset);
