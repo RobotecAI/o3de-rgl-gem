@@ -21,54 +21,50 @@
 
 namespace RGL::Wrappers
 {
-    class Entity;
+    class RglEntity;
 
-    class Texture
+    class RglTexture
     {
-        friend class Entity;
+        friend class RglEntity;
 
     public:
-        static Texture CreateInvalid()
+        static RglTexture CreateInvalid()
         {
             return {};
         }
 
-        static const Texture& GetGlobalDebugTexture();
-        static Texture CreatePlaceholder();
         //! This function is not thread safe.
-        static Texture CreateFromMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset);
-        static Texture CreateFromFactor(float factor);
+        static RglTexture CreateFromMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset);
+        static RglTexture CreateFromFactor(float factor);
         //! This function is not thread safe. Currently, only images in the BC1 format are supported.
-        static Texture CreateFromImageAsset(const AZ::Data::AssetId& imageAssetId);
+        static RglTexture CreateFromImageAsset(const AZ::Data::AssetId& imageAssetId);
 
-        Texture(const uint8_t* texels, size_t width, size_t height);
-        Texture(const Texture& other) = delete;
-        Texture(Texture&& other);
-        ~Texture();
+        RglTexture(const uint8_t* texels, size_t width, size_t height);
+        RglTexture(const RglTexture& other) = delete;
+        RglTexture(RglTexture&& other);
+        ~RglTexture();
 
         [[nodiscard]] bool IsValid() const
         {
             return m_nativePtr;
         }
 
-        Texture& operator=(const Texture& other) = delete;
-        Texture& operator=(Texture&& other);
+        RglTexture& operator=(const RglTexture& other) = delete;
+        RglTexture& operator=(RglTexture&& other);
 
     private:
         //! Creates an invalid texture.
         //! To avoid creating an invalid texture by accident, it is private.
         //! See CreateInvalid.
-        Texture()
+        RglTexture() = default;
+
+        static AZStd::string ConstructTraceWindowName(const char* functionName)
         {
+            return AZStd::string("RGL::RglTexture::") + functionName;
         }
 
-        static AZStd::string ConstructTraceWindow(const char* functionName)
-        {
-            return (AZStd::string("RGL::Texture::") + functionName);
-        }
-
-        static float GrayFromColor(const AZ::Color& color);
-        static uint8_t Gray8FromColor(const AZ::Color& color);
+        static float CreateGrayFromColor(const AZ::Color& color);
+        static uint8_t CreateGray8FromColor(const AZ::Color& color);
 
         template<typename BlockT>
         static void LoadBlockToGrays(const BlockT* block, AZStd::vector<uint8_t>& grayValues, size_t blockX, size_t blockY, size_t width)
@@ -78,12 +74,14 @@ namespace RGL::Wrappers
             {
                 for (size_t x = blockX; x < blockX + 4; ++x)
                 {
-                    grayValues[x + y * width] = Gray8FromColor(block->GetBlockColor(i));
+                    grayValues[x + y * width] = CreateGray8FromColor(block->GetBlockColor(i));
                     ++i;
                 }
             }
         }
 
+        // Weights used to convert RGB to Grayscale using the luminosity
+        // method as opposed to taking an average.
         static constexpr float RedGrayMultiplier = 0.299f;
         static constexpr float GreenGrayMultiplier = 0.587f;
         static constexpr float BlueGrayMultiplier = 0.114f;

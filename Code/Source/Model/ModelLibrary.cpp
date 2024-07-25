@@ -47,8 +47,6 @@ namespace RGL
         }
 
         ModelLibraryRequestBus::Handler::BusDisconnect();
-
-        Clear();
     }
 
     void ModelLibrary::Clear()
@@ -77,7 +75,7 @@ namespace RGL
             const AZStd::span<const rgl_vec3f> vertices = mesh.GetSemanticBufferTyped<rgl_vec3f>(AZ::Name("POSITION"));
             const AZStd::span<const rgl_vec3i> indices = mesh.GetIndexBufferTyped<rgl_vec3i>();
 
-            Wrappers::Mesh rglMesh(vertices.data(), vertices.size(), indices.data(), indices.size());
+            Wrappers::RglMesh rglMesh(vertices.data(), vertices.size(), indices.data(), indices.size());
             if (!rglMesh.IsValid())
             {
                 continue;
@@ -93,7 +91,7 @@ namespace RGL
         return m_meshMap.emplace(assetId, AZStd::move(modelMeshes)).first->second;
     }
 
-    const Wrappers::Texture& ModelLibrary::StoreMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset)
+    const Wrappers::RglTexture& ModelLibrary::StoreMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset)
     {
         const AZ::Data::AssetId& assetId = materialAsset.GetId();
         if (auto textureIt = m_textureMap.find(assetId); textureIt != m_textureMap.end())
@@ -101,7 +99,7 @@ namespace RGL
             return textureIt->second;
         }
 
-        Wrappers::Texture materialTexture = AZStd::move(Wrappers::Texture::CreateFromMaterialAsset(materialAsset));
+        Wrappers::RglTexture materialTexture = AZStd::move(Wrappers::RglTexture::CreateFromMaterialAsset(materialAsset));
         if (materialTexture.IsValid())
         {
             return m_textureMap.emplace(assetId, AZStd::move(materialTexture)).first->second;

@@ -45,20 +45,20 @@ namespace RGL
         EnsureRGLEntityDestroyed();
     }
 
-    Wrappers::Texture TerrainEntityManagerSystemComponent::CreateTextureFromConfig(const TerrainIntensityConfiguration& intensityConfig)
+    Wrappers::RglTexture TerrainEntityManagerSystemComponent::CreateTextureFromConfig(const TerrainIntensityConfiguration& intensityConfig)
     {
-        Wrappers::Texture terrainTexture = Wrappers::Texture::CreateInvalid();
+        Wrappers::RglTexture terrainTexture = Wrappers::RglTexture::CreateInvalid();
 
         if (intensityConfig.m_colorImageAsset.IsReady())
         {
-            terrainTexture = Wrappers::Texture::CreateFromImageAsset(intensityConfig.m_colorImageAsset.GetId());
+            terrainTexture = Wrappers::RglTexture::CreateFromImageAsset(intensityConfig.m_colorImageAsset.GetId());
             if (terrainTexture.IsValid())
             {
                 return terrainTexture;
             }
         }
 
-        return Wrappers::Texture::CreateFromFactor(intensityConfig.m_defaultValue);
+        return Wrappers::RglTexture::CreateFromFactor(intensityConfig.m_defaultValue);
     }
 
     void TerrainEntityManagerSystemComponent::OnSceneConfigurationSet(const SceneConfiguration& config)
@@ -107,8 +107,8 @@ namespace RGL
 
     void TerrainEntityManagerSystemComponent::EnsureRGLEntityDestroyed()
     {
-        m_rglEntity = AZStd::move(Wrappers::Entity::CreateInvalid());
-        m_rglMesh = AZStd::move(Wrappers::Mesh::CreateInvalid());
+        m_rglEntity = AZStd::move(Wrappers::RglEntity::CreateInvalid());
+        m_rglMesh = AZStd::move(Wrappers::RglMesh::CreateInvalid());
     }
 
     void TerrainEntityManagerSystemComponent::UpdateWorldBounds()
@@ -128,7 +128,7 @@ namespace RGL
         const auto& vertices = m_terrainData.GetVertices();
         const auto& indices = m_terrainData.GetIndices();
 
-        m_rglMesh = AZStd::move(Wrappers::Mesh(vertices.data(), vertices.size(), indices.data(), indices.size()));
+        m_rglMesh = AZStd::move(Wrappers::RglMesh(vertices.data(), vertices.size(), indices.data(), indices.size()));
         if (!m_rglMesh.IsValid())
         {
             AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL mesh.");
@@ -138,7 +138,7 @@ namespace RGL
         const auto& uvs = m_terrainData.GetUvs();
         m_rglMesh.SetTextureCoordinates(uvs.data(), uvs.size());
 
-        m_rglEntity = AZStd::move(Wrappers::Entity(m_rglMesh));
+        m_rglEntity = AZStd::move(Wrappers::RglEntity(m_rglMesh));
         if (!m_rglEntity.IsValid())
         {
             AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL entity.");

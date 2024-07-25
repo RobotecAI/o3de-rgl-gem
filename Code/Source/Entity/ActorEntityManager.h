@@ -18,7 +18,7 @@
 #include <Integration/ActorComponentBus.h>
 #include <rgl/api/core.h>
 #include <AzCore/std/containers/vector.h>
-#include <Wrappers/Mesh.h>
+#include <Wrappers/RglMesh.h>
 
 namespace EMotionFX
 {
@@ -48,15 +48,15 @@ namespace RGL
 
     private:
         EMotionFX::ActorInstance* m_actorInstance = nullptr;
-        // We do not use the MeshLibrary since the actor mesh is
+        // We do not use the ModelLibrary since the actor mesh is
         // skinned and the mesh sharing would not be useful.
         AZStd::vector<EMotionFX::Mesh*> m_emotionFxMeshes;
-        AZStd::vector<Wrappers::Mesh> m_rglMeshes;
+        AZStd::vector<Wrappers::RglMesh> m_rglMeshes;
         AZStd::vector<rgl_vec3f> m_positions;
 
         void UpdateMeshVertices();
         void UpdateVertexPositions(const EMotionFX::Mesh& mesh);
         AZStd::vector<rgl_vec3i> CollectIndexData(const EMotionFX::Mesh& mesh);
-        Wrappers::Mesh EMotionFXMeshToRglMesh(const EMotionFX::Mesh& mesh);
+        Wrappers::RglMesh EMotionFXMeshToRglMesh(const EMotionFX::Mesh& mesh);
     };
 } // namespace RGL

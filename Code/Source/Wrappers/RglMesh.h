@@ -14,46 +14,45 @@
  */
 #pragma once
 
+#include <AzCore/std/containers/vector.h>
 #include <rgl/api/core.h>
 
 namespace RGL::Wrappers
 {
-    class Mesh;
-    class Texture;
+    class RglEntity;
 
-    class Entity
+    class RglMesh
     {
+        friend class RglEntity;
+
     public:
-        static Entity CreateInvalid()
+        static RglMesh CreateInvalid()
         {
             return {};
         }
 
-        explicit Entity(const Mesh& mesh);
-        Entity(const Entity& other) = delete;
-        Entity(Entity&& other);
-        ~Entity();
+        RglMesh(const rgl_vec3f* vertices, size_t vertexCount, const rgl_vec3i* indices, size_t indexCount);
+        RglMesh(const RglMesh& other) = delete;
+        RglMesh(RglMesh&& other);
+        ~RglMesh();
 
         [[nodiscard]] bool IsValid() const
         {
             return m_nativePtr;
         }
 
-        void SetPose(const rgl_mat3x4f& pose);
-        void SetId(int32_t id);
-        void SetIntensityTexture(const Texture& texture);
+        void UpdateVertices(const rgl_vec3f* vertices, size_t vertexCount);
+        void SetTextureCoordinates(const rgl_vec2f* uvs, size_t uvCount);
 
-        Entity& operator=(const Entity& other) = delete;
-        Entity& operator=(Entity&& other);
+        RglMesh& operator=(const RglMesh& other) = delete;
+        RglMesh& operator=(RglMesh&& other);
 
     private:
-        //! Creates an invalid entity.
-        //! To avoid creating an invalid entity by accident, it is private.
+        //! Creates an invalid mesh.
+        //! To avoid creating an invalid mesh by accident, it is private.
         //! See CreateInvalid.
-        Entity()
-        {
-        }
+        RglMesh() = default;
 
-        rgl_entity_t m_nativePtr{ nullptr };
+        rgl_mesh_t m_nativePtr{ nullptr };
     };
 } // namespace RGL::Wrappers

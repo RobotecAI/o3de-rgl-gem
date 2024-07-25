@@ -25,11 +25,11 @@ namespace RGL
 {
     namespace Wrappers
     {
-        class Texture;
-        class Mesh;
+        class RglTexture;
+        class RglMesh;
     } // namespace Wrappers
 
-    using MeshMaterialSlotPairList = AZStd::vector<AZStd::pair<Wrappers::Mesh, AZ::RPI::ModelMaterialSlot>>;
+    using MeshMaterialSlotPairList = AZStd::vector<AZStd::pair<Wrappers::RglMesh, AZ::RPI::ModelMaterialSlot>>;
 
     class ModelLibraryRequests
     {
@@ -45,7 +45,7 @@ namespace RGL
 
         //! Returns the texture created using provided materialAsset.
         //! The returned texture reference may point to an invalid texture.
-        virtual const Wrappers::Texture& StoreMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset) = 0;
+        virtual const Wrappers::RglTexture& StoreMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset) = 0;
 
     protected:
         ~ModelLibraryRequests() = default;
@@ -63,22 +63,4 @@ namespace RGL
 
     using ModelLibraryRequestBus = AZ::EBus<ModelLibraryRequests, ModelLibraryBusTraits>;
     using ModelLibraryInterface = AZ::Interface<ModelLibraryRequests>;
-
-    // class ModelLibraryNotifications
-    //    : public AZ::EBusTraits
-    // {
-    // public:
-    //     //////////////////////////////////////////////////////////////////////////
-    //     // EBusTraits overrides
-    //     static const AZ::EBusHandlerPolicy HandlerPolicy = AZ::EBusHandlerPolicy::Multiple;
-    //     static const AZ::EBusAddressPolicy AddressPolicy = AZ::EBusAddressPolicy::Single;
-    //     //////////////////////////////////////////////////////////////////////////
-    //
-    //     //////////////////////////////////////////////////////////////////////////
-    //     // Notifications interface
-    //     virtual void OnMaterialUpdated(const AZ::Data::AssetId& materialAssetId);
-    //     //////////////////////////////////////////////////////////////////////////
-    //
-    // };
-    // using AWSCognitoAuthorizationNotificationBus = AZ::EBus<AWSCognitoAuthorizationNotifications>;
 } // namespace RGL

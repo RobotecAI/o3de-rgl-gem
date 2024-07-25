@@ -172,7 +172,6 @@ namespace RGL
                 {
                     const AZ::Vector4 maxVector = lidarPose * m_rayTransforms[resultIndex] * AZ::Vector4(0.0f, 0.0f, m_range.second, 1.0f);
                     m_raycastResults.m_points[usedPointIndex] = maxVector.GetAsVector3();
-                    m_raycastResults.m_intensity[usedPointIndex] = 0.0f;
                 }
 
                 if (isHit || m_isMaxRangeEnabled)

@@ -35,12 +35,13 @@ set(FILES
         Source/RGLSystemComponent.h
         Source/Utilities/RGLUtils.cpp
         Source/Utilities/RGLUtils.h
-        Source/Wrappers/Entity.cpp
-        Source/Wrappers/Entity.h
-        Source/Wrappers/Mesh.cpp
-        Source/Wrappers/Mesh.h
-        Source/Wrappers/Texture.cpp
-        Source/Wrappers/Texture.h
+        Source/Wrappers/RglEntity.cpp
+        Source/Wrappers/RglEntity.h
+        Source/Wrappers/RglMesh.cpp
+        Source/Wrappers/RglMesh.h
+        Source/Wrappers/RglTexture.cpp
+        Source/Wrappers/RglTexture.h
+        Source/SceneConfiguration.cpp
         Source/SceneConfigurationComponent.cpp
         Source/SceneConfigurationComponent.h
 )

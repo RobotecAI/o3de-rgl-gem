@@ -16,8 +16,8 @@
 
 #include <AzCore/std/containers/unordered_map.h>
 #include <Model/ModelLibraryBus.h>
-#include <Wrappers/Mesh.h>
-#include <Wrappers/Texture.h>
+#include <Wrappers/RglMesh.h>
+#include <Wrappers/RglTexture.h>
 #include <rgl/api/core.h>
 
 namespace RGL
@@ -28,22 +28,22 @@ namespace RGL
     {
     public:
         ModelLibrary();
-        ModelLibrary(ModelLibrary&& meshLibrary);
-        ModelLibrary(const ModelLibrary& meshLibrary) = delete;
+        ModelLibrary(ModelLibrary&& modelLibrary);
+        ModelLibrary(const ModelLibrary& modelLibrary) = delete;
         ~ModelLibrary();
 
-        //! Deletes all meshes stored by the Library.
+        //! Deletes all meshes and textures stored by the Library.
         void Clear();
 
     protected:
-        // MeshLibraryRequestBus overrides
+        // ModelLibraryRequestBus overrides
         const MeshMaterialSlotPairList& StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) override;
-        const Wrappers::Texture& StoreMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset) override;
-        Wrappers::Texture m_invalidTexture{ AZStd::move(Wrappers::Texture::CreateInvalid()) };
+        const Wrappers::RglTexture& StoreMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset) override;
+        Wrappers::RglTexture m_invalidTexture{ AZStd::move(Wrappers::RglTexture::CreateInvalid()) };
 
     private:
         using MeshMap = AZStd::unordered_map<AZ::Data::AssetId, MeshMaterialSlotPairList>;
-        using TextureMap = AZStd::unordered_map<AZ::Data::AssetId, Wrappers::Texture>;
+        using TextureMap = AZStd::unordered_map<AZ::Data::AssetId, Wrappers::RglTexture>;
 
         MeshMap m_meshMap;
         TextureMap m_textureMap;

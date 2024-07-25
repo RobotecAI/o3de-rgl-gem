@@ -17,7 +17,7 @@
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/EBus/EBus.h>
 #include <AzCore/Interface/Interface.h>
-#include <SceneConfigurationComponent.h>
+#include <RGL/SceneConfiguration.h>
 
 namespace RGL
 {

@@ -14,35 +14,11 @@
  */
 #pragma once
 
-#include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
-#include <AzCore/Asset/AssetCommon.h>
+#include <RGL/SceneConfiguration.h>
 #include <AzCore/Component/Component.h>
 
 namespace RGL
 {
-    //! Structure used to describe global terrain intensity configuration.
-    struct TerrainIntensityConfiguration
-    {
-        AZ_TYPE_INFO(TerrainIntensityConfiguration, "{6cf06491-3d18-4aad-88f6-d1990d6f791f}");
-        static void Reflect(AZ::ReflectContext* context);
-
-        AZ::Data::Asset<AZ::RPI::ImageAsset> m_colorImageAsset{ AZ::Data::AssetLoadBehavior::QueueLoad };
-        float m_defaultValue{ 0.5f };
-        bool m_isTiled{ true };
-    };
-
-    //! Structure used to describe all global scene parameters.
-    struct SceneConfiguration
-    {
-        AZ_TYPE_INFO(SceneConfiguration, "{7e55de90-e26c-4567-9e06-822c6ce62b9c}");
-        static void Reflect(AZ::ReflectContext* context);
-
-        TerrainIntensityConfiguration m_terrainIntensityConfig;
-        // clang-format off
-        bool m_isSkinnedMeshUpdateEnabled{ true }; //!< If set to true, all skinned meshes will be updated. Otherwise they will remain unchanged.
-        // clang-format on
-    };
-
     class SceneConfigurationComponent : public AZ::Component
     {
     public:

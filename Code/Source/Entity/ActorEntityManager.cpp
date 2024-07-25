@@ -23,8 +23,8 @@
 #include <EMotionFX/Source/TransformData.h>
 #include <RGL/RGLBus.h>
 #include <Utilities/RGLUtils.h>
-#include <Wrappers/Entity.h>
-#include <Wrappers/Mesh.h>
+#include <Wrappers/RglEntity.h>
+#include <Wrappers/RglMesh.h>
 #include <rgl/api/core.h>
 
 namespace RGL
@@ -60,7 +60,7 @@ namespace RGL
                 continue;
             }
 
-            Wrappers::Mesh rglMesh = AZStd::move(EMotionFXMeshToRglMesh(*mesh));
+            Wrappers::RglMesh rglMesh = AZStd::move(EMotionFXMeshToRglMesh(*mesh));
             if (rglMesh.IsValid())
             {
                 m_emotionFxMeshes.emplace_back(mesh);
@@ -78,9 +78,9 @@ namespace RGL
         }
 
         m_entities.reserve(m_emotionFxMeshes.size());
-        for (const Wrappers::Mesh& rglMesh : m_rglMeshes)
+        for (const Wrappers::RglMesh& rglMesh : m_rglMeshes)
         {
-            Wrappers::Entity entity(rglMesh);
+            Wrappers::RglEntity entity(rglMesh);
             if (entity.IsValid())
             {
                 m_entities.emplace_back(AZStd::move(entity));
@@ -157,7 +157,7 @@ namespace RGL
         return rglIndices;
     }
 
-    Wrappers::Mesh ActorEntityManager::EMotionFXMeshToRglMesh(const EMotionFX::Mesh& mesh)
+    Wrappers::RglMesh ActorEntityManager::EMotionFXMeshToRglMesh(const EMotionFX::Mesh& mesh)
     {
         UpdateVertexPositions(mesh);
         const AZStd::vector<rgl_vec3i> RglIndices = CollectIndexData(mesh);

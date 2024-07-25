@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 #include <Utilities/RGLUtils.h>
-#include <Wrappers/Entity.h>
-#include <Wrappers/Mesh.h>
-#include <Wrappers/Texture.h>
+#include <Wrappers/RglEntity.h>
+#include <Wrappers/RglMesh.h>
+#include <Wrappers/RglTexture.h>
 
 namespace RGL::Wrappers
 {
-    Entity::Entity(const Mesh& mesh)
+    RglEntity::RglEntity(const RglMesh& mesh)
     {
         bool success = false;
         Utils::ErrorCheck(rgl_entity_create(&m_nativePtr, nullptr, mesh.m_nativePtr), __FILE__, __LINE__, &success);
@@ -30,13 +30,17 @@ namespace RGL::Wrappers
         }
     }
 
-    Entity::Entity(Entity&& other)
+    RglEntity::RglEntity(RglEntity&& other)
         : m_nativePtr(other.m_nativePtr)
     {
+        if (IsValid())
+        {
+            RGL_CHECK(rgl_entity_destroy(m_nativePtr));
+        }
         other.m_nativePtr = nullptr;
     }
 
-    Entity::~Entity()
+    RglEntity::~RglEntity()
     {
         if (IsValid())
         {
@@ -44,25 +48,25 @@ namespace RGL::Wrappers
         }
     }
 
-    void Entity::SetPose(const rgl_mat3x4f& pose)
+    void RglEntity::SetPose(const rgl_mat3x4f& pose)
     {
         AZ_Assert(IsValid(), "Tried to set pose of an invalid entity.");
         RGL_CHECK(rgl_entity_set_pose(m_nativePtr, &pose));
     }
 
-    void Entity::SetId(int32_t id)
+    void RglEntity::SetId(int32_t id)
     {
         AZ_Assert(IsValid(), "Tried to set id of an invalid entity.");
         RGL_CHECK(rgl_entity_set_id(m_nativePtr, id));
     }
 
-    void Entity::SetIntensityTexture(const Texture& texture)
+    void RglEntity::SetIntensityTexture(const RglTexture& texture)
     {
         AZ_Assert(IsValid(), "Tried to set intensity texture of an invalid entity.");
         RGL_CHECK(rgl_entity_set_intensity_texture(m_nativePtr, texture.m_nativePtr));
     }
 
-    Entity& Entity::operator=(Entity&& other)
+    RglEntity& RglEntity::operator=(RglEntity&& other)
     {
         if (this != &other)
         {

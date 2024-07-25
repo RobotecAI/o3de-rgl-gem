@@ -14,23 +14,24 @@
  */
 #include <Atom/RPI.Public/BlockCompression.h>
 #include <AzCore/Name/NameDictionary.h>
-#include <Wrappers/Texture.h>
+#include <Wrappers/RglTexture.h>
 
 namespace RGL::Wrappers
 {
-    Texture Texture::CreateFromMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset)
+    RglTexture RglTexture::CreateFromMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset)
     {
-        static const AZStd::string TraceWindow = ConstructTraceWindow(__func__);
+        static const AZStd::string TraceWindowName = ConstructTraceWindowName(__func__);
         static const AZ::Name albedoTexName = AZ::Name::FromStringLiteral("baseColor.textureMap", AZ::Interface<AZ::NameDictionary>::Get());
         static const AZ::Name albedoColorName = AZ::Name::FromStringLiteral("baseColor.color", AZ::Interface<AZ::NameDictionary>::Get());
 
-        Texture imageTexture = CreateInvalid();
+        RglTexture imageRglTexture = CreateInvalid();
 
         const AZ::Data::AssetId& id = materialAsset.GetId();
         if (!materialAsset.IsReady())
         {
-            AZ_Warning(TraceWindow.c_str(), false, "The material asset with ID: %s was not ready.", id.ToString<AZStd::string>().c_str());
-            return imageTexture;
+            AZ_Warning(
+                TraceWindowName.c_str(), false, "The material asset with ID: %s was not ready.", id.ToString<AZStd::string>().c_str());
+            return imageRglTexture;
         }
 
         const auto* propLayout = materialAsset->GetMaterialPropertiesLayout();
@@ -38,11 +39,11 @@ namespace RGL::Wrappers
         if (!propLayout)
         {
             AZ_Warning(
-                TraceWindow.c_str(),
+                TraceWindowName.c_str(),
                 false,
                 "Unable to access material properties layout of material asset with ID: %s.",
                 id.ToString<AZStd::string>().c_str());
-            return imageTexture;
+            return imageRglTexture;
         }
 
         auto& propertyValues = materialAsset->GetPropertyValues();
@@ -51,57 +52,57 @@ namespace RGL::Wrappers
         {
             const auto albedoTexImagePropVal = propertyValues.at(albedoTexPropIdx.GetIndex());
             const auto& imageAsset = albedoTexImagePropVal.GetValue<AZ::Data::Asset<AZ::RPI::ImageAsset>>();
-            imageTexture = CreateFromImageAsset(imageAsset.GetId());
+            imageRglTexture = CreateFromImageAsset(imageAsset.GetId());
         }
 
-        if (imageTexture.IsValid())
+        if (imageRglTexture.IsValid())
         {
-            return imageTexture;
+            return imageRglTexture;
         }
 
         if (const auto albedoColorPropIdx = propLayout->FindPropertyIndex(albedoColorName); !albedoColorPropIdx.IsNull())
         {
-            imageTexture =
-                AZStd::move(CreateFromFactor(GrayFromColor(propertyValues.at(albedoColorPropIdx.GetIndex()).GetValue<AZ::Color>())));
+            imageRglTexture =
+                AZStd::move(CreateFromFactor(CreateGrayFromColor(propertyValues.at(albedoColorPropIdx.GetIndex()).GetValue<AZ::Color>())));
         }
         else
         {
             AZ_Error(
-                TraceWindow.c_str(),
+                TraceWindowName.c_str(),
                 false,
                 "Unable to find specular color and texture properties of material asset with ID: %s.",
                 id.ToString<AZStd::string>().c_str());
         }
 
-        return imageTexture;
+        return imageRglTexture;
     }
 
-    Texture Texture::CreateFromFactor(float factor)
+    RglTexture RglTexture::CreateFromFactor(float factor)
     {
         auto factor8 = aznumeric_cast<AZ::u8>(factor * 255.0f);
-        return Texture{ &factor8, 1, 1 };
+        return RglTexture{ &factor8, 1, 1 };
     }
 
-    float Texture::GrayFromColor(const AZ::Color& color)
+    float RglTexture::CreateGrayFromColor(const AZ::Color& color)
     {
         return RedGrayMultiplier * color.GetR() + GreenGrayMultiplier * color.GetG() + BlueGrayMultiplier * color.GetB();
     }
 
-    uint8_t Texture::Gray8FromColor(const AZ::Color& color)
+    uint8_t RglTexture::CreateGray8FromColor(const AZ::Color& color)
     {
-        return static_cast<uint8_t>(GrayFromColor(color) * 255.0f);
+        return static_cast<uint8_t>(CreateGrayFromColor(color) * 255.0f);
     }
 
-    Texture Texture::CreateFromImageAsset(const AZ::Data::AssetId& imageAssetId)
+    RglTexture RglTexture::CreateFromImageAsset(const AZ::Data::AssetId& imageAssetId)
     {
         // Made a static member to minimize reallocations, since multiple assets will be processed.
         static AZStd::vector<uint8_t> tempRglTextureData;
 
-        Texture imageTexture = CreateInvalid();
+        RglTexture imageRglTexture = CreateInvalid();
 
         if (!imageAssetId.IsValid())
         {
-            return imageTexture;
+            return imageRglTexture;
         }
 
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset> imageAsset =
@@ -119,7 +120,9 @@ namespace RGL::Wrappers
         const auto& size = imageDescriptor.m_size;
         if (format == Format::BC1_UNORM || format == Format::BC1_UNORM_SRGB || format == Format::BC4_UNORM)
         {
+            tempRglTextureData.clear();
             tempRglTextureData.resize(size.m_width * size.m_height);
+
             // Only highest detail mip.
             AZStd::span<const uint8_t> imageData = imageAsset->GetSubImageData(0, 0);
             size_t srcIdx = 0, sliceIdx = 0;
@@ -147,22 +150,21 @@ namespace RGL::Wrappers
                 }
             }
 
-            imageTexture = Texture{ tempRglTextureData.data(), size.m_width, size.m_height };
-            tempRglTextureData.clear();
+            imageRglTexture = RglTexture{ tempRglTextureData.data(), size.m_width, size.m_height };
         }
         else
         {
             AZ_Warning(
-                ConstructTraceWindow(__func__).c_str(),
+                ConstructTraceWindowName(__func__).c_str(),
                 false,
                 "Image is of unsupported type: %s. Only BC1 and BC4 formats are currently supported. Skipping...",
                 ToString(imageDescriptor.m_format));
         }
 
-        return imageTexture;
+        return imageRglTexture;
     }
 
-    Texture::Texture(const uint8_t* texels, size_t width, size_t height)
+    RglTexture::RglTexture(const uint8_t* texels, size_t width, size_t height)
     {
         bool success = false;
         Utils::ErrorCheck(
@@ -178,13 +180,17 @@ namespace RGL::Wrappers
         }
     }
 
-    Texture::Texture(Texture&& other)
+    RglTexture::RglTexture(RglTexture&& other)
         : m_nativePtr(other.m_nativePtr)
     {
+        if (IsValid())
+        {
+            RGL_CHECK(rgl_texture_destroy(m_nativePtr));
+        }
         other.m_nativePtr = nullptr;
     }
 
-    Texture::~Texture()
+    RglTexture::~RglTexture()
     {
         if (IsValid())
         {
@@ -192,7 +198,7 @@ namespace RGL::Wrappers
         }
     }
 
-    Texture& Texture::operator=(Texture&& other)
+    RglTexture& RglTexture::operator=(RglTexture&& other)
     {
         if (this != &other)
         {

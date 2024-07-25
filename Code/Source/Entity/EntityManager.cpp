@@ -79,7 +79,7 @@ namespace RGL
         }
 
         const rgl_mat3x4f entityPoseRgl = Utils::RglMat3x4FromAzMatrix3x4(transform3x4f);
-        for (Wrappers::Entity& entity : m_entities)
+        for (Wrappers::RglEntity& entity : m_entities)
         {
             entity.SetPose(entityPoseRgl);
         }

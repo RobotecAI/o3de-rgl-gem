@@ -17,9 +17,9 @@
 #include <Entity/MeshEntityManager.h>
 #include <Model/ModelLibraryBus.h>
 #include <Utilities/RGLUtils.h>
-#include <Wrappers/Entity.h>
-#include <Wrappers/Mesh.h>
-#include <Wrappers/Texture.h>
+#include <Wrappers/RglEntity.h>
+#include <Wrappers/RglMesh.h>
+#include <Wrappers/RglTexture.h>
 
 namespace RGL
 {
@@ -50,7 +50,7 @@ namespace RGL
 
         if (meshes.empty())
         {
-            AZ_Assert(false, "MeshEntityManager with ID: %s did not receive any mesh from the MeshLibrary.", m_entityId.ToString().c_str());
+            AZ_Assert(false, "MeshEntityManager with ID: %s did not receive any mesh from the ModelLibrary.", m_entityId.ToString().c_str());
             return;
         }
 
@@ -58,12 +58,12 @@ namespace RGL
         size_t entityIdx = 0;
         for (const auto& [mesh, matSlot] : meshes)
         {
-            Wrappers::Entity entity(mesh);
+            Wrappers::RglEntity entity(mesh);
             if (entity.IsValid())
             {
                 m_materialSlotMeshIdMap.emplace(matSlot.m_stableId, entityIdx);
 
-                const Wrappers::Texture& texture = modelLibrary->StoreMaterialAsset(matSlot.m_defaultMaterialAsset);
+                const Wrappers::RglTexture& texture = modelLibrary->StoreMaterialAsset(matSlot.m_defaultMaterialAsset);
                 if (texture.IsValid())
                 {
                     entity.SetIntensityTexture(texture);
@@ -77,11 +77,7 @@ namespace RGL
         m_isPoseUpdateNeeded = true;
 
         // We can use material info only when the model is ready.
-        AZ::Entity* entity = AZ::Interface<AZ::ComponentApplicationRequests>::Get()->FindEntity(m_entityId);
-        if (entity->FindComponent(AZ::Render::MaterialComponentTypeId))
-        {
-            AZ::Render::MaterialComponentNotificationBus::Handler::BusConnect(m_entityId);
-        }
+        AZ::Render::MaterialComponentNotificationBus::Handler::BusConnect(m_entityId);
     }
 
     void MeshEntityManager::OnMaterialsUpdated(const AZ::Render::MaterialAssignmentMap& materials)
@@ -94,7 +90,7 @@ namespace RGL
 
         for (const auto& [assignmentId, assignment] : materials)
         {
-            const Wrappers::Texture& materialTexture = ModelLibraryInterface::Get()->StoreMaterialAsset(assignment.m_materialAsset);
+            const Wrappers::RglTexture& materialTexture = ModelLibraryInterface::Get()->StoreMaterialAsset(assignment.m_materialAsset);
             if (materialTexture.IsValid())
             {
                 m_entities[m_materialSlotMeshIdMap[assignmentId.m_materialSlotStableId]].SetIntensityTexture(materialTexture);

@@ -20,7 +20,7 @@
 #include <AzCore/Component/TransformBus.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/optional.h>
-#include <Wrappers/Entity.h>
+#include <Wrappers/RglEntity.h>
 #include <rgl/api/core.h>
 
 namespace RGL
@@ -46,7 +46,7 @@ namespace RGL
         virtual void UpdatePose();
 
         AZ::EntityId m_entityId;
-        AZStd::vector<Wrappers::Entity> m_entities;
+        AZStd::vector<Wrappers::RglEntity> m_entities;
         bool m_isPoseUpdateNeeded{ false };
 
     private:

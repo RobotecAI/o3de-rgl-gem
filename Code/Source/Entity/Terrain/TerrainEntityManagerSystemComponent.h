@@ -19,9 +19,9 @@
 #include <AzFramework/Visibility/BoundsBus.h>
 #include <Entity/Terrain/TerrainData.h>
 #include <RGL/RGLBus.h>
-#include <Wrappers/Entity.h>
-#include <Wrappers/Mesh.h>
-#include <Wrappers/Texture.h>
+#include <Wrappers/RglEntity.h>
+#include <Wrappers/RglMesh.h>
+#include <Wrappers/RglTexture.h>
 
 namespace RGL
 {
@@ -55,7 +55,7 @@ namespace RGL
         void Deactivate() override;
 
     private:
-        static Wrappers::Texture CreateTextureFromConfig(const TerrainIntensityConfiguration& intensityConfig);
+        static Wrappers::RglTexture CreateTextureFromConfig(const TerrainIntensityConfiguration& intensityConfig);
 
         // RGLNotificationBus overrides
         void OnSceneConfigurationSet(const SceneConfiguration& config) override;
@@ -65,9 +65,9 @@ namespace RGL
         void UpdateWorldBounds();
         void UpdateDirtyRegion(const AZ::Aabb& dirtyRegion);
 
-        Wrappers::Mesh m_rglMesh{ AZStd::move(Wrappers::Mesh::CreateInvalid()) };
-        Wrappers::Entity m_rglEntity{ AZStd::move(Wrappers::Entity::CreateInvalid()) };
-        Wrappers::Texture m_rglTexture{ AZStd::move(Wrappers::Texture::CreateInvalid()) };
+        Wrappers::RglMesh m_rglMesh = Wrappers::RglMesh::CreateInvalid();
+        Wrappers::RglEntity m_rglEntity = Wrappers::RglEntity::CreateInvalid();
+        Wrappers::RglTexture m_rglTexture = Wrappers::RglTexture::CreateInvalid();
 
         TerrainData m_terrainData;
     };

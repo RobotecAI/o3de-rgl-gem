@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 #include <Utilities/RGLUtils.h>
-#include <Wrappers/Mesh.h>
+#include <Wrappers/RglMesh.h>
 #include <rgl/api/core.h>
 
 namespace RGL::Wrappers
 {
-    Mesh::Mesh(const rgl_vec3f* vertices, size_t vertexCount, const rgl_vec3i* indices, size_t indexCount)
+    RglMesh::RglMesh(const rgl_vec3f* vertices, size_t vertexCount, const rgl_vec3i* indices, size_t indexCount)
     {
         bool success = false;
         Utils::ErrorCheck(
@@ -34,13 +34,17 @@ namespace RGL::Wrappers
         }
     }
 
-    Mesh::Mesh(Mesh&& other)
+    RglMesh::RglMesh(RglMesh&& other)
         : m_nativePtr{ other.m_nativePtr }
     {
+        if (IsValid())
+        {
+            RGL_CHECK(rgl_mesh_destroy(m_nativePtr));
+        }
         other.m_nativePtr = nullptr;
     }
 
-    Mesh::~Mesh()
+    RglMesh::~RglMesh()
     {
         if (IsValid())
         {
@@ -49,19 +53,19 @@ namespace RGL::Wrappers
         }
     }
 
-    void Mesh::UpdateVertices(const rgl_vec3f* vertices, size_t vertexCount)
+    void RglMesh::UpdateVertices(const rgl_vec3f* vertices, size_t vertexCount)
     {
         AZ_Assert(IsValid(), "Tried to update vertices of an invalid mesh.");
         RGL_CHECK(rgl_mesh_update_vertices(m_nativePtr, vertices, aznumeric_cast<int32_t>(vertexCount)));
     }
 
-    void Mesh::SetTextureCoordinates(const rgl_vec2f* uvs, size_t uvCount)
+    void RglMesh::SetTextureCoordinates(const rgl_vec2f* uvs, size_t uvCount)
     {
         AZ_Assert(IsValid(), "Tried to set texture coordinates of an invalid mesh.");
         RGL_CHECK(rgl_mesh_set_texture_coords(m_nativePtr, uvs, aznumeric_cast<int32_t>(uvCount)));
     }
 
-    Mesh& Mesh::operator=(Mesh&& other)
+    RglMesh& RglMesh::operator=(RglMesh&& other)
     {
         if (this != &other)
         {
