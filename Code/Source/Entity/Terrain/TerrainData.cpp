@@ -33,19 +33,42 @@ namespace RGL
         Physics::HeightfieldProviderRequestsBus::BroadcastResult(
             heightfieldGridRows, &Physics::HeightfieldProviderRequests::GetHeightfieldGridRows);
 
-        if (heightfieldGridColumns < 3 || heightfieldGridRows < 3)
+        if (heightfieldGridColumns < 2 || heightfieldGridRows < 2)
         {
             return false;
         }
 
-        m_gridColumns = heightfieldGridColumns - 1U;
-        m_gridRows = heightfieldGridRows - 1U;
-
-        m_currentWorldBounds = newWorldBounds;
-
         AZ::Vector2 heightfieldGridSpacing{};
         Physics::HeightfieldProviderRequestsBus::BroadcastResult(
             heightfieldGridSpacing, &Physics::HeightfieldProviderRequests::GetHeightfieldGridSpacing);
+
+        m_gridColumns = heightfieldGridColumns;
+        m_gridRows = heightfieldGridRows;
+
+        // The Terrain is generated only in the grid cells that are fully
+        // (including grid cell corners) inside of the world bounds.
+        // We must therefore adjust for this.
+        const auto gridMaxPoint = AZ::Vector2{
+            aznumeric_cast<float>(heightfieldGridColumns - 1U) * heightfieldGridSpacing.GetX() + newWorldBounds.GetMin().GetX(),
+            aznumeric_cast<float>(heightfieldGridRows - 1U) * heightfieldGridSpacing.GetY() + newWorldBounds.GetMin().GetY(),
+        };
+
+        if (gridMaxPoint.GetX() >= newWorldBounds.GetMax().GetX())
+        {
+            --m_gridColumns;
+        }
+
+        if (gridMaxPoint.GetY() >= newWorldBounds.GetMax().GetY())
+        {
+            --m_gridRows;
+        }
+
+        if (m_gridColumns < 2 || m_gridRows < 2)
+        {
+            return false;
+        }
+
+        m_currentWorldBounds = newWorldBounds;
 
         m_vertices.clear();
 
