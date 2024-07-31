@@ -1,4 +1,4 @@
-/* Copyright 2020-2021, Robotec.ai sp. z o.o.
+/* Copyright 2024, Robotec.ai sp. z o.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,6 @@ namespace RGL::Wrappers
         const auto& size = imageDescriptor.m_size;
         if (format == Format::BC1_UNORM || format == Format::BC1_UNORM_SRGB || format == Format::BC4_UNORM)
         {
-            tempRglTextureData.clear();
             tempRglTextureData.resize(size.m_width * size.m_height);
 
             // Only highest detail mip.
@@ -181,12 +180,13 @@ namespace RGL::Wrappers
     }
 
     RglTexture::RglTexture(RglTexture&& other)
-        : m_nativePtr(other.m_nativePtr)
     {
         if (IsValid())
         {
             RGL_CHECK(rgl_texture_destroy(m_nativePtr));
         }
+
+        m_nativePtr = other.m_nativePtr;
         other.m_nativePtr = nullptr;
     }
 

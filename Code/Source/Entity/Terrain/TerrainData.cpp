@@ -45,28 +45,6 @@ namespace RGL
         m_gridColumns = heightfieldGridColumns;
         m_gridRows = heightfieldGridRows;
 
-        // The Terrain is generated only in the grid cells that are fully
-        // (including grid cell corners) inside of the world bounds.
-        // We must therefore adjust for this.
-        const auto gridMaxPoint = AZ::Vector2{
-            aznumeric_cast<float>(heightfieldGridColumns - 1U) * heightfieldGridSpacing.GetX() + newWorldBounds.GetMin().GetX(),
-            aznumeric_cast<float>(heightfieldGridRows - 1U) * heightfieldGridSpacing.GetY() + newWorldBounds.GetMin().GetY(),
-        };
-
-        if (gridMaxPoint.GetX() >= newWorldBounds.GetMax().GetX())
-        {
-            --m_gridColumns;
-        }
-
-        if (gridMaxPoint.GetY() >= newWorldBounds.GetMax().GetY())
-        {
-            --m_gridRows;
-        }
-
-        if (m_gridColumns < 2 || m_gridRows < 2)
-        {
-            return false;
-        }
 
         m_currentWorldBounds = newWorldBounds;
 
@@ -74,8 +52,8 @@ namespace RGL
 
         const size_t vertexCount = m_gridColumns * m_gridRows;
         m_vertices.reserve(vertexCount);
-        const AZ::Vector3 worldMin = m_currentWorldBounds.GetMin();
 
+        const AZ::Vector3 worldMin = newWorldBounds.GetMin();
         for (size_t vertexIndexX = 0LU; vertexIndexX < m_gridColumns; ++vertexIndexX)
         {
             for (size_t vertexIndexY = 0LU; vertexIndexY < m_gridRows; ++vertexIndexY)
@@ -101,7 +79,7 @@ namespace RGL
                 const auto upperLeft = aznumeric_cast<int32_t>(lowerLeft + 1);
                 const auto upperRight = aznumeric_cast<int32_t>(lowerRight + 1);
 
-                m_indices.emplace_back(rgl_vec3i{ upperLeft, upperRight, lowerRight });
+                m_indices.emplace_back(rgl_vec3i{ upperLeft, lowerRight, upperRight });
                 m_indices.emplace_back(rgl_vec3i{ upperLeft, lowerLeft, lowerRight });
             }
         }
