@@ -28,7 +28,7 @@ namespace RGL
     class PipelineGraph
     {
     private:
-        static constexpr AZStd::array<rgl_field_t, 2> DefaultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_F32 };
+        static constexpr AZStd::array<rgl_field_t, 2> DefaultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_VEC3_F32 };
 
     public:
         struct RaycastResults
