@@ -14,7 +14,7 @@
  */
 #pragma once
 
-#include <Atom/RPI.Reflect/Image/ImageAsset.h>
+#include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
 #include <AzCore/Asset/AssetCommon.h>
 
 namespace RGL
@@ -25,7 +25,7 @@ namespace RGL
         AZ_TYPE_INFO(TerrainIntensityConfiguration, "{6cf06491-3d18-4aad-88f6-d1990d6f791f}");
         static void Reflect(AZ::ReflectContext* context);
 
-        AZ::Data::Asset<AZ::RPI::ImageAsset> m_colorImageAsset{ AZ::Data::AssetLoadBehavior::QueueLoad };
+        AZ::Data::Asset<AZ::RPI::StreamingImageAsset> m_colorImageAsset{ AZ::Data::AssetLoadBehavior::QueueLoad };
         float m_defaultValue{ 0.5f };
         bool m_isTiled{ true };
     };

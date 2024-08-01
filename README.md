@@ -30,6 +30,11 @@ following visuals:
 
 - Mesh Component
 - Terrain created using the O3DE Terrain Gem
+- Actor Component
+
+and providing the following features:
+- Gaussian Noise
+- Point cloud intensity data
 
 <img src="static/gif/rgl_gem_preview1.gif" alt="drawing" width="500"/>
 
@@ -38,6 +43,7 @@ You can fully customize the LiDAR's settings using the O3DE Level Editor. Those 
 - configurable raycasting pattern
 - lidar range
 - entities excluded from raycasting
+- lidar noise
 
 You can also choose one of the presets provided by the ROS2 Gem to create a LiDAR model that fits your needs.
 
