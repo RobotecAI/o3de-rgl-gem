@@ -18,25 +18,15 @@ set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64)
 set(RGL_LINUX_ZIP_FILENAME ${RGL_LINUX_ZIP_FILENAME_BASE}.zip)
 
 set(RGL_LINUX_ZIP_URL https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/${RGL_LINUX_ZIP_FILENAME})
-set(RGL_SRC_ZIP_URL https://github.com/RobotecAI/RobotecGPULidar/archive/refs/tags/${RGL_TAG}.zip)
-
-set(RGL_SRC_ZIP_FILENAME_BASE RobotecGPULidar-${RGL_VERSION})
-set(RGL_SRC_ZIP_FILENAME ${RGL_SRC_ZIP_FILENAME_BASE}.zip)
+set(RGL_SRC_ROOT_URL https://raw.githubusercontent.com/RobotecAI/RobotecGPULidar/${RGL_TAG})
 
 set(DEST_SO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/RobotecGPULidar)
 set(DEST_API_DIR ${DEST_SO_DIR}/include/rgl/api)
 
 set(SO_FILENAME libRobotecGPULidar.so)
-set(API_FILENAME core.h)
-set(API_EXT_ROS_FILENAME ros2.h)
 
 # Paths relative to the .zip file root.
 set(SO_REL_PATH ${SO_FILENAME})
-
-set(SRC_ROOT_REL_PATH RobotecGPULidar-${RGL_VERSION})
-
-set(CORE_API_REL_PATH ${SRC_ROOT_REL_PATH}/include/rgl/api)
-set(ROS2_API_REL_PATH ${SRC_ROOT_REL_PATH}/extensions/ros2/include/rgl/api)
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
@@ -53,10 +43,16 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
             ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
             )
 
+
     file(DOWNLOAD
-            ${RGL_SRC_ZIP_URL}
-            ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME}
+            ${RGL_SRC_ROOT_URL}/include/rgl/api/core.h
+            ${DEST_API_DIR}/core.h
             )
+
+    file(DOWNLOAD
+            ${RGL_SRC_ROOT_URL}/extensions/ros2/include/rgl/api/extensions/ros2.h
+            ${DEST_API_DIR}/extensions/ros2.h
+    )
 
     # Extract the contents of the downloaded archive files
     file(ARCHIVE_EXTRACT INPUT ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
@@ -65,20 +61,10 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
             VERBOSE
             )
 
-    file(ARCHIVE_EXTRACT INPUT ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME}
-            DESTINATION ${DEST_API_DIR}
-            PATTERNS ${CORE_API_REL_PATH}/* ${ROS2_API_REL_PATH}/*
-            VERBOSE
-            )
-
     # Move the extracted files to their desired locations
     file(RENAME ${DEST_SO_DIR}/${SO_REL_PATH} ${DEST_SO_DIR}/${SO_FILENAME})
-    file(COPY ${DEST_API_DIR}/${CORE_API_REL_PATH} DESTINATION ${DEST_SO_DIR}/include/rgl/)
-    file(COPY ${DEST_API_DIR}/${ROS2_API_REL_PATH} DESTINATION ${DEST_SO_DIR}/include/rgl/)
 
     # Remove the unwanted byproducts
-    file(REMOVE_RECURSE ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME_BASE})
-    file(REMOVE ${DEST_API_DIR}/${RGL_SRC_ZIP_FILENAME})
     file(REMOVE ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME})
 
     file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
