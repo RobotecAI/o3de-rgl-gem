@@ -1,5 +1,5 @@
 /* Copyright 2024, Robotec.ai sp. z o.o.
-*
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,7 +33,8 @@ namespace RGL
                         AZ::Edit::UIHandlers::Default,
                         &TerrainIntensityConfiguration::m_defaultValue,
                         "Default Intensity",
-                        "Defines a default intensity value to be used when no color texture is provided.")
+                        "Defines a default intensity value to be used when no color texture is provided. Must be in range [0, 255]."
+                        "Set to 0 by default.")
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default,
                         &TerrainIntensityConfiguration::m_colorImageAsset,

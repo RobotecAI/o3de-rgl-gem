@@ -58,7 +58,7 @@ namespace RGL
             }
         }
 
-        return Wrappers::RglTexture::CreateFromFactor(intensityConfig.m_defaultValue);
+        return { &intensityConfig.m_defaultValue, 1U, 1U };
     }
 
     void TerrainEntityManagerSystemComponent::OnSceneConfigurationSet(const SceneConfiguration& config)

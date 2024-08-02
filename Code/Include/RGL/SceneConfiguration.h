@@ -26,7 +26,7 @@ namespace RGL
         static void Reflect(AZ::ReflectContext* context);
 
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset> m_colorImageAsset{ AZ::Data::AssetLoadBehavior::QueueLoad };
-        float m_defaultValue{ 0.5f };
+        AZ::u8 m_defaultValue{ 0U };
         bool m_isTiled{ true };
     };
 
