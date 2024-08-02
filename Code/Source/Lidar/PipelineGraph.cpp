@@ -24,7 +24,7 @@ namespace RGL
         ConfigureRayRangesNode(0.0f, 1.0f);
         ConfigureLidarTransformNode(AZ::Matrix3x4::CreateIdentity());
         RGL_CHECK(rgl_node_raytrace(&m_nodes.m_rayTrace, nullptr));
-        RGL_CHECK(rgl_node_points_compact(&m_nodes.m_pointsCompact));
+        RGL_CHECK(rgl_node_points_compact_by_field(&m_nodes.m_pointsCompact, RGL_FIELD_IS_HIT_I32));
         ConfigureAngularNoiseNode(0.0f);
         ConfigureDistanceNoiseNode(0.0f, 0.0f);
         ConfigureYieldNodes(DefaultFields.data(), DefaultFields.size());
@@ -183,8 +183,8 @@ namespace RGL
             case RGL_FIELD_IS_HIT_I32:
                 success = success && GetResult(results.m_isHit, RGL_FIELD_IS_HIT_I32);
                 break;
-            case RGL_FIELD_XYZ_F32:
-                success = success && GetResult(results.m_xyz, RGL_FIELD_XYZ_F32);
+            case RGL_FIELD_XYZ_VEC3_F32:
+                success = success && GetResult(results.m_xyz, RGL_FIELD_XYZ_VEC3_F32);
                 break;
             case RGL_FIELD_DISTANCE_F32:
                 success = success && GetResult(results.m_distance, RGL_FIELD_DISTANCE_F32);

@@ -102,7 +102,7 @@ namespace RGL
         if ((flags & ROS2::RaycastResultFlags::Points) == ROS2::RaycastResultFlags::Points)
         {
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_IS_HIT_I32);
-            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_XYZ_F32);
+            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_XYZ_VEC3_F32);
         }
 
         if ((flags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges)
