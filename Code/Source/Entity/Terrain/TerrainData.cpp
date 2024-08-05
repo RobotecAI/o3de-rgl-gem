@@ -54,13 +54,15 @@ namespace RGL
         m_vertices.reserve(vertexCount);
 
         const AZ::Vector3 worldMin = newWorldBounds.GetMin();
+        const AZ::Vector2 constrictedAlignedStartPoint = (AZ::Vector2(worldMin) / heightfieldGridSpacing).GetCeil() * heightfieldGridSpacing;
+
         for (size_t vertexIndexX = 0LU; vertexIndexX < m_gridColumns; ++vertexIndexX)
         {
             for (size_t vertexIndexY = 0LU; vertexIndexY < m_gridRows; ++vertexIndexY)
             {
                 m_vertices.emplace_back(rgl_vec3f{
-                    worldMin.GetX() + aznumeric_cast<float>(vertexIndexX) * heightfieldGridSpacing.GetX(),
-                    worldMin.GetY() + aznumeric_cast<float>(vertexIndexY) * heightfieldGridSpacing.GetY(),
+                    constrictedAlignedStartPoint.GetX() + aznumeric_cast<float>(vertexIndexX) * heightfieldGridSpacing.GetX(),
+                    constrictedAlignedStartPoint.GetY() + aznumeric_cast<float>(vertexIndexY) * heightfieldGridSpacing.GetY(),
                     0.0f,
                 });
             }
