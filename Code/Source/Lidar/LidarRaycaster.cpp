@@ -77,18 +77,13 @@ namespace RGL
         m_graph.ConfigureRayPosesNode(rglRayTransforms);
     }
 
-    void LidarRaycaster::ConfigureRayRange(float range)
+    void LidarRaycaster::ConfigureRayRange(ROS2::Range range)
     {
-        ValidateRayRange(range);
-        m_range.second = range;
-        // We set the graph-side value of min range to zero to be able to distinguish rays below min range from the ones above max range.
-        m_graph.ConfigureRayRangesNode(0.0f, m_range.second);
-    }
+        m_range = range;
 
-    void LidarRaycaster::ConfigureMinimumRayRange(float range)
-    {
-        m_range.first = range;
-        // We omit updating the graph-side value of min range to be able to distinguish rays below min range from the ones above max range.
+        UpdateNonHitValues();
+
+        m_graph.ConfigureRayRangesNode(range.m_min, range.m_max);
     }
 
     void LidarRaycaster::ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags)
@@ -123,6 +118,7 @@ namespace RGL
 
     ROS2::RaycastResult LidarRaycaster::PerformRaycast(const AZ::Transform& lidarTransform)
     {
+        AZ_Assert(m_range.has_value(), "Programmer error. Raycaster range not configured.");
         RGLInterface::Get()->UpdateScene();
 
         const AZ::Matrix3x4 lidarPose = AZ::Matrix3x4::CreateFromTransform(lidarTransform);
@@ -155,52 +151,19 @@ namespace RGL
             m_raycastResults.m_ranges.resize(m_rglRaycastResults.m_distance.size());
         }
 
-        size_t usedPointIndex = 0LU;
         const size_t resultsSize = pointsExpected ? m_raycastResults.m_points.size() : m_raycastResults.m_ranges.size();
-        const float maxRange = m_isMaxRangeEnabled ? m_range.second : AZStd::numeric_limits<float>::infinity();
         for (size_t resultIndex = 0LU; resultIndex < resultsSize; ++resultIndex)
         {
+            m_raycastResults.m_intensities[resultIndex] = m_rglRaycastResults.m_intensity[resultIndex];
             if (pointsExpected)
             {
-                const bool isHit = m_graph.IsCompactEnabled() || aznumeric_cast<bool>(m_rglRaycastResults.m_isHit[resultIndex]);
-                if (isHit)
-                {
-                    m_raycastResults.m_points[usedPointIndex] = Utils::AzVector3FromRglVec3f(m_rglRaycastResults.m_xyz[resultIndex]);
-                    m_raycastResults.m_intensities[usedPointIndex] = m_rglRaycastResults.m_intensity[resultIndex];
-                }
-                else if (m_isMaxRangeEnabled)
-                {
-                    const AZ::Vector4 maxVector = lidarPose * m_rayTransforms[resultIndex] * AZ::Vector4(0.0f, 0.0f, m_range.second, 1.0f);
-                    m_raycastResults.m_points[usedPointIndex] = maxVector.GetAsVector3();
-                }
-
-                if (isHit || m_isMaxRangeEnabled)
-                {
-                    ++usedPointIndex;
-                }
+                m_raycastResults.m_points[resultIndex] = Utils::AzVector3FromRglVec3f(m_rglRaycastResults.m_xyz[resultIndex]);
             }
 
             if (distanceExpected)
             {
-                float distance = m_rglRaycastResults.m_distance[resultIndex];
-                if (distance < m_range.first)
-                {
-                    distance = -AZStd::numeric_limits<float>::infinity();
-                }
-                else if (distance > m_range.second)
-                {
-                    distance = maxRange;
-                }
-
-                m_raycastResults.m_ranges[resultIndex] = distance;
-                m_raycastResults.m_intensities[resultIndex] = m_rglRaycastResults.m_intensity[resultIndex];
+                m_raycastResults.m_ranges[resultIndex] = m_rglRaycastResults.m_distance[resultIndex];
             }
-        }
-
-        if (pointsExpected)
-        {
-            m_raycastResults.m_points.resize(usedPointIndex);
-            m_raycastResults.m_intensities.resize(usedPointIndex);
         }
 
         return m_raycastResults;
@@ -222,9 +185,25 @@ namespace RGL
         }
     }
 
+    void LidarRaycaster::UpdateNonHitValues()
+    {
+        float minRangeNonHitValue = -AZStd::numeric_limits<float>::infinity();
+        float maxRangeNonHitValue = AZStd::numeric_limits<float>::infinity();
+
+        if (m_isMaxRangeEnabled && m_range.has_value())
+        {
+            minRangeNonHitValue = m_range.value().m_min;
+            maxRangeNonHitValue = m_range.value().m_max;
+        }
+
+        m_graph.ConfigureRaytraceNodeNonHits(minRangeNonHitValue, maxRangeNonHitValue);
+    }
+
     void LidarRaycaster::ConfigureMaxRangePointAddition(bool addMaxRangePoints)
     {
         m_isMaxRangeEnabled = addMaxRangePoints;
+
+        UpdateNonHitValues();
 
         // We need to configure if points should be compacted to minimize the CPU operations when retrieving raycast results.
         m_graph.SetIsCompactEnabled(ShouldEnableCompact());

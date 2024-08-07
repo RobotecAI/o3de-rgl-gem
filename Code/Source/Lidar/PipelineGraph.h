@@ -62,13 +62,14 @@ namespace RGL
         }
 
         void ConfigureRayPosesNode(const AZStd::vector<rgl_mat3x4f>& rayPoses);
-        void ConfigureRayRangesNode(float minRange, float maxRange);
+        void ConfigureRayRangesNode(float min, float max);
         void ConfigureYieldNodes(const rgl_field_t* fields, size_t size);
         void ConfigureLidarTransformNode(const AZ::Matrix3x4& lidarTransform);
         void ConfigurePcTransformNode(const AZ::Matrix3x4& pcTransform);
         void ConfigureAngularNoiseNode(float angularNoiseStdDev);
         void ConfigureDistanceNoiseNode(float distanceNoiseStdDevBase, float distanceNoiseStdDevRisePerMeter);
         void ConfigurePcPublisherNode(const AZStd::string& topicName, const AZStd::string& frameId, const ROS2::QoS& qosPolicy);
+        void ConfigureRaytraceNodeNonHits(float minRangeNonHitValue, float maxRangeNonHitValue);
 
         void SetIsCompactEnabled(bool value);
         void SetIsPcPublishingEnabled(bool value);
