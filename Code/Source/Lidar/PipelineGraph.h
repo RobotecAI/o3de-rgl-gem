@@ -17,8 +17,8 @@
 #include <AzCore/Math/Matrix3x3.h>
 #include <AzCore/std/containers/array.h>
 #include <ROS2/Communication/QoS.h>
-#include <rgl/api/core.h>
 #include <Utilities/RGLUtils.h>
+#include <rgl/api/core.h>
 
 namespace RGL
 {
@@ -28,7 +28,7 @@ namespace RGL
     class PipelineGraph
     {
     private:
-        static constexpr AZStd::array<rgl_field_t, 2> DefaultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_VEC3_F32 };
+        static constexpr AZStd::array DefaultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_VEC3_F32, RGL_FIELD_INTENSITY_F32 };
 
     public:
         struct RaycastResults
@@ -37,6 +37,7 @@ namespace RGL
             AZStd::vector<int32_t> m_isHit;
             AZStd::vector<rgl_vec3f> m_xyz;
             AZStd::vector<float> m_distance;
+            AZStd::vector<float> m_intensity;
         };
 
         struct Nodes

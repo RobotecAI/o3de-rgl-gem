@@ -20,6 +20,7 @@
 #include <AzCore/Component/TransformBus.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/optional.h>
+#include <Wrappers/RglEntity.h>
 #include <rgl/api/core.h>
 
 namespace RGL
@@ -37,7 +38,6 @@ namespace RGL
         virtual void Update();
 
     protected:
-
         // AZ::EntityBus::Handler implementation overrides
         void OnEntityActivated(const AZ::EntityId& entityId) override;
         void OnEntityDeactivated(const AZ::EntityId& entityId) override;
@@ -46,10 +46,11 @@ namespace RGL
         virtual void UpdatePose();
 
         AZ::EntityId m_entityId;
-        AZStd::vector<rgl_entity_t> m_entities;
+        AZStd::vector<Wrappers::RglEntity> m_entities;
         bool m_isPoseUpdateNeeded{ false };
-    private:
 
+    private:
+        // clang-format off
         AZ::TransformChangedEvent::Handler m_transformChangedHandler{[this](
             [[maybe_unused]] const AZ::Transform& local, const AZ::Transform& world)
             {
@@ -63,6 +64,7 @@ namespace RGL
                 m_nonUniformScale = scale;
                 m_isPoseUpdateNeeded = true;
             }};
+        // clang-format on
 
         AZ::Transform m_worldTm{ AZ::Transform::CreateIdentity() };
         AZStd::optional<AZ::Vector3> m_nonUniformScale{ AZStd::nullopt };

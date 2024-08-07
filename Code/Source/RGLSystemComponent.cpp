@@ -96,9 +96,8 @@ namespace RGL
         AzFramework::EntityContextEventBus::Handler::BusDisconnect();
 
         m_entityManagers.clear();
-        m_meshLibrary.Clear();
+        m_modelLibrary.Clear();
         m_rglLidarSystem.Clear();
-        RGL_CHECK(rgl_cleanup());
     }
 
     void RGLSystemComponent::ExcludeEntity(const AZ::EntityId& excludedEntityId)
@@ -109,9 +108,10 @@ namespace RGL
         }
     }
 
-    void RGLSystemComponent::SetSceneConfiguration(const RGL::SceneConfiguration& config)
+    void RGLSystemComponent::SetSceneConfiguration(const SceneConfiguration& config)
     {
         m_sceneConfig = config;
+        RGLNotificationBus::Broadcast(&RGLNotifications::OnSceneConfigurationSet, config);
     }
 
     const SceneConfiguration& RGLSystemComponent::GetSceneConfiguration() const
@@ -152,9 +152,8 @@ namespace RGL
     void RGLSystemComponent::OnEntityContextReset()
     {
         m_entityManagers.clear();
-        m_meshLibrary.Clear();
+        m_modelLibrary.Clear();
         m_rglLidarSystem.Clear();
-        RGL_CHECK(rgl_cleanup());
     }
 
     void RGLSystemComponent::UpdateScene()

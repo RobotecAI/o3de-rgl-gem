@@ -17,7 +17,7 @@
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/EBus/EBus.h>
 #include <AzCore/Interface/Interface.h>
-#include <SceneConfigurationComponent.h>
+#include <RGL/SceneConfiguration.h>
 
 namespace RGL
 {
@@ -52,4 +52,20 @@ namespace RGL
 
     using RGLRequestBus = AZ::EBus<RGLRequests, RGLBusTraits>;
     using RGLInterface = AZ::Interface<RGLRequests>;
+
+    class RGLNotifications : public AZ::EBusTraits
+    {
+    public:
+        //////////////////////////////////////////////////////////////////////////
+        // EBusTraits overrides
+        static const AZ::EBusHandlerPolicy HandlerPolicy = AZ::EBusHandlerPolicy::Multiple;
+        static const AZ::EBusAddressPolicy AddressPolicy = AZ::EBusAddressPolicy::Single;
+        //////////////////////////////////////////////////////////////////////////
+
+        virtual void OnSceneConfigurationSet(const SceneConfiguration& config)
+        {
+        }
+        //////////////////////////////////////////////////////////////////////////
+    };
+    using RGLNotificationBus = AZ::EBus<RGLNotifications>;
 } // namespace RGL

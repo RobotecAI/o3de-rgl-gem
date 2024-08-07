@@ -14,31 +14,44 @@
  */
 #pragma once
 
+#include <Atom/RPI.Reflect/Material/MaterialAsset.h>
+#include <Atom/RPI.Reflect/Model/ModelAsset.h>
+#include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/EBus/EBus.h>
 #include <AzCore/Interface/Interface.h>
 
-struct Mesh;
-
 namespace RGL
 {
-    class MeshLibraryRequests
+    namespace Wrappers
+    {
+        class RglTexture;
+        class RglMesh;
+    } // namespace Wrappers
+
+    using MeshMaterialSlotPairList = AZStd::vector<AZStd::pair<Wrappers::RglMesh, AZ::RPI::ModelMaterialSlot>>;
+
+    class ModelLibraryRequests
     {
     public:
-        AZ_RTTI(MeshLibraryRequests, "{b84ccaae-5d0f-410a-821e-5ff8d449b851}");
+        AZ_RTTI(ModelLibraryRequests, "{b84ccaae-5d0f-410a-821e-5ff8d449b851}");
 
         //! Returns a vector of RGL meshes created from the modelAsset.
         //! If the provided modelAsset was not encountered before, created RGL meshes are stored by the library.
         //! On the other hand if the RGL meshes associated with the provided modelAsset were stored it will simply retrieve them.
         //! @param modelAsset Model asset provided for storage.
         //! @return List of RGL meshes created using the provided model asset.
-        virtual AZStd::vector<Mesh*> StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) = 0;
+        virtual const MeshMaterialSlotPairList& StoreModelAsset(const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset) = 0;
+
+        //! Returns the texture created using provided materialAsset.
+        //! The returned texture reference may point to an invalid texture.
+        virtual const Wrappers::RglTexture& StoreMaterialAsset(const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset) = 0;
 
     protected:
-        ~MeshLibraryRequests() = default;
+        ~ModelLibraryRequests() = default;
     };
 
-    class MeshLibraryBusTraits : public AZ::EBusTraits
+    class ModelLibraryBusTraits : public AZ::EBusTraits
     {
     public:
         //////////////////////////////////////////////////////////////////////////
@@ -48,6 +61,6 @@ namespace RGL
         //////////////////////////////////////////////////////////////////////////
     };
 
-    using MeshLibraryRequestBus = AZ::EBus<MeshLibraryRequests, MeshLibraryBusTraits>;
-    using MeshLibraryInterface = AZ::Interface<MeshLibraryRequests>;
+    using ModelLibraryRequestBus = AZ::EBus<ModelLibraryRequests, ModelLibraryBusTraits>;
+    using ModelLibraryInterface = AZ::Interface<ModelLibraryRequests>;
 } // namespace RGL

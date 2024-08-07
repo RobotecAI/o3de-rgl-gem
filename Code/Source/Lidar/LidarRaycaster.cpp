@@ -110,6 +110,11 @@ namespace RGL
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_DISTANCE_F32);
         }
 
+        if ((flags & ROS2::RaycastResultFlags::Intensities) == ROS2::RaycastResultFlags::Intensities)
+        {
+            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_INTENSITY_F32);
+        }
+
         m_graph.ConfigureYieldNodes(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
 
         m_graph.SetIsCompactEnabled(ShouldEnableCompact());
@@ -139,6 +144,7 @@ namespace RGL
         bool pointsExpected = (m_resultFlags & ROS2::RaycastResultFlags::Points) == ROS2::RaycastResultFlags::Points;
         bool distanceExpected = (m_resultFlags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges;
 
+        m_raycastResults.m_intensities.resize(m_rglRaycastResults.m_intensity.size());
         if (pointsExpected)
         {
             m_raycastResults.m_points.resize(m_rglRaycastResults.m_xyz.size());
@@ -156,10 +162,11 @@ namespace RGL
         {
             if (pointsExpected)
             {
-                const bool isHit = (m_graph.IsCompactEnabled()) || aznumeric_cast<bool>(m_rglRaycastResults.m_isHit[resultIndex]);
+                const bool isHit = m_graph.IsCompactEnabled() || aznumeric_cast<bool>(m_rglRaycastResults.m_isHit[resultIndex]);
                 if (isHit)
                 {
                     m_raycastResults.m_points[usedPointIndex] = Utils::AzVector3FromRglVec3f(m_rglRaycastResults.m_xyz[resultIndex]);
+                    m_raycastResults.m_intensities[usedPointIndex] = m_rglRaycastResults.m_intensity[resultIndex];
                 }
                 else if (m_isMaxRangeEnabled)
                 {
@@ -186,12 +193,14 @@ namespace RGL
                 }
 
                 m_raycastResults.m_ranges[resultIndex] = distance;
+                m_raycastResults.m_intensities[resultIndex] = m_rglRaycastResults.m_intensity[resultIndex];
             }
         }
 
         if (pointsExpected)
         {
             m_raycastResults.m_points.resize(usedPointIndex);
+            m_raycastResults.m_intensities.resize(usedPointIndex);
         }
 
         return m_raycastResults;

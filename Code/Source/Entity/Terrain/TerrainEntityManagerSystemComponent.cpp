@@ -15,6 +15,7 @@
 #include <AzCore/Serialization/EditContext.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <Entity/Terrain/TerrainEntityManagerSystemComponent.h>
+#include <RGL/RGLBus.h>
 #include <Utilities/RGLUtils.h>
 
 namespace RGL
@@ -33,13 +34,43 @@ namespace RGL
     void TerrainEntityManagerSystemComponent::Activate()
     {
         AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusConnect();
+        RGLNotificationBus::Handler::BusConnect();
     }
 
     void TerrainEntityManagerSystemComponent::Deactivate()
     {
+        RGLNotificationBus::Handler::BusDisconnect();
         AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusDisconnect();
         m_terrainData.Clear();
         EnsureRGLEntityDestroyed();
+    }
+
+    Wrappers::RglTexture TerrainEntityManagerSystemComponent::CreateTextureFromConfig(const TerrainIntensityConfiguration& intensityConfig)
+    {
+        Wrappers::RglTexture terrainTexture = Wrappers::RglTexture::CreateInvalid();
+
+        if (intensityConfig.m_colorImageAsset.IsReady())
+        {
+            terrainTexture = Wrappers::RglTexture::CreateFromImageAsset(intensityConfig.m_colorImageAsset.GetId());
+            if (terrainTexture.IsValid())
+            {
+                return terrainTexture;
+            }
+        }
+
+        return { &intensityConfig.m_defaultValue, 1U, 1U };
+    }
+
+    void TerrainEntityManagerSystemComponent::OnSceneConfigurationSet(const SceneConfiguration& config)
+    {
+        const auto& intensityConfig = RGLInterface::Get()->GetSceneConfiguration().m_terrainIntensityConfig;
+        m_rglTexture = AZStd::move(CreateTextureFromConfig(intensityConfig));
+        if (m_rglTexture.IsValid() && m_rglEntity.IsValid())
+        {
+            m_rglEntity.SetIntensityTexture(m_rglTexture);
+        }
+
+        m_terrainData.SetIsTiled(intensityConfig.m_isTiled);
     }
 
     void TerrainEntityManagerSystemComponent::Reflect(AZ::ReflectContext* context)
@@ -76,17 +107,8 @@ namespace RGL
 
     void TerrainEntityManagerSystemComponent::EnsureRGLEntityDestroyed()
     {
-        if (m_rglEntity)
-        {
-            RGL_CHECK(rgl_entity_destroy(m_rglEntity));
-            m_rglEntity = nullptr;
-        }
-
-        if (m_rglMesh)
-        {
-            RGL_CHECK(rgl_mesh_destroy(m_rglMesh));
-            m_rglMesh = nullptr;
-        }
+        m_rglEntity = AZStd::move(Wrappers::RglEntity::CreateInvalid());
+        m_rglMesh = AZStd::move(Wrappers::RglMesh::CreateInvalid());
     }
 
     void TerrainEntityManagerSystemComponent::UpdateWorldBounds()
@@ -105,22 +127,29 @@ namespace RGL
 
         const auto& vertices = m_terrainData.GetVertices();
         const auto& indices = m_terrainData.GetIndices();
-        Utils::SafeRglMeshCreate(m_rglMesh, vertices.data(), vertices.size(), indices.data(), indices.size());
 
-        if (!m_rglMesh)
+        m_rglMesh = AZStd::move(Wrappers::RglMesh(vertices.data(), vertices.size(), indices.data(), indices.size()));
+        if (!m_rglMesh.IsValid())
         {
             AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL mesh.");
             return;
         }
 
-        Utils::SafeRglEntityCreate(m_rglEntity, m_rglMesh);
-        if (!m_rglEntity)
+        const auto& uvs = m_terrainData.GetUvs();
+        m_rglMesh.SetTextureCoordinates(uvs.data(), uvs.size());
+
+        m_rglEntity = AZStd::move(Wrappers::RglEntity(m_rglMesh));
+        if (!m_rglEntity.IsValid())
         {
             AZ_Assert(false, "The TerrainEntityManager was unable to create an RGL entity.");
             return;
         }
 
-        RGL_CHECK(rgl_entity_set_pose(m_rglEntity, &Utils::IdentityTransform));
+        m_rglEntity.SetPose(Utils::IdentityTransform);
+        if (m_rglTexture.IsValid())
+        {
+            m_rglEntity.SetIntensityTexture(m_rglTexture);
+        }
     }
 
     void TerrainEntityManagerSystemComponent::UpdateDirtyRegion(const AZ::Aabb& dirtyRegion)
@@ -133,7 +162,7 @@ namespace RGL
         }
 
         m_terrainData.UpdateDirtyRegion(dirtyRegion);
-        RGL_CHECK(rgl_mesh_update_vertices(m_rglMesh, vertices.data(), aznumeric_cast<int32_t>(vertices.size())));
+        m_rglMesh.UpdateVertices(vertices.data(), vertices.size());
     }
 
     void TerrainEntityManagerSystemComponent::OnTerrainDataChanged(const AZ::Aabb& dirtyRegion, TerrainDataChangedMask dataChangedMask)

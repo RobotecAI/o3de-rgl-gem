@@ -12,15 +12,6 @@
 
 namespace RGL::Utils
 {
-    //! Creates an RGL mesh ensuring that if it cannot be created the targetMesh is set to nullptr.
-    //! This function should be preferred over the rgl_mesh_create function.
-    void SafeRglMeshCreate(
-        rgl_mesh_t& targetMesh, const rgl_vec3f* vertices, size_t vertexCount, const rgl_vec3i* indices, size_t indexCount);
-
-    //! Creates an RGL entity ensuring that if it cannot be created the targetEntity is set to nullptr.
-    //! This function should be preferred over the rgl_entity_create function.
-    void SafeRglEntityCreate(rgl_entity_t& targetEntity, rgl_mesh_t mesh);
-
     //! If the provided status signifies an error, prints the last RGL error message.
     //! @param status Status returned by an API call.
     //! @param file String representing the file path of the file in which the API call was made

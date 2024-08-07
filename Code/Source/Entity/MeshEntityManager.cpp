@@ -13,46 +13,88 @@
  * limitations under the License.
  */
 
+#include <AtomLyIntegration/CommonFeatures/Material/MaterialComponentConstants.h>
 #include <Entity/MeshEntityManager.h>
-#include <Mesh/MeshLibraryBus.h>
+#include <Model/ModelLibraryBus.h>
 #include <Utilities/RGLUtils.h>
+#include <Wrappers/RglEntity.h>
+#include <Wrappers/RglMesh.h>
+#include <Wrappers/RglTexture.h>
 
 namespace RGL
 {
     MeshEntityManager::MeshEntityManager(AZ::EntityId entityId)
         : EntityManager{ entityId }
     {
+    }
+
+    void MeshEntityManager::OnEntityActivated(const AZ::EntityId& entityId)
+    {
+        EntityManager::OnEntityActivated(entityId);
         AZ::Render::MeshComponentNotificationBus::Handler::BusConnect(entityId);
     }
 
-    MeshEntityManager::~MeshEntityManager()
+    void MeshEntityManager::OnEntityDeactivated(const AZ::EntityId& entityId)
     {
+        AZ::Render::MaterialComponentNotificationBus::Handler::BusDisconnect();
         AZ::Render::MeshComponentNotificationBus::Handler::BusDisconnect();
+        EntityManager::OnEntityDeactivated(entityId);
     }
 
     void MeshEntityManager::OnModelReady(
         const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset, [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model)
     {
         AZ_Assert(m_entities.empty(), "Entity Manager for entity with ID: %s has an invalid state.", m_entityId.ToString().c_str());
-        const auto meshes = MeshLibraryInterface::Get()->StoreModelAsset(modelAsset);
+        auto* modelLibrary = ModelLibraryInterface::Get();
+        const MeshMaterialSlotPairList& meshes = modelLibrary->StoreModelAsset(modelAsset);
 
         if (meshes.empty())
         {
-            AZ_Assert(false, "MeshEntityManager with ID: %s did not receive any mesh from the MeshLibrary.", m_entityId.ToString().c_str());
+            AZ_Assert(false, "MeshEntityManager with ID: %s did not receive any mesh from the ModelLibrary.", m_entityId.ToString().c_str());
             return;
         }
 
         m_entities.reserve(meshes.size());
-        for (rgl_mesh_t mesh : meshes)
+        size_t entityIdx = 0;
+        for (const auto& [mesh, matSlot] : meshes)
         {
-            rgl_entity_t entity = nullptr;
-            Utils::SafeRglEntityCreate(entity, mesh);
-            if (entity)
+            Wrappers::RglEntity entity(mesh);
+            if (entity.IsValid())
             {
-                m_entities.emplace_back(entity);
+                m_materialSlotMeshIdMap.emplace(matSlot.m_stableId, entityIdx);
+
+                const Wrappers::RglTexture& texture = modelLibrary->StoreMaterialAsset(matSlot.m_defaultMaterialAsset);
+                if (texture.IsValid())
+                {
+                    entity.SetIntensityTexture(texture);
+                }
+
+                m_entities.emplace_back(AZStd::move(entity));
+                ++entityIdx;
             }
         }
 
         m_isPoseUpdateNeeded = true;
+
+        // We can use material info only when the model is ready.
+        AZ::Render::MaterialComponentNotificationBus::Handler::BusConnect(m_entityId);
+    }
+
+    void MeshEntityManager::OnMaterialsUpdated(const AZ::Render::MaterialAssignmentMap& materials)
+    {
+        if (m_entities.empty())
+        {
+            AZ_Warning(__func__, false, "Skipping material update. The entities were not yet created.");
+            return;
+        }
+
+        for (const auto& [assignmentId, assignment] : materials)
+        {
+            const Wrappers::RglTexture& materialTexture = ModelLibraryInterface::Get()->StoreMaterialAsset(assignment.m_materialAsset);
+            if (materialTexture.IsValid())
+            {
+                m_entities[m_materialSlotMeshIdMap[assignmentId.m_materialSlotStableId]].SetIntensityTexture(materialTexture);
+            }
+        }
     }
 } // namespace RGL
