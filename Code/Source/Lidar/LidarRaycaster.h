@@ -32,7 +32,7 @@ namespace RGL
     protected:
         // LidarRaycasterRequestBus overrides
         void ConfigureRayOrientations(const AZStd::vector<AZ::Vector3>& orientations) override;
-        void ConfigureRayRange(ROS2::Range range) override;
+        void ConfigureRayRange(ROS2::RayRange range) override;
         void ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags) override;
         bool CanHandlePublishing() override;
 
@@ -59,7 +59,7 @@ namespace RGL
         bool m_isMaxRangeEnabled{ false }; //!< Determines whether max range point addition is enabled.
         ROS2::RaycastResultFlags m_resultFlags{ ROS2::RaycastResultFlags::Points };
 
-        AZStd::optional<ROS2::Range> m_range{};
+        AZStd::optional<ROS2::RayRange> m_range{};
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
 
         PipelineGraph::RaycastResults m_rglRaycastResults;

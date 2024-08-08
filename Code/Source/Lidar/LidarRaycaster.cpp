@@ -77,7 +77,7 @@ namespace RGL
         m_graph.ConfigureRayPosesNode(rglRayTransforms);
     }
 
-    void LidarRaycaster::ConfigureRayRange(ROS2::Range range)
+    void LidarRaycaster::ConfigureRayRange(ROS2::RayRange range)
     {
         m_range = range;
 
