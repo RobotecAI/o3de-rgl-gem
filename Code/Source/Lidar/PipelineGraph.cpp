@@ -20,7 +20,7 @@ namespace RGL
 {
     PipelineGraph::PipelineGraph()
     {
-        ConfigureRayPosesNode({Utils::IdentityTransform});
+        ConfigureRayPosesNode({ Utils::IdentityTransform });
         ConfigureRayRangesNode(0.0f, 1.0f);
         ConfigureLidarTransformNode(AZ::Matrix3x4::CreateIdentity());
         RGL_CHECK(rgl_node_raytrace(&m_nodes.m_rayTrace, nullptr));
@@ -91,9 +91,9 @@ namespace RGL
         RGL_CHECK(rgl_node_rays_from_mat3x4f(&m_nodes.m_rayPoses, rayPoses.data(), aznumeric_cast<int32_t>(rayPoses.size())));
     }
 
-    void PipelineGraph::ConfigureRayRangesNode(float minRange, float maxRange)
+    void PipelineGraph::ConfigureRayRangesNode(float min, float max)
     {
-        rgl_vec2f range = { .value = { minRange, maxRange } };
+        const rgl_vec2f range = { .value = { min, max } };
         RGL_CHECK(rgl_node_rays_set_range(&m_nodes.m_rayRanges, &range, 1));
     }
 
@@ -146,6 +146,11 @@ namespace RGL
             AddConditionalConnection(m_nodes.m_pcPublishFormat, m_nodes.m_pointCloudPublish, [](const PipelineGraph& graph){ return graph.IsPcPublishingEnabled(); });
             // clang-format on
         }
+    }
+
+    void PipelineGraph::ConfigureRaytraceNodeNonHits(float minRangeNonHitValue, float maxRangeNonHitValue)
+    {
+        RGL_CHECK(rgl_node_raytrace_configure_non_hits(m_nodes.m_rayTrace, minRangeNonHitValue, maxRangeNonHitValue));
     }
 
     void PipelineGraph::SetIsCompactEnabled(bool value)
