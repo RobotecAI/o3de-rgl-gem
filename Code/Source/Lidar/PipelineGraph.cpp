@@ -185,9 +185,6 @@ namespace RGL
         {
             switch (field)
             {
-            case RGL_FIELD_IS_HIT_I32:
-                success = success && GetResult(results.m_isHit, RGL_FIELD_IS_HIT_I32);
-                break;
             case RGL_FIELD_XYZ_VEC3_F32:
                 success = success && GetResult(results.m_xyz, RGL_FIELD_XYZ_VEC3_F32);
                 break;

@@ -36,7 +36,12 @@ namespace RGL
         void ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags) override;
         bool CanHandlePublishing() override;
 
-        ROS2::RaycastResult PerformRaycast(const AZ::Transform& lidarTransform) override;
+        // Returns the size of required results.
+        // If obtained result sizes do not match,
+        // the returned optional does not contain a value.
+        static AZStd::optional<size_t> GetRglResultsSize(PipelineGraph::RaycastResults rglResults, const ROS2::RaycastResults& results);
+
+        AZ::Outcome<ROS2::RaycastResults, const char*> PerformRaycast(const AZ::Transform& lidarTransform) override;
 
         void ConfigureNoiseParameters(
             [[maybe_unused]] float angularNoiseStdDev,
@@ -57,18 +62,15 @@ namespace RGL
         AZ::Uuid m_uuid;
 
         bool m_isMaxRangeEnabled{ false }; //!< Determines whether max range point addition is enabled.
-        ROS2::RaycastResultFlags m_resultFlags{ ROS2::RaycastResultFlags::Points };
 
         AZStd::optional<ROS2::RayRange> m_range{};
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
 
         PipelineGraph::RaycastResults m_rglRaycastResults;
-        ROS2::RaycastResult m_raycastResults;
+        AZStd::optional<ROS2::RaycastResults> m_raycastResults;
 
         PipelineGraph m_graph;
 
-        [[nodiscard]] bool ArePointsExpected() const;
-        [[nodiscard]] bool AreRangesExpected() const;
         [[nodiscard]] bool ShouldEnableCompact() const;
         [[nodiscard]] bool ShouldEnablePcPublishing() const;
     };
