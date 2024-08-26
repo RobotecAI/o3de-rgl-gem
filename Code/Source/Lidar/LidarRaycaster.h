@@ -39,7 +39,8 @@ namespace RGL
         // Returns the size of required results.
         // If obtained result sizes do not match,
         // the returned optional does not contain a value.
-        static AZStd::optional<size_t> GetRglResultsSize(PipelineGraph::RaycastResults rglResults, const ROS2::RaycastResults& results);
+        static AZStd::optional<size_t> GetRglResultsSize(
+            const PipelineGraph::RaycastResults& rglResults, const ROS2::RaycastResults& results);
 
         AZ::Outcome<ROS2::RaycastResults, const char*> PerformRaycast(const AZ::Transform& lidarTransform) override;
 

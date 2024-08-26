@@ -93,17 +93,17 @@ namespace RGL
 
         m_raycastResults = ROS2::RaycastResults(flags);
 
-        if (ROS2::IsFlagEnabled<ROS2::RaycastResultFlags::Point>(flags))
+        if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::Point, flags))
         {
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_XYZ_VEC3_F32);
         }
 
-        if (ROS2::IsFlagEnabled<ROS2::RaycastResultFlags::Range>(flags))
+        if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::Range, flags))
         {
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_DISTANCE_F32);
         }
 
-        if (ROS2::IsFlagEnabled<ROS2::RaycastResultFlags::Intensity>(flags))
+        if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::Intensity, flags))
         {
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_INTENSITY_F32);
         }
@@ -217,7 +217,7 @@ namespace RGL
     }
 
     AZStd::optional<size_t> LidarRaycaster::GetRglResultsSize(
-        const PipelineGraph::RaycastResults rglResults, const ROS2::RaycastResults& results)
+        const PipelineGraph::RaycastResults& rglResults, const ROS2::RaycastResults& results)
     {
         AZStd::optional<size_t> resultsSize;
         if (results.IsFieldPresent<ROS2::RaycastResultFlags::Point>())
