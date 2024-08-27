@@ -116,7 +116,8 @@ namespace RGL
 
     AZ::Outcome<ROS2::RaycastResults, const char*> LidarRaycaster::PerformRaycast(const AZ::Transform& lidarTransform)
     {
-        AZ_Assert(m_range.has_value() && m_raycastResults.has_value(), "Programmer error. Raycaster not fully configured.");
+        AZ_Assert(m_range.has_value(), "Programmer error. Raycaster range is not fully configured.");
+        AZ_Assert(m_raycastResults.has_value(), "Programmer error. Raycaster result fields not fully configured.");
         RGLInterface::Get()->UpdateScene();
 
         const AZ::Matrix3x4 lidarPose = AZ::Matrix3x4::CreateFromTransform(lidarTransform);
