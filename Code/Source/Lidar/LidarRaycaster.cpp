@@ -29,7 +29,6 @@ namespace RGL
     LidarRaycaster::LidarRaycaster(LidarRaycaster&& other)
         : m_uuid{ other.m_uuid }
         , m_isMaxRangeEnabled{ other.m_isMaxRangeEnabled }
-        , m_resultFlags{ other.m_resultFlags }
         , m_range{ other.m_range }
         , m_graph{ std::move(other.m_graph) }
         , m_rayTransforms{ AZStd::move(other.m_rayTransforms) }
@@ -88,24 +87,23 @@ namespace RGL
 
     void LidarRaycaster::ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags)
     {
-        m_resultFlags = flags;
         m_rglRaycastResults.m_fields.clear();
-        m_rglRaycastResults.m_isHit.clear();
         m_rglRaycastResults.m_xyz.clear();
         m_rglRaycastResults.m_distance.clear();
 
-        if ((flags & ROS2::RaycastResultFlags::Points) == ROS2::RaycastResultFlags::Points)
+        m_raycastResults = ROS2::RaycastResults(flags);
+
+        if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::Point, flags))
         {
-            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_IS_HIT_I32);
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_XYZ_VEC3_F32);
         }
 
-        if ((flags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges)
+        if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::Range, flags))
         {
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_DISTANCE_F32);
         }
 
-        if ((flags & ROS2::RaycastResultFlags::Intensities) == ROS2::RaycastResultFlags::Intensities)
+        if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::Intensity, flags))
         {
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_INTENSITY_F32);
         }
@@ -116,9 +114,10 @@ namespace RGL
         m_graph.SetIsPcPublishingEnabled(ShouldEnablePcPublishing());
     }
 
-    ROS2::RaycastResult LidarRaycaster::PerformRaycast(const AZ::Transform& lidarTransform)
+    AZ::Outcome<ROS2::RaycastResults, const char*> LidarRaycaster::PerformRaycast(const AZ::Transform& lidarTransform)
     {
-        AZ_Assert(m_range.has_value(), "Programmer error. Raycaster range not configured.");
+        AZ_Assert(m_range.has_value(), "Programmer error. Raycaster range is not fully configured.");
+        AZ_Assert(m_raycastResults.has_value(), "Programmer error. Raycaster result fields not fully configured.");
         RGLInterface::Get()->UpdateScene();
 
         const AZ::Matrix3x4 lidarPose = AZ::Matrix3x4::CreateFromTransform(lidarTransform);
@@ -134,39 +133,35 @@ namespace RGL
 
         if (!m_graph.GetResults(m_rglRaycastResults))
         {
-            return {};
+            return AZ::Failure("Results returned by RGL did not match requested.");
         }
 
-        bool pointsExpected = (m_resultFlags & ROS2::RaycastResultFlags::Points) == ROS2::RaycastResultFlags::Points;
-        bool distanceExpected = (m_resultFlags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges;
-
-        m_raycastResults.m_intensities.resize(m_rglRaycastResults.m_intensity.size());
-        if (pointsExpected)
+        const auto resultSize = GetRglResultsSize(m_rglRaycastResults, m_raycastResults.value());
+        if (!resultSize.has_value())
         {
-            m_raycastResults.m_points.resize(m_rglRaycastResults.m_xyz.size());
+            return AZ::Failure("Results were of different sizes.");
         }
 
-        if (distanceExpected)
+        ROS2::RaycastResults& raycastResults = m_raycastResults.value();
+        raycastResults.Resize(resultSize.value());
+
+        if (auto points = raycastResults.GetFieldSpan<ROS2::RaycastResultFlags::Point>(); points.has_value())
         {
-            m_raycastResults.m_ranges.resize(m_rglRaycastResults.m_distance.size());
+            AZStd::transform(
+                m_rglRaycastResults.m_xyz.begin(), m_rglRaycastResults.m_xyz.end(), points.value().begin(), Utils::AzVector3FromRglVec3f);
         }
 
-        const size_t resultsSize = pointsExpected ? m_raycastResults.m_points.size() : m_raycastResults.m_ranges.size();
-        for (size_t resultIndex = 0LU; resultIndex < resultsSize; ++resultIndex)
+        if (auto distance = raycastResults.GetFieldSpan<ROS2::RaycastResultFlags::Range>(); distance.has_value())
         {
-            m_raycastResults.m_intensities[resultIndex] = m_rglRaycastResults.m_intensity[resultIndex];
-            if (pointsExpected)
-            {
-                m_raycastResults.m_points[resultIndex] = Utils::AzVector3FromRglVec3f(m_rglRaycastResults.m_xyz[resultIndex]);
-            }
-
-            if (distanceExpected)
-            {
-                m_raycastResults.m_ranges[resultIndex] = m_rglRaycastResults.m_distance[resultIndex];
-            }
+            AZStd::copy(m_rglRaycastResults.m_distance.begin(), m_rglRaycastResults.m_distance.end(), distance.value().begin());
         }
 
-        return m_raycastResults;
+        if (auto intensity = raycastResults.GetFieldSpan<ROS2::RaycastResultFlags::Intensity>(); intensity.has_value())
+        {
+            AZStd::copy(m_rglRaycastResults.m_intensity.begin(), m_rglRaycastResults.m_intensity.end(), intensity.value().begin());
+        }
+
+        return AZ::Success(m_raycastResults.value());
     }
 
     void LidarRaycaster::ConfigureNoiseParameters(
@@ -222,27 +217,49 @@ namespace RGL
         return m_graph.IsPcPublishingEnabled();
     }
 
+    AZStd::optional<size_t> LidarRaycaster::GetRglResultsSize(
+        const PipelineGraph::RaycastResults& rglResults, const ROS2::RaycastResults& results)
+    {
+        AZStd::optional<size_t> resultsSize;
+        if (results.IsFieldPresent<ROS2::RaycastResultFlags::Point>())
+        {
+            resultsSize = rglResults.m_xyz.size();
+        }
+
+        if (results.IsFieldPresent<ROS2::RaycastResultFlags::Range>())
+        {
+            if (resultsSize.has_value() && resultsSize != rglResults.m_distance.size())
+            {
+                return {};
+            }
+
+            resultsSize = rglResults.m_distance.size();
+        }
+
+        if (results.IsFieldPresent<ROS2::RaycastResultFlags::Intensity>())
+        {
+            if (resultsSize.has_value() && resultsSize != rglResults.m_intensity.size())
+            {
+                return {};
+            }
+        }
+
+        return resultsSize;
+    }
+
     void LidarRaycaster::UpdatePublisherTimestamp(AZ::u64 timestampNanoseconds)
     {
         RGL_CHECK(rgl_scene_set_time(nullptr, timestampNanoseconds));
     }
 
-    bool LidarRaycaster::ArePointsExpected() const
-    {
-        return (m_resultFlags & ROS2::RaycastResultFlags::Points) == ROS2::RaycastResultFlags::Points;
-    }
-    bool LidarRaycaster::AreRangesExpected() const
-    {
-        return (m_resultFlags & ROS2::RaycastResultFlags::Ranges) == ROS2::RaycastResultFlags::Ranges;
-    }
-
     bool LidarRaycaster::ShouldEnableCompact() const
     {
-        return !AreRangesExpected() && !m_isMaxRangeEnabled;
+        return !m_raycastResults->IsFieldPresent<ROS2::RaycastResultFlags::Range>() && !m_isMaxRangeEnabled;
     }
 
     bool LidarRaycaster::ShouldEnablePcPublishing() const
     {
-        return m_graph.IsPublisherConfigured() && !AreRangesExpected() && !m_isMaxRangeEnabled;
+        return m_graph.IsPublisherConfigured() && !m_raycastResults->IsFieldPresent<ROS2::RaycastResultFlags::Range>() &&
+            !m_isMaxRangeEnabled;
     }
 } // namespace RGL

@@ -34,7 +34,6 @@ namespace RGL
         struct RaycastResults
         {
             AZStd::vector<rgl_field_t> m_fields{ DefaultFields.data(), DefaultFields.data() + DefaultFields.size() };
-            AZStd::vector<int32_t> m_isHit;
             AZStd::vector<rgl_vec3f> m_xyz;
             AZStd::vector<float> m_distance;
             AZStd::vector<float> m_intensity;
