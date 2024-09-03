@@ -83,6 +83,10 @@ namespace RGL
             Wrappers::RglEntity entity(rglMesh);
             if (entity.IsValid())
             {
+                if (m_packedRglEntityId.has_value())
+                {
+                    entity.SetId(m_packedRglEntityId.value());
+                }
                 m_entities.emplace_back(AZStd::move(entity));
             }
             else

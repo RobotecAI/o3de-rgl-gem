@@ -15,12 +15,14 @@
 
 #include <Entity/EntityManager.h>
 #include <LmbrCentral/Scripting/TagComponentBus.h>
+#include <RGL/RGLBus.h>
 #include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
     EntityManager::EntityManager(AZ::EntityId entityId)
         : m_entityId{ entityId }
+        , m_segmentationEntityId{ Utils::GenerateSegmentationEntityId() }
     {
         AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
@@ -56,10 +58,12 @@ namespace RGL
         AZ::NonUniformScaleRequestBus::EventResult(m_nonUniformScale, entityId, &AZ::NonUniformScaleRequests::GetScale);
 
         m_isPoseUpdateNeeded = true;
+        ROS2::ClassSegmentationNotificationBus::Handler::BusConnect();
     }
 
     void EntityManager::OnEntityDeactivated(const AZ::EntityId& entityId)
     {
+        ROS2::ClassSegmentationNotificationBus::Handler::BusDisconnect();
         m_transformChangedHandler.Disconnect();
         m_nonUniformScaleChangedHandler.Disconnect();
     }
@@ -85,5 +89,56 @@ namespace RGL
         }
 
         m_isPoseUpdateNeeded = false;
+    }
+
+    void EntityManager::OnSegmentationClassesReady()
+    {
+        m_packedRglEntityId = CalculatePackedRglEntityId();
+        for (Wrappers::RglEntity& entity : m_entities)
+        {
+            entity.SetId(m_packedRglEntityId.value());
+        }
+    }
+
+    int32_t EntityManager::CalculatePackedRglEntityId() const
+    {
+        AZStd::optional<uint8_t> classId;
+
+        LmbrCentral::Tags entityTags;
+        LmbrCentral::TagComponentRequestBus::EventResult(entityTags, m_entityId, &LmbrCentral::TagComponentRequests::GetTags);
+        auto* segmentationInterface = ROS2::ClassSegmentationInterface::Get();
+        AZ_Assert(segmentationInterface, "Segmentation Interface was not accessible.");
+
+        for (const auto& tag : entityTags)
+        {
+            AZStd::optional<uint8_t> tagClassId = segmentationInterface->GetClassIdForTag(tag);
+            if (tagClassId.has_value())
+            {
+                if (classId.has_value())
+                {
+                    AZ_Warning(
+                        "EntityManager",
+                        false,
+                        "Entity with ID: %s has more than one class tag. Assigning first class id %d",
+                        m_entityId.ToString().c_str(),
+                        classId.value());
+                }
+                else
+                {
+                    classId = tagClassId.value();
+                }
+            }
+        }
+
+        if (!classId.has_value())
+        {
+            AZ_Warning(
+                "EntityManager",
+                false,
+                "Entity with ID: %s has no class tag. Assigning default class ID: 0",
+                m_entityId.ToString().c_str());
+        }
+
+        return Utils::PackRglEntityId(ROS2::SegmentationIds{ m_segmentationEntityId, classId.value_or(0U) });
     }
 } // namespace RGL

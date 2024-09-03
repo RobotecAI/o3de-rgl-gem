@@ -7,11 +7,19 @@
  */
 #pragma once
 
-#include <rgl/api/core.h>
 #include <AzCore/Math/Matrix3x4.h>
+#include <AzCore/std/containers/set.h>
+#include <AzCore/std/smart_ptr/shared_ptr.h>
+#include <AzCore/std/string/string.h>
+#include <ROS2/Lidar/RaycastResults.h>
+#include <rgl/api/core.h>
 
 namespace RGL::Utils
 {
+    int32_t PackRglEntityId(ROS2::SegmentationIds);
+    ROS2::SegmentationIds UnpackRglEntityId(int32_t rglPackedEntityId);
+    int32_t GenerateSegmentationEntityId();
+
     //! If the provided status signifies an error, prints the last RGL error message.
     //! @param status Status returned by an API call.
     //! @param file String representing the file path of the file in which the API call was made
