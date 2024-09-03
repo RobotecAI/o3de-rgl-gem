@@ -194,6 +194,9 @@ namespace RGL
             case RGL_FIELD_INTENSITY_F32:
                 success = success && GetResult(results.m_intensity, RGL_FIELD_INTENSITY_F32);
                 break;
+            case RGL_FIELD_ENTITY_ID_I32:
+                success = success && GetResult(results.m_packedRglEntityId, RGL_FIELD_ENTITY_ID_I32);
+                break;
             default:
                 success = false;
                 AZ_Assert(false, "Invalid result field type!");

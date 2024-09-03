@@ -239,6 +239,11 @@ namespace RGL
         {
             if (Wrappers::RglEntity subMeshEntity(m_rglSubMeshes[i]); subMeshEntity.IsValid())
             {
+                if (m_packedRglEntityId.has_value())
+                {
+                    subMeshEntity.SetId(m_packedRglEntityId.value());
+                }
+
                 m_entities.emplace_back(AZStd::move(subMeshEntity));
             }
             else
