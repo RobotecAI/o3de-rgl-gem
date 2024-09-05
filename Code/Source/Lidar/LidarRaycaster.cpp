@@ -237,6 +237,8 @@ namespace RGL
     AZStd::optional<size_t> LidarRaycaster::GetRglResultsSize(
         const PipelineGraph::RaycastResults& rglResults, const ROS2::RaycastResults& results)
     {
+        // Size consistent among all (present) fields.
+        // If no consensus is reached or no fields are present, set to AZStd::nullopt.
         AZStd::optional<size_t> resultsSize;
         if (results.IsFieldPresent<ROS2::RaycastResultFlags::Point>())
         {
@@ -245,27 +247,35 @@ namespace RGL
 
         if (results.IsFieldPresent<ROS2::RaycastResultFlags::Range>())
         {
-            if (resultsSize.has_value() && resultsSize != rglResults.m_distance.size())
+            if (!resultsSize.has_value())
+            {
+                resultsSize = rglResults.m_distance.size();
+            }
+            else if (resultsSize != rglResults.m_distance.size())
             {
                 return AZStd::nullopt;
             }
-
-            resultsSize = rglResults.m_distance.size();
         }
 
         if (results.IsFieldPresent<ROS2::RaycastResultFlags::Intensity>())
         {
-            if (resultsSize.has_value() && resultsSize != rglResults.m_intensity.size())
+            if (!resultsSize.has_value())
+            {
+                resultsSize = rglResults.m_intensity.size();
+            }
+            else if (resultsSize != rglResults.m_intensity.size())
             {
                 return AZStd::nullopt;
             }
-
-            resultsSize = rglResults.m_intensity.size();
         }
 
         if (results.IsFieldPresent<ROS2::RaycastResultFlags::SegmentationData>())
         {
-            if (resultsSize.has_value() && resultsSize != rglResults.m_packedRglEntityId.size())
+            if (!resultsSize.has_value())
+            {
+                resultsSize = rglResults.m_packedRglEntityId.size();
+            }
+            else if (resultsSize != rglResults.m_packedRglEntityId.size())
             {
                 return AZStd::nullopt;
             }
