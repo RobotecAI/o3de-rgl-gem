@@ -130,15 +130,17 @@ namespace RGL
             }
         }
 
+        static constexpr uint8_t DefaultClassID = 0U;
         if (!classId.has_value())
         {
             AZ_Warning(
                 "EntityManager",
                 false,
-                "Entity with ID: %s has no class tag. Assigning default class ID: 0",
-                m_entityId.ToString().c_str());
+                "Entity with ID: %s has no class tag. Assigning default class ID: %u",
+                m_entityId.ToString().c_str(),
+                DefaultClassID);
         }
 
-        return Utils::PackRglEntityId(ROS2::SegmentationIds{ m_segmentationEntityId, classId.value_or(0U) });
+        return Utils::PackRglEntityId(ROS2::SegmentationIds{ m_segmentationEntityId, classId.value_or(DefaultClassID) });
     }
 } // namespace RGL
