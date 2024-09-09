@@ -45,8 +45,9 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
 
 ## Requirements
 
-- [**Runtime requirements
-  ** of the Robotec GPU Lidar](https://github.com/RobotecAI/RobotecGPULidar#runtime-requirements).
+- [
+  **Runtime requirements** of the Robotec GPU Lidar.
+  ](https://github.com/RobotecAI/RobotecGPULidar#runtime-requirements)
 - Any O3DE project with the [O3DE ROS2 Gem](https://github.com/o3de/o3de-extras/tree/development/Gems/ROS2) enabled.
 
 ***IMPORTANT:*** *You do not need to download or set up the RobotecGPULidar library itself and only have to meet
@@ -62,11 +63,12 @@ the **RUNTIME** requirements.*
    Depending on which version of O3DE and ROS2 gem you use this step may differ.
    Below is a universal table of supported build combinations:
 
-   | o3de-rgl-gem | [o3de/o3de-extras](https://github.com/o3de/o3de-extras) | [Robotecai/o3de-extras](https://github.com/robotecai/o3de-extras) | [o3de](https://github.com/o3de/o3de)                |
-   |--------------|---------------------------------------------------------|-------------------------------------------------------------------|-----------------------------------------------------|
-   | development  | development                                             | N/A                                                               | development (or latest stabilization if compatible) |
-   | development  | N/A                                                     | rgl/stable-dev                                                    | latest point release                                |
-   | main         | latest point release                                    | N/A                                                               | latest point release                                |
+   | o3de-rgl-gem | [o3de/o3de-extras](https://github.com/o3de/o3de-extras) | [Robotecai/o3de-extras](https://github.com/robotecai/o3de-extras) | [o3de](https://github.com/o3de/o3de) |
+   |--------------|---------------------------------------------------------|-------------------------------------------------------------------|--------------------------------------|
+   | development  | development                                             | N/A                                                               | development      |
+   | development  | development                                             | N/A                                                               | stabilization/2409      |
+   | development  | N/A                                                     | rgl/stable-dev                                                    | point-release/23103                  |
+   | main         | point-release/23103                                    | N/A                                                               | point-release/23103                  |
 
    **_Example:_** _For O3DE and O3DE extras on `point-release/23103` branches you would use the `main` branch of the RGL
    gem._
@@ -109,15 +111,15 @@ the **RUNTIME** requirements.*
 
     <img src="static/png/usage_instruction1.png" alt="drawing" width="400"/>
 
-   Select the newly created entity within the Entity Outliner. Next, within the Entity Inspector select **Add Component
-   **.
+   Select the newly created entity within the Entity Outliner. Next, within the Entity Inspector select
+   **Add Component**.
    Then, search for `ROS2 Lidar Sensor` and add it to your entity using the left mouse button.
 
     <img src="static/png/usage_instruction2.png" alt="drawing" width="400"/>
 
    ***Note:** You need to add the required `ROS2 Frame` component as well.*
 
-3. **Select `RobotecGPULidar` as your LiDAR implementation.**
+2. **Select `RobotecGPULidar` as your LiDAR implementation.**
 
    In the Entity Inspector find the `ROS2 Lidar Sensor` component and change the **Lidar Implementation**
    to `RobotecGPULidar`.
@@ -126,7 +128,7 @@ the **RUNTIME** requirements.*
 
    ***Note:** If you do not see the `RobotecGPULidar` implementation, please make sure you followed the **Setup**
    instructions correctly.*
-4. **Customize your LiDAR.**
+3. **Customize your LiDAR.**
 
    After following through all previous instructions, you can customize the `ROS2 Lidar Sensor` component in the Entity
    Inspector to fit all your needs.
