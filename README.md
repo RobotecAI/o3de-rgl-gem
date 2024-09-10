@@ -79,7 +79,7 @@ the **RUNTIME** requirements.*
     ```
 2. **Switch to the correct branch.** \
    Depending on which version of O3DE and ROS2 gem you use this step may differ.
-   Below is a universal table of supported build combinations:
+   Below is a table of supported build combinations:
 
    | o3de-rgl-gem | [o3de/o3de-extras](https://github.com/o3de/o3de-extras) | [Robotecai/o3de-extras](https://github.com/robotecai/o3de-extras) | [o3de](https://github.com/o3de/o3de) |
    |--------------|---------------------------------------------------------|-------------------------------------------------------------------|--------------------------------------|
@@ -87,9 +87,6 @@ the **RUNTIME** requirements.*
    | development  | development                                             | N/A                                                               | stabilization/2409      |
    | development  | N/A                                                     | rgl/stable-dev                                                    | point-release/23103                  |
    | main         | point-release/23103                                    | N/A                                                               | point-release/23103                  |
-
-   **_Example:_** _For O3DE and O3DE extras on `point-release/23103` branches you would use the `main` branch of the RGL
-   gem._
 
    **_Note:_** _This table describes build combinations that are guaranteed to work. There may exist other working build
    combinations._
