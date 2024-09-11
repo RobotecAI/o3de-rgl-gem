@@ -28,12 +28,12 @@ namespace RGL
     class PipelineGraph
     {
     private:
-        static constexpr AZStd::array DefaultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_VEC3_F32, RGL_FIELD_INTENSITY_F32 };
+        static constexpr AZStd::array DefaultFields{ RGL_FIELD_XYZ_VEC3_F32 };
 
     public:
         struct RaycastResults
         {
-            AZStd::vector<rgl_field_t> m_fields{ DefaultFields.data(), DefaultFields.data() + DefaultFields.size() };
+            AZStd::vector<rgl_field_t> m_fields;
             AZStd::vector<rgl_vec3f> m_xyz;
             AZStd::vector<float> m_distance;
             AZStd::vector<float> m_intensity;
@@ -63,7 +63,7 @@ namespace RGL
 
         void ConfigureRayPosesNode(const AZStd::vector<rgl_mat3x4f>& rayPoses);
         void ConfigureRayRangesNode(float min, float max);
-        void ConfigureYieldNodes(const rgl_field_t* fields, size_t size);
+        void ConfigureFieldNodes(const rgl_field_t* fields, size_t size);
         void ConfigureLidarTransformNode(const AZ::Matrix3x4& lidarTransform);
         void ConfigurePcTransformNode(const AZ::Matrix3x4& pcTransform);
         void ConfigureAngularNoiseNode(float angularNoiseStdDev);

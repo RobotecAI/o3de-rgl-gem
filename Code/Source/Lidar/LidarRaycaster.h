@@ -73,6 +73,5 @@ namespace RGL
         PipelineGraph m_graph;
 
         [[nodiscard]] bool ShouldEnableCompact() const;
-        [[nodiscard]] bool ShouldEnablePcPublishing() const;
     };
 } // namespace RGL
