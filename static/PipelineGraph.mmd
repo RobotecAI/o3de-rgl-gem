@@ -8,9 +8,5 @@ flowchart TD
     RT -->|Noise disabled| DNY[Yield Node]
     DN --> DNY
     DNY -->|Compact enabled| PC[Points Compact]
-    DNY -->|Compact disabled| PCY[Yield Node]
+    DNY -->|Compact disabled| PCY[Points Yield]
     PC --> PCY
-    PCY --> PY[Points Yield]
-    PCY -->|Publishing enabled| PT[Points Transform]
-    PT --> PF2[Points Format]
-    PF2 --> PCP[Point Cloud Publish]

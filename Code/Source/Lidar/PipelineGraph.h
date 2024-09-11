@@ -28,12 +28,12 @@ namespace RGL
     class PipelineGraph
     {
     private:
-        static constexpr AZStd::array DefaultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_VEC3_F32, RGL_FIELD_INTENSITY_F32 };
+        static constexpr AZStd::array DefaultFields{ RGL_FIELD_XYZ_VEC3_F32 };
 
     public:
         struct RaycastResults
         {
-            AZStd::vector<rgl_field_t> m_fields{ DefaultFields.data(), DefaultFields.data() + DefaultFields.size() };
+            AZStd::vector<rgl_field_t> m_fields;
             AZStd::vector<rgl_vec3f> m_xyz;
             AZStd::vector<float> m_distance;
             AZStd::vector<float> m_intensity;
@@ -44,8 +44,7 @@ namespace RGL
         {
             rgl_node_t m_rayPoses{ nullptr }, m_rayRanges{ nullptr }, m_lidarTransform{ nullptr }, m_angularNoise{ nullptr },
                 m_rayTrace{ nullptr }, m_distanceNoise{ nullptr }, m_rayTraceYield{ nullptr }, m_pointsCompact{ nullptr },
-                m_compactYield{ nullptr }, m_pointsYield{ nullptr }, m_pointCloudTransform{ nullptr }, m_pcPublishFormat{ nullptr },
-                m_pointCloudPublish{ nullptr };
+                m_pointsYield{ nullptr };
         };
 
         PipelineGraph();
@@ -54,25 +53,17 @@ namespace RGL
         ~PipelineGraph();
 
         [[nodiscard]] bool IsCompactEnabled() const;
-        [[nodiscard]] bool IsPcPublishingEnabled() const;
         [[nodiscard]] bool IsNoiseEnabled() const;
-        [[nodiscard]] bool IsPublisherConfigured() const
-        {
-            return m_nodes.m_pointCloudPublish;
-        }
 
         void ConfigureRayPosesNode(const AZStd::vector<rgl_mat3x4f>& rayPoses);
         void ConfigureRayRangesNode(float min, float max);
-        void ConfigureYieldNodes(const rgl_field_t* fields, size_t size);
+        void ConfigureFieldNodes(const rgl_field_t* fields, size_t size);
         void ConfigureLidarTransformNode(const AZ::Matrix3x4& lidarTransform);
-        void ConfigurePcTransformNode(const AZ::Matrix3x4& pcTransform);
         void ConfigureAngularNoiseNode(float angularNoiseStdDev);
         void ConfigureDistanceNoiseNode(float distanceNoiseStdDevBase, float distanceNoiseStdDevRisePerMeter);
-        void ConfigurePcPublisherNode(const AZStd::string& topicName, const AZStd::string& frameId, const ROS2::QoS& qosPolicy);
         void ConfigureRaytraceNodeNonHits(float minRangeNonHitValue, float maxRangeNonHitValue);
 
         void SetIsCompactEnabled(bool value);
-        void SetIsPcPublishingEnabled(bool value);
         void SetIsNoiseEnabled(bool value);
 
         void Run();

@@ -34,7 +34,6 @@ namespace RGL
         void ConfigureRayOrientations(const AZStd::vector<AZ::Vector3>& orientations) override;
         void ConfigureRayRange(ROS2::RayRange range) override;
         void ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags) override;
-        bool CanHandlePublishing() override;
 
         // Returns the size of required results.
         // If obtained result sizes do not match,
@@ -52,13 +51,6 @@ namespace RGL
         void UpdateNonHitValues();
         void ConfigureMaxRangePointAddition(bool addMaxRangePoints) override;
 
-        void ConfigurePointCloudPublisher(
-            [[maybe_unused]] const AZStd::string& topicName,
-            [[maybe_unused]] const AZStd::string& frameId,
-            [[maybe_unused]] const ROS2::QoS& qosPolicy) override;
-
-        void UpdatePublisherTimestamp([[maybe_unused]] AZ::u64 timestampNanoseconds) override;
-
     private:
         AZ::Uuid m_uuid;
 
@@ -73,6 +65,5 @@ namespace RGL
         PipelineGraph m_graph;
 
         [[nodiscard]] bool ShouldEnableCompact() const;
-        [[nodiscard]] bool ShouldEnablePcPublishing() const;
     };
 } // namespace RGL
