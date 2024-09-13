@@ -80,6 +80,11 @@ namespace RGL
         AZ::Render::MaterialComponentNotificationBus::Handler::BusConnect(m_entityId);
     }
 
+    void MeshEntityManager::OnModelPreDestroy()
+    {
+        m_entities.clear();
+    }
+
     void MeshEntityManager::OnMaterialsUpdated(const AZ::Render::MaterialAssignmentMap& materials)
     {
         if (m_entities.empty())
