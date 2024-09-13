@@ -102,4 +102,9 @@ namespace RGL
             }
         }
     }
+
+    void MeshEntityManager::OnMaterialPropertiesUpdated([[maybe_unused]] const AZ::Render::MaterialAssignmentMap& materials)
+    {
+        AZ_Printf(__func__, "Material properties updated");
+    }
 } // namespace RGL

@@ -45,6 +45,7 @@ namespace RGL
     protected:
         // ActorComponentNotificationBus overrides
         void OnActorInstanceCreated(EMotionFX::ActorInstance* actorInstance) override;
+        void OnActorInstanceDestroyed(EMotionFX::ActorInstance* actorInstance) override;
 
     private:
         EMotionFX::ActorInstance* m_actorInstance = nullptr;

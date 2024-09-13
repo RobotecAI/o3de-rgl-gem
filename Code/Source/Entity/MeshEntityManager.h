@@ -47,6 +47,7 @@ namespace RGL
 
         // AZ::Render::MaterialComponentNotificationBus implementation overrides
         void OnMaterialsUpdated(const AZ::Render::MaterialAssignmentMap& materials) override;
+        void OnMaterialPropertiesUpdated([[maybe_unused]] const AZ::Render::MaterialAssignmentMap& materials) override;
 
         AZStd::unordered_map<AZ::RPI::ModelMaterialSlot::StableId, size_t> m_materialSlotMeshIdMap;
     };
