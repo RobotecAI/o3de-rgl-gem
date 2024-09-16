@@ -25,6 +25,11 @@
 
 namespace RGL
 {
+    //! Base class for Entity Manager.
+    //! Although it already implements the EntityBus handler,
+    //! the derived classes have to handle bus connection
+    //! through BusConnect and BusDisconnect function calls.
+    //! This is to allow for further overrides.
     class EntityManager : public AZ::EntityBus::Handler
     {
     public:

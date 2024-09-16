@@ -32,7 +32,7 @@ namespace RGL
         MeshEntityManager(MeshEntityManager&& other) = delete;
         MeshEntityManager& operator=(MeshEntityManager&& rhs) = delete;
         MeshEntityManager& operator=(const MeshEntityManager&) = delete;
-        ~MeshEntityManager() = default;
+        ~MeshEntityManager();
 
     protected:
         // AZ::EntityBus::Handler implementation overrides

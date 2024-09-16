@@ -65,6 +65,14 @@ namespace RGL
         virtual void OnSceneConfigurationSet(const SceneConfiguration& config)
         {
         }
+
+        //! Signals that more than one lidar that uses RGL implementation exists.
+        //! Used for GPU memory consumption optimizations.
+        virtual void OnLidarsExist() {}
+
+        //! Signals that the last lidar that used RGL implementation was destroyed.
+        //! Used for GPU memory consumption optimizations.
+        virtual void OnNoLidarsExist() {}
         //////////////////////////////////////////////////////////////////////////
     };
     using RGLNotificationBus = AZ::EBus<RGLNotifications>;

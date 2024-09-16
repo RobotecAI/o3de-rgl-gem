@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <Lidar/LidarRaycaster.h>
+#include <Lidar/LidarSystemNotificationBus.h>
 #include <RGL/RGLBus.h>
 #include <ROS2/ROS2Bus.h>
 #include <Utilities/RGLUtils.h>
@@ -24,6 +25,7 @@ namespace RGL
         : m_uuid{ uuid }
     {
         ROS2::LidarRaycasterRequestBus::Handler::BusConnect(ROS2::LidarId(uuid));
+        LidarSystemNotificationBus::Broadcast(&LidarSystemNotifications::OnLidarCreated, ROS2::LidarId(uuid));
     }
 
     LidarRaycaster::LidarRaycaster(LidarRaycaster&& other)
@@ -46,6 +48,7 @@ namespace RGL
         if (!m_uuid.IsNull())
         {
             ROS2::LidarRaycasterRequestBus::Handler::BusDisconnect();
+            LidarSystemNotificationBus::Broadcast(&LidarSystemNotifications::OnLidarDestroyed, ROS2::LidarId(m_uuid));
         }
     }
 

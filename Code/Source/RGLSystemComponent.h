@@ -15,10 +15,11 @@
 #pragma once
 
 #include <AzCore/Component/Component.h>
-#include <AzCore/Script/ScriptTimePoint.h>
 #include <AzCore/Math/Vector3.h>
+#include <AzCore/Script/ScriptTimePoint.h>
 #include <AzFramework/Entity/EntityContextBus.h>
 #include <Lidar/LidarSystem.h>
+#include <Lidar/LidarSystemNotificationBus.h>
 #include <Model/ModelLibrary.h>
 #include <RGL/RGLBus.h>
 
@@ -30,6 +31,7 @@ namespace RGL
         : public AZ::Component
         , protected RGLRequestBus::Handler
         , protected AzFramework::EntityContextEventBus::Handler
+        , protected LidarSystemNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(RGL::RGLSystemComponent, "{dbd5b1c5-249f-4eca-a142-2533ebe7f680}");
@@ -60,13 +62,22 @@ namespace RGL
         void OnEntityContextDestroyEntity(const AZ::EntityId& id) override;
         void OnEntityContextReset() override;
 
+        // LidarNotificationBus overides
+        void OnLidarCreated([[maybe_unused]] const ROS2::LidarId& lidarId) override;
+        void OnLidarDestroyed([[maybe_unused]] const ROS2::LidarId& lidarId) override;
+
     private:
+        void ProcessEntity(const AZ::Entity& entity);
+
         LidarSystem m_rglLidarSystem;
 
         ModelLibrary m_modelLibrary;
         AZStd::set<AZ::EntityId> m_excludedEntities;
+        AZStd::set<AZ::EntityId> m_unprocessedEntities;
         SceneConfiguration m_sceneConfig;
         AZStd::unordered_map<AZ::EntityId, AZStd::unique_ptr<EntityManager>> m_entityManagers;
-        AZ::ScriptTimePoint m_sceneUpdateLastTime {};
+        AZ::ScriptTimePoint m_sceneUpdateLastTime{};
+
+        size_t m_activeLidarCount{};
     };
 } // namespace RGL

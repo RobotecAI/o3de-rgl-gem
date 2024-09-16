@@ -86,6 +86,7 @@ namespace RGL
         AZ_Assert(!gameEntityContextId.IsNull(), "Invalid GameEntityContextId");
 
         AzFramework::EntityContextEventBus::Handler::BusConnect(gameEntityContextId);
+        LidarSystemNotificationBus::Handler::BusConnect();
 
         m_rglLidarSystem.Activate();
     }
@@ -93,6 +94,7 @@ namespace RGL
     void RGLSystemComponent::Deactivate()
     {
         m_rglLidarSystem.Deactivate();
+        LidarSystemNotificationBus::Handler::BusDisconnect();
         AzFramework::EntityContextEventBus::Handler::BusDisconnect();
 
         m_entityManagers.clear();
@@ -126,6 +128,69 @@ namespace RGL
             return;
         }
 
+        if (m_activeLidarCount < 1U)
+        {
+            m_unprocessedEntities.emplace(entity.GetId());
+            return;
+        }
+
+        ProcessEntity(entity);
+    }
+
+    void RGLSystemComponent::OnEntityContextDestroyEntity(const AZ::EntityId& id)
+    {
+        m_unprocessedEntities.erase(id);
+        m_entityManagers.erase(id);
+    }
+
+    void RGLSystemComponent::OnEntityContextReset()
+    {
+        m_entityManagers.clear();
+        m_unprocessedEntities.clear();
+        m_modelLibrary.Clear();
+        m_rglLidarSystem.Clear();
+    }
+
+    void RGLSystemComponent::OnLidarCreated([[maybe_unused]] const ROS2::LidarId& lidarId)
+    {
+        ++m_activeLidarCount;
+
+        if (m_activeLidarCount > 1U)
+        {
+            return;
+        }
+
+        RGLNotificationBus::Broadcast(&RGLNotifications::OnLidarsExist);
+        for (auto entityIdIt = m_unprocessedEntities.begin(); entityIdIt != m_unprocessedEntities.end();)
+        {
+            AZ::Entity* entity = nullptr;
+            AZ::ComponentApplicationBus::BroadcastResult(entity, &AZ::ComponentApplicationRequests::FindEntity, *entityIdIt);
+            AZ_Assert(entity, "Failed to find entity with provided id!");
+            ProcessEntity(*entity);
+            entityIdIt = m_unprocessedEntities.erase(entityIdIt);
+        }
+    }
+
+    void RGLSystemComponent::OnLidarDestroyed(const ROS2::LidarId& lidarId)
+    {
+        --m_activeLidarCount;
+
+        if (m_activeLidarCount > 0U)
+        {
+            return;
+        }
+
+        RGLNotificationBus::Broadcast(&RGLNotifications::OnNoLidarsExist);
+        for (auto it = m_entityManagers.begin(); it != m_entityManagers.end();)
+        {
+            m_unprocessedEntities.emplace(it->first);
+            it = m_entityManagers.erase(it);
+        }
+        m_modelLibrary.Clear();
+    }
+
+    void RGLSystemComponent::ProcessEntity(const AZ::Entity& entity)
+    {
         AZStd::unique_ptr<EntityManager> entityManager;
         if (entity.FindComponent<EMotionFX::Integration::ActorComponent>())
         {
@@ -142,18 +207,6 @@ namespace RGL
 
         [[maybe_unused]] bool inserted = m_entityManagers.emplace(entity.GetId(), AZStd::move(entityManager)).second;
         AZ_Error(__func__, inserted, "Object with provided entityId already exists.");
-    }
-
-    void RGLSystemComponent::OnEntityContextDestroyEntity(const AZ::EntityId& id)
-    {
-        m_entityManagers.erase(id);
-    }
-
-    void RGLSystemComponent::OnEntityContextReset()
-    {
-        m_entityManagers.clear();
-        m_modelLibrary.Clear();
-        m_rglLidarSystem.Clear();
     }
 
     void RGLSystemComponent::UpdateScene()
