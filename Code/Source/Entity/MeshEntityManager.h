@@ -14,17 +14,15 @@
  */
 #pragma once
 
-#include <AtomLyIntegration/CommonFeatures/Material/MaterialComponentBus.h>
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentBus.h>
-#include <Entity/EntityManager.h>
+#include <Entity/MaterialEntityManager.h>
 
 namespace RGL
 {
     //! Class used for managing RGL's representation of an Entity with a MeshComponent.
     class MeshEntityManager
-        : public EntityManager
+        : public MaterialEntityManager
         , protected AZ::Render::MeshComponentNotificationBus::Handler
-        , protected AZ::Render::MaterialComponentNotificationBus::Handler
     {
     public:
         explicit MeshEntityManager(AZ::EntityId entityId);
@@ -44,10 +42,5 @@ namespace RGL
             const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset,
             [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model) override;
         void OnModelPreDestroy() override;
-
-        // AZ::Render::MaterialComponentNotificationBus implementation overrides
-        void OnMaterialsUpdated(const AZ::Render::MaterialAssignmentMap& materials) override;
-
-        AZStd::unordered_map<AZ::RPI::ModelMaterialSlot::StableId, size_t> m_materialSlotMeshIdMap;
     };
 } // namespace RGL

@@ -24,7 +24,7 @@
 namespace RGL
 {
     MeshEntityManager::MeshEntityManager(AZ::EntityId entityId)
-        : EntityManager{ entityId }
+        : MaterialEntityManager{ entityId }
     {
         AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
@@ -36,7 +36,7 @@ namespace RGL
 
     void MeshEntityManager::OnEntityActivated(const AZ::EntityId& entityId)
     {
-        EntityManager::OnEntityActivated(entityId);
+        MaterialEntityManager::OnEntityActivated(entityId);
         AZ::Render::MeshComponentNotificationBus::Handler::BusConnect(entityId);
     }
 
@@ -44,7 +44,7 @@ namespace RGL
     {
         AZ::Render::MaterialComponentNotificationBus::Handler::BusDisconnect();
         AZ::Render::MeshComponentNotificationBus::Handler::BusDisconnect();
-        EntityManager::OnEntityDeactivated(entityId);
+        MaterialEntityManager::OnEntityDeactivated(entityId);
     }
 
     void MeshEntityManager::OnModelReady(
@@ -67,8 +67,7 @@ namespace RGL
             Wrappers::RglEntity entity(mesh);
             if (entity.IsValid())
             {
-                m_materialSlotMeshIdMap.emplace(matSlot.m_stableId, entityIdx);
-
+                AssignMaterialSlotIdForMesh(matSlot.m_stableId, entityIdx);
                 const Wrappers::RglTexture& texture = modelLibrary->StoreMaterialAsset(matSlot.m_defaultMaterialAsset);
                 if (texture.IsValid())
                 {
@@ -88,24 +87,8 @@ namespace RGL
 
     void MeshEntityManager::OnModelPreDestroy()
     {
+        AZ::Render::MaterialComponentNotificationBus::Handler::BusDisconnect();
+        ResetMaterialsMapping();
         m_entities.clear();
-    }
-
-    void MeshEntityManager::OnMaterialsUpdated(const AZ::Render::MaterialAssignmentMap& materials)
-    {
-        if (m_entities.empty())
-        {
-            AZ_Warning(__func__, false, "Skipping material update. The entities were not yet created.");
-            return;
-        }
-
-        for (const auto& [assignmentId, assignment] : materials)
-        {
-            const Wrappers::RglTexture& materialTexture = ModelLibraryInterface::Get()->StoreMaterialAsset(assignment.m_materialAsset);
-            if (materialTexture.IsValid())
-            {
-                m_entities[m_materialSlotMeshIdMap[assignmentId.m_materialSlotStableId]].SetIntensityTexture(materialTexture);
-            }
-        }
     }
 } // namespace RGL

@@ -7,8 +7,8 @@
  */
 #pragma once
 
-#include <rgl/api/core.h>
 #include <AzCore/Math/Matrix3x4.h>
+#include <rgl/api/core.h>
 
 namespace RGL::Utils
 {
@@ -29,6 +29,7 @@ namespace RGL::Utils
     AZ::Matrix3x4 AzMatrix3x4FromRglMat3x4(const rgl_mat3x4f& rglMatrix);
     AZ::Vector3 AzVector3FromRglVec3f(const rgl_vec3f& rglVector);
     rgl_vec3f RglVector3FromAzVec3f(const AZ::Vector3& azVector);
+    rgl_vec2f RglVec2fFromAzVector2(const AZ::Vector2& azVector);
 
     constexpr rgl_mat3x4f IdentityTransform{
         .value{

@@ -18,6 +18,8 @@ set(FILES
         Source/Entity/MeshEntityManager.h
         Source/Entity/EntityManager.cpp
         Source/Entity/EntityManager.h
+        Source/Entity/MaterialEntityManager.cpp
+        Source/Entity/MaterialEntityManager.h
         Source/Entity/Terrain/TerrainData.cpp
         Source/Entity/Terrain/TerrainData.h
         Source/Entity/Terrain/TerrainEntityManagerSystemComponent.cpp
