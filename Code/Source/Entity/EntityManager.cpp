@@ -16,6 +16,7 @@
 #include <Entity/EntityManager.h>
 #include <LmbrCentral/Scripting/TagComponentBus.h>
 #include <RGL/RGLBus.h>
+#include <ROS2/Lidar/SegmentationUtils.h>
 #include <Utilities/RGLUtils.h>
 
 namespace RGL
@@ -101,45 +102,7 @@ namespace RGL
 
     int32_t EntityManager::CalculatePackedRglEntityId() const
     {
-        AZStd::optional<uint8_t> classId;
-
-        LmbrCentral::Tags entityTags;
-        LmbrCentral::TagComponentRequestBus::EventResult(entityTags, m_entityId, &LmbrCentral::TagComponentRequests::GetTags);
-        auto* segmentationInterface = ROS2::ClassSegmentationInterface::Get();
-        AZ_Assert(segmentationInterface, "Segmentation Interface was not accessible.");
-
-        for (const auto& tag : entityTags)
-        {
-            AZStd::optional<uint8_t> tagClassId = segmentationInterface->GetClassIdForTag(tag);
-            if (tagClassId.has_value())
-            {
-                if (classId.has_value())
-                {
-                    AZ_Warning(
-                        "EntityManager",
-                        false,
-                        "Entity with ID: %s has more than one class tag. Assigning first class id %d",
-                        m_entityId.ToString().c_str(),
-                        classId.value());
-                }
-                else
-                {
-                    classId = tagClassId.value();
-                }
-            }
-        }
-
-        static constexpr uint8_t DefaultClassID = 0U;
-        if (!classId.has_value())
-        {
-            AZ_Warning(
-                "EntityManager",
-                false,
-                "Entity with ID: %s has no class tag. Assigning default class ID: %u",
-                m_entityId.ToString().c_str(),
-                DefaultClassID);
-        }
-
-        return Utils::PackRglEntityId(ROS2::SegmentationIds{ m_segmentationEntityId, classId.value_or(DefaultClassID) });
+        return Utils::PackRglEntityId(
+            ROS2::SegmentationIds{ m_segmentationEntityId, ROS2::SegmentationUtils::FetchClassIdForEntity(m_entityId) });
     }
 } // namespace RGL
