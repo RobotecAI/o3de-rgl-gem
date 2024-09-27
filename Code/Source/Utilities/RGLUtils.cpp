@@ -14,6 +14,36 @@
 
 namespace RGL::Utils
 {
+    static constexpr AZ::u8 RglEntityIdBits = 28;
+    static constexpr AZ::u8 ClassIdBits = 8;
+    static constexpr AZ::u8 CompressedIdBitDepth = RglEntityIdBits - ClassIdBits;
+
+    int32_t PackRglEntityId(ROS2::SegmentationIds segmentationIds)
+    {
+        AZ_Assert(segmentationIds.m_entityId < (1 << CompressedIdBitDepth), "Entity ID is too large to be packed into RGL entity ID");
+        const int32_t id = (static_cast<int32_t>(segmentationIds.m_classId) << CompressedIdBitDepth) |
+            (segmentationIds.m_entityId & ((1 << CompressedIdBitDepth) - 1));
+
+        return id;
+    }
+
+    ROS2::SegmentationIds UnpackRglEntityId(int32_t rglPackedEntityId)
+    {
+        const uint8_t classId = rglPackedEntityId >> CompressedIdBitDepth;
+        const int32_t entityId = rglPackedEntityId & ((1 << CompressedIdBitDepth) - 1);
+        return { entityId, classId };
+    }
+
+    int32_t GenerateSegmentationEntityId()
+    {
+        static_assert(CompressedIdBitDepth <= 31, "CompressedIdBitDepth must be less than or equal to 31");
+        static uint32_t compressedIdCounter = 1U;
+
+        const auto generatedId = aznumeric_cast<int32_t>(++compressedIdCounter % (1 << RGL::Utils::CompressedIdBitDepth));
+
+        return generatedId;
+    }
+
     void ErrorCheck(const rgl_status_t& status, const char* file, int line, bool* successDest)
     {
         static const AZStd::unordered_set<rgl_status_t> UnrecoverableStatuses = {

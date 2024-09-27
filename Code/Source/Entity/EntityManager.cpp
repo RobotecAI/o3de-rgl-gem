@@ -15,12 +15,15 @@
 
 #include <Entity/EntityManager.h>
 #include <LmbrCentral/Scripting/TagComponentBus.h>
+#include <RGL/RGLBus.h>
+#include <ROS2/Lidar/SegmentationUtils.h>
 #include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
     EntityManager::EntityManager(AZ::EntityId entityId)
         : m_entityId{ entityId }
+        , m_segmentationEntityId{ Utils::GenerateSegmentationEntityId() }
     {
         AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
@@ -56,10 +59,12 @@ namespace RGL
         AZ::NonUniformScaleRequestBus::EventResult(m_nonUniformScale, entityId, &AZ::NonUniformScaleRequests::GetScale);
 
         m_isPoseUpdateNeeded = true;
+        ROS2::ClassSegmentationNotificationBus::Handler::BusConnect();
     }
 
     void EntityManager::OnEntityDeactivated(const AZ::EntityId& entityId)
     {
+        ROS2::ClassSegmentationNotificationBus::Handler::BusDisconnect();
         m_transformChangedHandler.Disconnect();
         m_nonUniformScaleChangedHandler.Disconnect();
     }
@@ -85,5 +90,20 @@ namespace RGL
         }
 
         m_isPoseUpdateNeeded = false;
+    }
+
+    void EntityManager::OnSegmentationClassesReady()
+    {
+        m_packedRglEntityId = CalculatePackedRglEntityId();
+        for (Wrappers::RglEntity& entity : m_entities)
+        {
+            entity.SetId(m_packedRglEntityId.value());
+        }
+    }
+
+    int32_t EntityManager::CalculatePackedRglEntityId() const
+    {
+        return Utils::PackRglEntityId(
+            ROS2::SegmentationIds{ m_segmentationEntityId, ROS2::SegmentationUtils::FetchClassIdForEntity(m_entityId) });
     }
 } // namespace RGL

@@ -70,5 +70,7 @@ namespace RGL
         Wrappers::RglTexture m_rglTexture = Wrappers::RglTexture::CreateInvalid();
 
         TerrainData m_terrainData;
+
+        int32_t m_packedRglEntityId;
     };
 } // namespace RGL
