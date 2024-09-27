@@ -21,7 +21,7 @@ elseif($ENV{ROS_DISTRO} STREQUAL "jazzy")
     set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64-jazzy)
 else()
     message(FATAL_ERROR "ROS not found or ROS distro not supported. Please use one of {humble, jazzy}.")
-endif()
+endif ()
 set(RGL_LINUX_ZIP_FILENAME ${RGL_LINUX_ZIP_FILENAME_BASE}.zip)
 
 set(RGL_LINUX_ZIP_URL https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/${RGL_LINUX_ZIP_FILENAME})
@@ -49,15 +49,15 @@ if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
     if (NOT EXISTS ${DEST_SO_DIR}/${SO_FILENAME})
         # Download the RGL archive files
         file(DOWNLOAD
-            ${RGL_LINUX_ZIP_URL}
-            ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
+                ${RGL_LINUX_ZIP_URL}
+                ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
         )
 
         # Extract the contents of the downloaded archive files
         file(ARCHIVE_EXTRACT INPUT ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
-            DESTINATION ${DEST_SO_DIR}
-            PATTERNS ${SO_REL_PATH}
-            VERBOSE
+                DESTINATION ${DEST_SO_DIR}
+                PATTERNS ${SO_REL_PATH}
+                VERBOSE
         )
 
         # Move the extracted files to their desired locations
@@ -70,12 +70,12 @@ if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
     # Download API headers if not exist
     if (NOT EXISTS ${DEST_API_DIR}/core.h OR NOT EXISTS ${DEST_API_DIR}/extensions/ros2.h)
         file(DOWNLOAD
-            ${RGL_SRC_ROOT_URL}/include/rgl/api/core.h
-            ${DEST_API_DIR}/core.h
+                ${RGL_SRC_ROOT_URL}/include/rgl/api/core.h
+                ${DEST_API_DIR}/core.h
         )
         file(DOWNLOAD
-            ${RGL_SRC_ROOT_URL}/extensions/ros2/include/rgl/api/extensions/ros2.h
-            ${DEST_API_DIR}/extensions/ros2.h
+                ${RGL_SRC_ROOT_URL}/extensions/ros2/include/rgl/api/extensions/ros2.h
+                ${DEST_API_DIR}/extensions/ros2.h
         )
     endif ()
 
