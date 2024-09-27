@@ -11,10 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set(RGL_VERSION 0.18.0)
+set(RGL_VERSION 0.19.0)
 set(RGL_TAG v${RGL_VERSION})
 
-set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64)
+# Determine RGL binary to download based on ROS distro
+if($ENV{ROS_DISTRO} STREQUAL "humble")
+    set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64-humble)
+elseif($ENV{ROS_DISTRO} STREQUAL "jazzy")
+    set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64-jazzy)
+else()
+    message(FATAL_ERROR "ROS not found or ROS distro not supported. Please use one of {humble, jazzy}.")
+endif()
 set(RGL_LINUX_ZIP_FILENAME ${RGL_LINUX_ZIP_FILENAME_BASE}.zip)
 
 set(RGL_LINUX_ZIP_URL https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/${RGL_LINUX_ZIP_FILENAME})
