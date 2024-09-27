@@ -15,7 +15,14 @@
 set(RGL_VERSION 0.15.0)
 set(RGL_TAG v${RGL_VERSION})
 
-set(RGL_LINUX_ZIP_FILENAME_BASE Linux-x64)
+# Determine RGL binary to download based on ROS distro
+if($ENV{ROS_DISTRO} STREQUAL "humble")
+    set(RGL_LINUX_ZIP_FILENAME_BASE Linux-x64)
+elseif($ENV{ROS_DISTRO} STREQUAL "jazzy")
+    set(RGL_LINUX_ZIP_FILENAME_BASE Linux-x64-jazzy)
+else()
+    message(FATAL_ERROR "ROS not found or ROS distro not supported. Please use one of {humble, jazzy}.")
+endif()
 set(RGL_LINUX_ZIP_FILENAME ${RGL_LINUX_ZIP_FILENAME_BASE}.zip)
 
 set(RGL_LINUX_ZIP_URL https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/${RGL_LINUX_ZIP_FILENAME})
