@@ -27,7 +27,7 @@ set(RGL_LINUX_ZIP_FILENAME ${RGL_LINUX_ZIP_FILENAME_BASE}.zip)
 set(RGL_LINUX_ZIP_URL https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/${RGL_LINUX_ZIP_FILENAME})
 set(RGL_SRC_ROOT_URL https://raw.githubusercontent.com/RobotecAI/RobotecGPULidar/${RGL_TAG})
 
-set(DEST_SO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/RobotecGPULidar)
+set(DEST_SO_DIR ${CMAKE_CURRENT_BINARY_DIR}/3rdParty/RobotecGPULidar)
 set(DEST_API_DIR ${DEST_SO_DIR}/include/rgl/api)
 
 set(SO_FILENAME libRobotecGPULidar.so)
@@ -41,8 +41,9 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # (each profile would execute the file download, extraction and removal without it).
 # Note: This check does not provide a full assurance (not atomic) but is good enough
 #       since this is a Clion-specific issue.
-if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
-    FILE(TOUCH ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
+set(RGL_DOWNLOAD_IN_PROGRESS_FILE ${CMAKE_CURRENT_BINARY_DIR}/RGL_DOWNLOAD_IN_PROGRESS)
+if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
+    FILE(TOUCH ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
 
     # Download the RGL archive files
     file(DOWNLOAD
@@ -73,8 +74,7 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
 
     # Remove the unwanted byproducts
     file(REMOVE ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME})
-
-    file(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
+    file(REMOVE ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
 else ()
     message(WARNING "Omitting the RobotecGPULidar library download. This is intended when using the Clion multi-profile"
     " project reload. This may also happen due to interruption of previous project configurations. If you have"
