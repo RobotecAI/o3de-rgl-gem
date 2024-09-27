@@ -45,30 +45,41 @@ set(RGL_DOWNLOAD_IN_PROGRESS_FILE ${CMAKE_CURRENT_BINARY_DIR}/RGL_DOWNLOAD_IN_PR
 if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
     FILE(TOUCH ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
 
-    # Download the RGL archive files
-    file(DOWNLOAD
+    # Download RGL binary if not exists
+    if (NOT EXISTS ${DEST_SO_DIR}/${SO_FILENAME})
+        # Download the RGL archive files
+        file(DOWNLOAD
             ${RGL_LINUX_ZIP_URL}
             ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
-            )
+        )
 
-
-    file(DOWNLOAD
-            ${RGL_SRC_ROOT_URL}/include/rgl/api/core.h
-            ${DEST_API_DIR}/core.h
-            )
-
-    # Extract the contents of the downloaded archive files
-    file(ARCHIVE_EXTRACT INPUT ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
+        # Extract the contents of the downloaded archive files
+        file(ARCHIVE_EXTRACT INPUT ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
             DESTINATION ${DEST_SO_DIR}
             PATTERNS ${SO_REL_PATH}
             VERBOSE
-            )
+        )
 
-    # Move the extracted files to their desired locations
-    file(RENAME ${DEST_SO_DIR}/${SO_REL_PATH} ${DEST_SO_DIR}/${SO_FILENAME})
+        # Move the extracted files to their desired locations
+        file(RENAME ${DEST_SO_DIR}/${SO_REL_PATH} ${DEST_SO_DIR}/${SO_FILENAME})
+
+        # Remove the unwanted byproducts
+        file(REMOVE ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME})
+    endif ()
+
+    # Download API headers if not exist
+    if (NOT EXISTS ${DEST_API_DIR}/core.h OR NOT EXISTS ${DEST_API_DIR}/extensions/ros2.h)
+        file(DOWNLOAD
+            ${RGL_SRC_ROOT_URL}/include/rgl/api/core.h
+            ${DEST_API_DIR}/core.h
+        )
+        file(DOWNLOAD
+            ${RGL_SRC_ROOT_URL}/extensions/ros2/include/rgl/api/extensions/ros2.h
+            ${DEST_API_DIR}/extensions/ros2.h
+        )
+    endif ()
 
     # Remove the unwanted byproducts
-    file(REMOVE ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME})
     file(REMOVE ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
 else ()
     message(WARNING "Omitting the RobotecGPULidar library download. This is intended when using the Clion multi-profile"
