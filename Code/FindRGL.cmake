@@ -89,7 +89,7 @@ if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
                 ${DEST_API_DIR}/core.h
         )
         file(DOWNLOAD
-                ${RGL_SRC_ROOT_URL}/extensions/ros2/include/rgl/api/extensions/ros2.h
+                ${RGL_SRC_ROOT_URL}/include/rgl/api/extensions/ros2.h
                 ${DEST_API_DIR}/extensions/ros2.h
         )
 
