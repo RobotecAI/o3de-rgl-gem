@@ -98,7 +98,8 @@ if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
 else ()
     message(WARNING "Omitting the RobotecGPULidar library download. This is intended when using the Clion multi-profile"
             " project reload. This may also happen due to interruption of previous project configurations. If you have"
-            " any issues related to the libRobotecGPULidar.so file please clear cmake cache before next build attempt."
+            " any issues related to the libRobotecGPULidar.so file please clear cmake cache for this gem"
+            " ({build_dir}/External/o3de-rgl-gem-*) before next build attempt."
     )
 endif ()
 
