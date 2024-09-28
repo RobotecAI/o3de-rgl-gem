@@ -38,9 +38,6 @@ set(DEST_API_DIR ${DEST_SO_DIR}/include/rgl/api)
 
 set(SO_FILENAME libRobotecGPULidar.so)
 
-# Paths relative to the .zip file root.
-set(SO_REL_PATH ${SO_FILENAME})
-
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # This check is performed to mitigate Clion multi-profile project reload issues
@@ -74,12 +71,9 @@ if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
         # Extract the contents of the downloaded archive files
         file(ARCHIVE_EXTRACT INPUT ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
                 DESTINATION ${DEST_SO_DIR}
-                PATTERNS ${SO_REL_PATH}
+                PATTERNS ${SO_FILENAME}
                 VERBOSE
         )
-
-        # Move the extracted files to their desired locations
-        file(RENAME ${DEST_SO_DIR}/${SO_REL_PATH} ${DEST_SO_DIR}/${SO_FILENAME})
 
         # Remove the unwanted byproducts
         file(REMOVE ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME})
