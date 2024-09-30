@@ -43,6 +43,7 @@ namespace RGL
         void OnModelReady(
             const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset,
             [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model) override;
+        void OnModelPreDestroy() override;
 
         // AZ::Render::MaterialComponentNotificationBus implementation overrides
         void OnMaterialsUpdated(const AZ::Render::MaterialAssignmentMap& materials) override;

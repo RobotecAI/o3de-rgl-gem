@@ -37,7 +37,7 @@ namespace RGL
 
     void ActorEntityManager::Update()
     {
-        if (RGLInterface::Get()->GetSceneConfiguration().m_isSkinnedMeshUpdateEnabled)
+        if (!m_entities.empty() && RGLInterface::Get()->GetSceneConfiguration().m_isSkinnedMeshUpdateEnabled)
         {
             UpdateMeshVertices();
         }
@@ -97,6 +97,11 @@ namespace RGL
         }
 
         m_isPoseUpdateNeeded = true;
+    }
+
+    void ActorEntityManager::OnActorInstanceDestroyed(EMotionFX::ActorInstance* actorInstance)
+    {
+        m_entities.clear();
     }
 
     void ActorEntityManager::UpdateMeshVertices()
