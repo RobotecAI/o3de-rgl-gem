@@ -87,12 +87,10 @@ namespace RGL
 
     void LidarRaycaster::ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags)
     {
-        m_rglRaycastResults.m_fields.clear();
-        m_rglRaycastResults.m_xyz.clear();
-        m_rglRaycastResults.m_distance.clear();
-
+        m_rglRaycastResults = {};
         m_raycastResults = ROS2::RaycastResults(flags);
 
+        m_rglRaycastResults.m_fields = { RGL_FIELD_IS_HIT_I32 };
         if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::Point, flags))
         {
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_XYZ_VEC3_F32);
@@ -113,10 +111,13 @@ namespace RGL
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_ENTITY_ID_I32);
         }
 
-        m_graph.ConfigureYieldNodes(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
+        m_graph.ConfigureFieldNodes(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
 
         m_graph.SetIsCompactEnabled(ShouldEnableCompact());
-        m_graph.SetIsPcPublishingEnabled(ShouldEnablePcPublishing());
+        if (m_graph.IsPublisherConfigured())
+        {
+            m_graph.SetIsPcPublishingEnabled(CanHandlePublishing());
+        }
     }
 
     AZ::Outcome<ROS2::RaycastResults, const char*> LidarRaycaster::PerformRaycast(const AZ::Transform& lidarTransform)
@@ -216,19 +217,19 @@ namespace RGL
 
         // We need to configure if points should be compacted to minimize the CPU operations when retrieving raycast results.
         m_graph.SetIsCompactEnabled(ShouldEnableCompact());
-        m_graph.SetIsPcPublishingEnabled(ShouldEnablePcPublishing());
     }
 
     void LidarRaycaster::ConfigurePointCloudPublisher(
         const AZStd::string& topicName, const AZStd::string& frameId, const ROS2::QoS& qosPolicy)
     {
         m_graph.ConfigurePcPublisherNode(topicName, frameId, qosPolicy);
-        m_graph.SetIsPcPublishingEnabled(ShouldEnablePcPublishing());
+        m_graph.SetIsPcPublishingEnabled(CanHandlePublishing());
     }
 
     bool LidarRaycaster::CanHandlePublishing()
     {
-        return m_graph.IsPcPublishingEnabled();
+        return !m_raycastResults->IsFieldPresent<ROS2::RaycastResultFlags::Range>() &&
+            !m_raycastResults->IsFieldPresent<ROS2::RaycastResultFlags::SegmentationData>();
     }
 
     AZStd::optional<size_t> LidarRaycaster::GetRglResultsSize(
@@ -289,11 +290,5 @@ namespace RGL
     bool LidarRaycaster::ShouldEnableCompact() const
     {
         return !m_raycastResults->IsFieldPresent<ROS2::RaycastResultFlags::Range>() && !m_isMaxRangeEnabled;
-    }
-
-    bool LidarRaycaster::ShouldEnablePcPublishing() const
-    {
-        return m_graph.IsPublisherConfigured() && !m_raycastResults->IsFieldPresent<ROS2::RaycastResultFlags::Range>() &&
-            !m_isMaxRangeEnabled;
     }
 } // namespace RGL

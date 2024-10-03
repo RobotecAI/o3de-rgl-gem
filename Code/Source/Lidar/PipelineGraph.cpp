@@ -27,10 +27,9 @@ namespace RGL
         RGL_CHECK(rgl_node_points_compact_by_field(&m_nodes.m_pointsCompact, RGL_FIELD_IS_HIT_I32));
         ConfigureAngularNoiseNode(0.0f);
         ConfigureDistanceNoiseNode(0.0f, 0.0f);
-        ConfigureYieldNodes(DefaultFields.data(), DefaultFields.size());
+        ConfigureFieldNodes(DefaultFields.data(), DefaultFields.size());
 
         ConfigurePcTransformNode(AZ::Matrix3x4::CreateIdentity());
-        RGL_CHECK(rgl_node_points_format(&m_nodes.m_pcPublishFormat, DefaultFields.data(), aznumeric_cast<int32_t>(DefaultFields.size())));
 
         // Non-conditional connections
         RGL_CHECK(rgl_graph_node_add_child(m_nodes.m_rayPoses, m_nodes.m_rayRanges));
@@ -77,10 +76,12 @@ namespace RGL
     {
         return IsFeatureEnabled(PipelineFeatureFlags::PointsCompact);
     }
+
     bool PipelineGraph::IsPcPublishingEnabled() const
     {
         return IsFeatureEnabled(PipelineFeatureFlags::PointCloudPublishing);
     }
+
     bool PipelineGraph::IsNoiseEnabled() const
     {
         return IsFeatureEnabled(PipelineFeatureFlags::Noise);
@@ -97,11 +98,12 @@ namespace RGL
         RGL_CHECK(rgl_node_rays_set_range(&m_nodes.m_rayRanges, &range, 1));
     }
 
-    void PipelineGraph::ConfigureYieldNodes(const rgl_field_t* fields, size_t size)
+    void PipelineGraph::ConfigureFieldNodes(const rgl_field_t* fields, size_t size)
     {
         RGL_CHECK(rgl_node_points_yield(&m_nodes.m_pointsYield, fields, aznumeric_cast<int32_t>(size)));
         RGL_CHECK(rgl_node_points_yield(&m_nodes.m_rayTraceYield, fields, aznumeric_cast<int32_t>(size)));
         RGL_CHECK(rgl_node_points_yield(&m_nodes.m_compactYield, fields, aznumeric_cast<int32_t>(size)));
+        RGL_CHECK(rgl_node_points_format(&m_nodes.m_pcPublishFormat, fields, aznumeric_cast<int32_t>(size)));
     }
 
     void PipelineGraph::ConfigureLidarTransformNode(const AZ::Matrix3x4& lidarTransform)
@@ -142,9 +144,13 @@ namespace RGL
 
         if (FirstConfiguration)
         {
-            // clang-format off
-            AddConditionalConnection(m_nodes.m_pcPublishFormat, m_nodes.m_pointCloudPublish, [](const PipelineGraph& graph){ return graph.IsPcPublishingEnabled(); });
-            // clang-format on
+            AddConditionalConnection(
+                m_nodes.m_pcPublishFormat,
+                m_nodes.m_pointCloudPublish,
+                [](const PipelineGraph& graph)
+                {
+                    return graph.IsPcPublishingEnabled();
+                });
         }
     }
 
@@ -197,9 +203,16 @@ namespace RGL
             case RGL_FIELD_ENTITY_ID_I32:
                 success = success && GetResult(results.m_packedRglEntityId, RGL_FIELD_ENTITY_ID_I32);
                 break;
+            case RGL_FIELD_IS_HIT_I32: // Not needed.
+                continue;
             default:
                 success = false;
-                AZ_Assert(false, "Invalid result field type!");
+                AZ_Assert(false, AZStd::string::format("Invalid result field type with RGL id %i!", field).c_str());
+                break;
+            }
+
+            if (!success)
+            {
                 break;
             }
         }
@@ -243,18 +256,10 @@ namespace RGL
             return graph.IsPcPublishingEnabled();
         };
 
-        // clang-format off
         AddConditionalNode(m_nodes.m_angularNoise, m_nodes.m_lidarTransform, m_nodes.m_rayTrace, NoiseCondition);
         AddConditionalNode(m_nodes.m_distanceNoise, m_nodes.m_rayTrace, m_nodes.m_rayTraceYield, NoiseCondition);
         AddConditionalNode(m_nodes.m_pointsCompact, m_nodes.m_rayTraceYield, m_nodes.m_compactYield, CompactCondition);
         AddConditionalConnection(m_nodes.m_compactYield, m_nodes.m_pointCloudTransform, PublishingCondition);
-        // clang-format on
-        if (IsPublisherConfigured())
-        {
-            // clang-format off
-            AddConditionalConnection( m_nodes.m_pcPublishFormat, m_nodes.m_pointCloudPublish, PublishingCondition);
-            // clang-format on
-        }
     }
 
     void PipelineGraph::UpdateConnections()
@@ -269,9 +274,13 @@ namespace RGL
     {
         AddConditionalConnection(parent, node, condition);
         AddConditionalConnection(node, child, condition);
-        // clang-format off
-        AddConditionalConnection(parent, child, [condition](const PipelineGraph& pipelineGraph){ return !condition(pipelineGraph); });
-        // clang-format on
+        AddConditionalConnection(
+            parent,
+            child,
+            [condition](const PipelineGraph& pipelineGraph)
+            {
+                return !condition(pipelineGraph);
+            });
     }
 
     void PipelineGraph::AddConditionalConnection(rgl_node_t parent, rgl_node_t child, const ConditionType& condition)
