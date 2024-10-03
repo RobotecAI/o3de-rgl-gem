@@ -63,8 +63,8 @@ namespace RGL
         void OnEntityContextReset() override;
 
         // LidarNotificationBus overides
-        void OnLidarCreated([[maybe_unused]] const ROS2::LidarId& lidarId) override;
-        void OnLidarDestroyed([[maybe_unused]] const ROS2::LidarId& lidarId) override;
+        void OnLidarCreated() override;
+        void OnLidarDestroyed() override;
 
     private:
         void ProcessEntity(const AZ::Entity& entity);

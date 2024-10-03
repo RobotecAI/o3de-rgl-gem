@@ -25,7 +25,7 @@ namespace RGL
         : m_uuid{ uuid }
     {
         ROS2::LidarRaycasterRequestBus::Handler::BusConnect(ROS2::LidarId(uuid));
-        LidarSystemNotificationBus::Broadcast(&LidarSystemNotifications::OnLidarCreated, ROS2::LidarId(uuid));
+        LidarSystemNotificationBus::Broadcast(&LidarSystemNotifications::OnLidarCreated);
     }
 
     LidarRaycaster::LidarRaycaster(LidarRaycaster&& other)
@@ -48,7 +48,7 @@ namespace RGL
         if (!m_uuid.IsNull())
         {
             ROS2::LidarRaycasterRequestBus::Handler::BusDisconnect();
-            LidarSystemNotificationBus::Broadcast(&LidarSystemNotifications::OnLidarDestroyed, ROS2::LidarId(m_uuid));
+            LidarSystemNotificationBus::Broadcast(&LidarSystemNotifications::OnLidarDestroyed);
         }
     }
 

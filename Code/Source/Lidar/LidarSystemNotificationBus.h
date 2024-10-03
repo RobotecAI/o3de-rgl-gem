@@ -32,11 +32,11 @@ namespace RGL
         static const AZ::EBusAddressPolicy AddressPolicy = AZ::EBusAddressPolicy::Single;
         //////////////////////////////////////////////////////////////////////////
 
-        virtual void OnLidarCreated([[maybe_unused]] const ROS2::LidarId& lidarId)
+        virtual void OnLidarCreated()
         {
         }
 
-        virtual void OnLidarDestroyed([[maybe_unused]] const ROS2::LidarId& lidarId)
+        virtual void OnLidarDestroyed()
         {
         }
         //////////////////////////////////////////////////////////////////////////

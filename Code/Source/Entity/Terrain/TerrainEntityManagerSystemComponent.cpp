@@ -72,12 +72,12 @@ namespace RGL
         m_terrainData.SetIsTiled(intensityConfig.m_isTiled);
     }
 
-    void TerrainEntityManagerSystemComponent::OnLidarsExist()
+    void TerrainEntityManagerSystemComponent::OnAnyLidarExists()
     {
         AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusConnect();
     }
 
-    void TerrainEntityManagerSystemComponent::OnNoLidarsExist()
+    void TerrainEntityManagerSystemComponent::OnNoLidarExists()
     {
         AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusDisconnect();
         m_terrainData.Clear();

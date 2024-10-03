@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <AzCore/Component/TickBus.h>
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentConstants.h>
+#include <AzCore/Component/TickBus.h>
 #include <AzFramework/Entity/EntityContext.h>
 #include <AzFramework/Entity/GameEntityContextBus.h>
 #include <Entity/ActorEntityManager.h>
@@ -151,7 +151,7 @@ namespace RGL
         m_rglLidarSystem.Clear();
     }
 
-    void RGLSystemComponent::OnLidarCreated([[maybe_unused]] const ROS2::LidarId& lidarId)
+    void RGLSystemComponent::OnLidarCreated()
     {
         ++m_activeLidarCount;
 
@@ -160,7 +160,7 @@ namespace RGL
             return;
         }
 
-        RGLNotificationBus::Broadcast(&RGLNotifications::OnLidarsExist);
+        RGLNotificationBus::Broadcast(&RGLNotifications::OnAnyLidarExists);
         for (auto entityIdIt = m_unprocessedEntities.begin(); entityIdIt != m_unprocessedEntities.end();)
         {
             AZ::Entity* entity = nullptr;
@@ -171,7 +171,7 @@ namespace RGL
         }
     }
 
-    void RGLSystemComponent::OnLidarDestroyed(const ROS2::LidarId& lidarId)
+    void RGLSystemComponent::OnLidarDestroyed()
     {
         --m_activeLidarCount;
 
@@ -180,12 +180,12 @@ namespace RGL
             return;
         }
 
-        RGLNotificationBus::Broadcast(&RGLNotifications::OnNoLidarsExist);
-        for (auto it = m_entityManagers.begin(); it != m_entityManagers.end();)
+        RGLNotificationBus::Broadcast(&RGLNotifications::OnNoLidarExists);
+        for (auto& m_entityManager : m_entityManagers)
         {
-            m_unprocessedEntities.emplace(it->first);
-            it = m_entityManagers.erase(it);
+            m_unprocessedEntities.emplace(m_entityManager.first);
         }
+        m_entityManagers.clear();
         m_modelLibrary.Clear();
     }
 
