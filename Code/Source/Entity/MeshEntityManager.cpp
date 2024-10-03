@@ -26,6 +26,12 @@ namespace RGL
     MeshEntityManager::MeshEntityManager(AZ::EntityId entityId)
         : EntityManager{ entityId }
     {
+        AZ::EntityBus::Handler::BusConnect(m_entityId);
+    }
+
+    MeshEntityManager::~MeshEntityManager()
+    {
+        AZ::EntityBus::Handler::BusDisconnect();
     }
 
     void MeshEntityManager::OnEntityActivated(const AZ::EntityId& entityId)

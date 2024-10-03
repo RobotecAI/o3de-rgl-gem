@@ -26,6 +26,7 @@ set(FILES
         Source/Lidar/LidarRaycaster.h
         Source/Lidar/LidarSystem.cpp
         Source/Lidar/LidarSystem.h
+        Source/Lidar/LidarSystemNotificationBus.h
         Source/Lidar/PipelineGraph.cpp
         Source/Lidar/PipelineGraph.h
         Source/Model/ModelLibraryBus.h

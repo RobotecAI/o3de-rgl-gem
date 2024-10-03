@@ -22,7 +22,6 @@ namespace RGL
     EntityManager::EntityManager(AZ::EntityId entityId)
         : m_entityId{ entityId }
     {
-        AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
 
     EntityManager::~EntityManager()

@@ -38,7 +38,7 @@ namespace RGL
         ActorEntityManager(ActorEntityManager&& other) = delete;
         ActorEntityManager& operator=(ActorEntityManager&& rhs) = delete;
         ActorEntityManager& operator=(const ActorEntityManager&) = delete;
-        ~ActorEntityManager() = default;
+        ~ActorEntityManager();
 
         void Update() override;
 

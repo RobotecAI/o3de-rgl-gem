@@ -33,14 +33,13 @@ namespace RGL
 
     void TerrainEntityManagerSystemComponent::Activate()
     {
-        AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusConnect();
         RGLNotificationBus::Handler::BusConnect();
     }
 
     void TerrainEntityManagerSystemComponent::Deactivate()
     {
-        RGLNotificationBus::Handler::BusDisconnect();
         AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusDisconnect();
+        RGLNotificationBus::Handler::BusDisconnect();
         m_terrainData.Clear();
         EnsureRGLEntityDestroyed();
     }
@@ -71,6 +70,18 @@ namespace RGL
         }
 
         m_terrainData.SetIsTiled(intensityConfig.m_isTiled);
+    }
+
+    void TerrainEntityManagerSystemComponent::OnAnyLidarExists()
+    {
+        AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusConnect();
+    }
+
+    void TerrainEntityManagerSystemComponent::OnNoLidarExists()
+    {
+        AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusDisconnect();
+        m_terrainData.Clear();
+        EnsureRGLEntityDestroyed();
     }
 
     void TerrainEntityManagerSystemComponent::Reflect(AZ::ReflectContext* context)

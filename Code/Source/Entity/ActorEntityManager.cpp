@@ -32,7 +32,13 @@ namespace RGL
     ActorEntityManager::ActorEntityManager(AZ::EntityId entityId)
         : EntityManager(entityId)
     {
+        AZ::EntityBus::Handler::BusConnect(m_entityId);
         EMotionFX::Integration::ActorComponentNotificationBus::Handler::BusConnect(entityId);
+    }
+
+    ActorEntityManager::~ActorEntityManager()
+    {
+        AZ::EntityBus::Handler::BusDisconnect();
     }
 
     void ActorEntityManager::Update()

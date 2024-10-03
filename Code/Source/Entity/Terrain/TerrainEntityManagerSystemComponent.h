@@ -59,6 +59,8 @@ namespace RGL
 
         // RGLNotificationBus overrides
         void OnSceneConfigurationSet(const SceneConfiguration& config) override;
+        void OnAnyLidarExists() override;
+        void OnNoLidarExists() override;
 
         void EnsureRGLEntityDestroyed();
 
