@@ -53,12 +53,12 @@ namespace RGL
 
     private:
         static AZStd::vector<rgl_vec3i> CollectIndexData(const EMotionFX::Mesh& mesh);
+        static AZStd::vector<rgl_vec3f> GetMeshVertexPositions(const EMotionFX::Mesh& mesh);
         AZStd::optional<AZStd::vector<rgl_vec2f>> CollectUvData(const EMotionFX::Mesh& mesh) const;
 
         void UpdateMaterialSlots(const EMotionFX::Actor& actor);
         void UpdateMeshVertices();
         //! Loads mesh's vertex position data into the m_tempVertexPositions buffer.
-        void LoadMeshVertexPositions(const EMotionFX::Mesh& mesh);
         bool ProcessEfxMesh(const EMotionFX::Mesh& mesh);
 
         EMotionFX::ActorInstance* m_actorInstance = nullptr;
@@ -66,7 +66,5 @@ namespace RGL
         // skinned and the mesh sharing would not be useful.
         EMotionFX::Mesh* m_emotionFxMesh;
         AZStd::vector<Wrappers::RglMesh> m_rglSubMeshes;
-
-        AZStd::vector<rgl_vec3f> m_tempVertexPositions;
     };
 } // namespace RGL

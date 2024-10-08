@@ -55,7 +55,7 @@ namespace RGL
     {
         m_actorInstance = actorInstance;
         EMotionFX::Actor* actor = actorInstance->GetActor();
-        [[maybe_unused]] const AZ::Entity* ActorEntity = actorInstance->GetEntity();
+        [[maybe_unused]] const AZ::Entity* actorEntity = actorInstance->GetEntity();
 
         static constexpr size_t LodLevel = 0U; // Highest LOD.
         static constexpr size_t NodeIdx = 0U; // Default mesh node.
@@ -92,30 +92,30 @@ namespace RGL
 
     AZStd::vector<rgl_vec3i> ActorEntityManager::CollectIndexData(const EMotionFX::Mesh& mesh)
     {
-        const size_t IndexCount = mesh.GetNumIndices();
-        const size_t TriangleCount = IndexCount / 3LU;
+        const size_t indexCount = mesh.GetNumIndices();
+        const size_t triangleCount = indexCount / 3LU;
 
         uint32* indices = mesh.GetIndices();
         AZStd::vector<rgl_vec3i> rglIndices;
-        rglIndices.reserve(TriangleCount);
+        rglIndices.reserve(triangleCount);
 
-        const size_t SubMeshCount = mesh.GetNumSubMeshes();
-        for (size_t subMeshNr = 0; subMeshNr < SubMeshCount; ++subMeshNr)
+        const size_t subMeshCount = mesh.GetNumSubMeshes();
+        for (size_t subMeshNr = 0; subMeshNr < subMeshCount; ++subMeshNr)
         {
             EMotionFX::SubMesh* subMesh = mesh.GetSubMesh(subMeshNr);
-            const size_t SubMeshIndexCount = subMesh->GetNumIndices();
-            const size_t SubMeshTriangleCount = SubMeshIndexCount / 3LU;
+            const size_t subMeshIndexCount = subMesh->GetNumIndices();
+            const size_t subMeshTriangleCount = subMeshIndexCount / 3LU;
 
-            const size_t IndexBase = subMesh->GetStartIndex();
-            for (size_t triangle = 0LU; triangle < SubMeshTriangleCount; ++triangle)
+            const size_t indexBase = subMesh->GetStartIndex();
+            for (size_t triangle = 0LU; triangle < subMeshTriangleCount; ++triangle)
             {
-                const size_t TriangleFirstIndex = triangle * 3LU + IndexBase;
+                const size_t triangleFirstIndex = triangle * 3LU + indexBase;
 
                 // Note: We cast the uint32 to int32_t but this conversion is unlikely to result in negative values.
                 rglIndices.push_back({
-                    aznumeric_cast<int32_t>(indices[TriangleFirstIndex]),
-                    aznumeric_cast<int32_t>(indices[TriangleFirstIndex + 1LU]),
-                    aznumeric_cast<int32_t>(indices[TriangleFirstIndex + 2LU]),
+                    aznumeric_cast<int32_t>(indices[triangleFirstIndex]),
+                    aznumeric_cast<int32_t>(indices[triangleFirstIndex + 1LU]),
+                    aznumeric_cast<int32_t>(indices[triangleFirstIndex + 2LU]),
                 });
             }
         }
@@ -123,21 +123,32 @@ namespace RGL
         return rglIndices;
     }
 
+    AZStd::vector<rgl_vec3f> ActorEntityManager::GetMeshVertexPositions(const EMotionFX::Mesh& mesh)
+    {
+        const size_t vertexCount = mesh.GetNumVertices();
+        const auto* vertices = static_cast<const AZ::Vector3*>(mesh.FindVertexData(EMotionFX::Mesh::ATTRIB_POSITIONS));
+        const auto vertexSpan = AZStd::span(vertices, vertexCount);
+
+        AZStd::vector<rgl_vec3f> rglVertices(vertexCount);
+        AZStd::transform(vertexSpan.begin(), vertexSpan.end(), rglVertices.begin(), Utils::RglVector3FromAzVec3f);
+        return rglVertices;
+    }
+
     AZStd::optional<AZStd::vector<rgl_vec2f>> ActorEntityManager::CollectUvData(const EMotionFX::Mesh& mesh) const
     {
-        const size_t VertexCount = mesh.GetNumVertices();
-        AZStd::vector<rgl_vec2f> rglUvs(VertexCount);
+        const size_t vertexCount = mesh.GetNumVertices();
+        AZStd::vector<rgl_vec2f> rglUvs(vertexCount);
 
         const auto* uvs = static_cast<const AZ::Vector2*>(mesh.FindVertexData(EMotionFX::Mesh::ATTRIB_UVCOORDS));
         if (uvs == nullptr)
         {
-            AZ_Error(
+            AZ_Warning(
                 __func__, false, "Unable to collect UV data from an actor component of entity with ID: %s.", m_entityId.ToString().c_str());
 
             return AZStd::nullopt;
         }
 
-        auto uvSpan = AZStd::span(uvs, VertexCount);
+        auto uvSpan = AZStd::span(uvs, vertexCount);
         AZStd::transform(uvSpan.begin(), uvSpan.end(), rglUvs.begin(), Utils::RglVec2fFromAzVector2);
         return rglUvs;
     }
@@ -170,31 +181,21 @@ namespace RGL
 
         m_actorInstance->UpdateMeshDeformers(0.0f);
 
-        LoadMeshVertexPositions(*m_emotionFxMesh);
+        const auto vertexPositions = GetMeshVertexPositions(*m_emotionFxMesh);
         const size_t subMeshCount = m_emotionFxMesh->GetNumSubMeshes();
         for (size_t subMeshNr = 0; subMeshNr < subMeshCount; ++subMeshNr)
         {
             const EMotionFX::SubMesh* subMesh = m_emotionFxMesh->GetSubMesh(subMeshNr);
-            const size_t VertexBase = subMesh->GetStartVertex();
-            const size_t SubMeshVertexCount = subMesh->GetNumVertices();
+            const size_t vertexBase = subMesh->GetStartVertex();
+            const size_t subMeshVertexCount = subMesh->GetNumVertices();
 
-            m_rglSubMeshes[subMeshNr].UpdateVertices(m_tempVertexPositions.data() + VertexBase, SubMeshVertexCount);
+            m_rglSubMeshes[subMeshNr].UpdateVertices(vertexPositions.data() + vertexBase, subMeshVertexCount);
         }
-    }
-
-    void ActorEntityManager::LoadMeshVertexPositions(const EMotionFX::Mesh& mesh)
-    {
-        const size_t VertexCount = mesh.GetNumVertices();
-        const auto* vertices = static_cast<const AZ::Vector3*>(mesh.FindVertexData(EMotionFX::Mesh::ATTRIB_POSITIONS));
-        const auto vertexSpan = AZStd::span(vertices, VertexCount);
-
-        m_tempVertexPositions.resize(VertexCount);
-        AZStd::transform(vertexSpan.begin(), vertexSpan.end(), m_tempVertexPositions.begin(), Utils::RglVector3FromAzVec3f);
     }
 
     bool ActorEntityManager::ProcessEfxMesh(const EMotionFX::Mesh& mesh)
     {
-        LoadMeshVertexPositions(mesh);
+        const auto vertexPositions = GetMeshVertexPositions(mesh);
 
         const size_t subMeshCount = mesh.GetNumSubMeshes();
         const auto indices = CollectIndexData(mesh);
@@ -202,20 +203,20 @@ namespace RGL
         for (size_t subMeshNr = 0; subMeshNr < subMeshCount; ++subMeshNr)
         {
             const EMotionFX::SubMesh* subMesh = mesh.GetSubMesh(subMeshNr);
-            const size_t VertexBase = subMesh->GetStartVertex();
-            const size_t VertexCount = subMesh->GetNumVertices();
+            const size_t vertexBase = subMesh->GetStartVertex();
+            const size_t vertexCount = subMesh->GetNumVertices();
 
-            const size_t IndexBase = subMesh->GetStartIndex() / 3U; // RGL uses index triples.
-            const size_t IndexCount = subMesh->GetNumIndices() / 3U;
+            const size_t indexBase = subMesh->GetStartIndex() / 3U; // RGL uses index triples.
+            const size_t indexCount = subMesh->GetNumIndices() / 3U;
 
             auto rglMesh =
-                Wrappers::RglMesh(m_tempVertexPositions.data() + VertexBase, VertexCount, indices.data() + IndexBase, IndexCount);
+                Wrappers::RglMesh(vertexPositions.data() + vertexBase, vertexCount, indices.data() + indexBase, indexCount);
 
             if (rglMesh.IsValid())
             {
                 if (uvData.has_value())
                 {
-                    rglMesh.SetTextureCoordinates(uvData->data() + VertexBase, VertexCount);
+                    rglMesh.SetTextureCoordinates(uvData->data() + vertexBase, vertexCount);
                 }
 
                 m_rglSubMeshes.push_back(AZStd::move(rglMesh));
@@ -233,7 +234,7 @@ namespace RGL
             }
         }
 
-        m_rglSubMeshes.reserve(m_rglSubMeshes.size());
+        m_entities.reserve(m_rglSubMeshes.size());
         for (size_t i = 0; i < m_rglSubMeshes.size(); ++i)
         {
             if (Wrappers::RglEntity subMeshEntity(m_rglSubMeshes[i]); subMeshEntity.IsValid())
