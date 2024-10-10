@@ -14,22 +14,23 @@
  */
 #pragma once
 
-#include <Entity/EntityManager.h>
-#include <Integration/ActorComponentBus.h>
-#include <rgl/api/core.h>
+#include <AtomLyIntegration/CommonFeatures/Material/MaterialComponentBus.h>
 #include <AzCore/std/containers/vector.h>
+#include <Entity/MaterialEntityManager.h>
+#include <Integration/ActorComponentBus.h>
 #include <Wrappers/RglMesh.h>
+#include <rgl/api/core.h>
 
 namespace EMotionFX
 {
     class Mesh;
     class ActorInstance;
-}
+} // namespace EMotionFX
 
 namespace RGL
 {
     class ActorEntityManager
-        : public EntityManager
+        : public MaterialEntityManager
         , public EMotionFX::Integration::ActorComponentNotificationBus::Handler
     {
     public:
@@ -47,17 +48,23 @@ namespace RGL
         void OnActorInstanceCreated(EMotionFX::ActorInstance* actorInstance) override;
         void OnActorInstanceDestroyed(EMotionFX::ActorInstance* actorInstance) override;
 
+        // AZ::EntityBus::Handler implementation overrides
+        void OnEntityDeactivated(const AZ::EntityId& entityId) override;
+
     private:
+        static AZStd::vector<rgl_vec3i> CollectIndexData(const EMotionFX::Mesh& mesh);
+        static AZStd::vector<rgl_vec3f> GetMeshVertexPositions(const EMotionFX::Mesh& mesh);
+        AZStd::optional<AZStd::vector<rgl_vec2f>> CollectUvData(const EMotionFX::Mesh& mesh) const;
+
+        void UpdateMaterialSlots(const EMotionFX::Actor& actor);
+        void UpdateMeshVertices();
+        //! Loads mesh's vertex position data into the m_tempVertexPositions buffer.
+        bool ProcessEfxMesh(const EMotionFX::Mesh& mesh);
+
         EMotionFX::ActorInstance* m_actorInstance = nullptr;
         // We do not use the ModelLibrary since the actor mesh is
         // skinned and the mesh sharing would not be useful.
-        AZStd::vector<EMotionFX::Mesh*> m_emotionFxMeshes;
-        AZStd::vector<Wrappers::RglMesh> m_rglMeshes;
-        AZStd::vector<rgl_vec3f> m_positions;
-
-        void UpdateMeshVertices();
-        void UpdateVertexPositions(const EMotionFX::Mesh& mesh);
-        AZStd::vector<rgl_vec3i> CollectIndexData(const EMotionFX::Mesh& mesh);
-        Wrappers::RglMesh EMotionFXMeshToRglMesh(const EMotionFX::Mesh& mesh);
+        EMotionFX::Mesh* m_emotionFxMesh;
+        AZStd::vector<Wrappers::RglMesh> m_rglSubMeshes;
     };
 } // namespace RGL

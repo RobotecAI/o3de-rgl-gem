@@ -98,4 +98,9 @@ namespace RGL::Utils
     {
         return { azVector.GetX(), azVector.GetY(), azVector.GetZ() };
     }
+
+    rgl_vec2f RglVec2fFromAzVector2(const AZ::Vector2& azVector)
+    {
+        return { azVector.GetX(), azVector.GetY() };
+    }
 } // namespace RGL::Utils

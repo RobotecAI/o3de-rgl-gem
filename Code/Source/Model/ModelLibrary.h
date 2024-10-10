@@ -14,6 +14,7 @@
  */
 #pragma once
 
+#include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/std/containers/unordered_map.h>
 #include <Model/ModelLibraryBus.h>
 #include <Wrappers/RglMesh.h>
