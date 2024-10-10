@@ -33,7 +33,6 @@ namespace RGL
     //! This is to allow for further overrides.
     class EntityManager
         : public AZ::EntityBus::Handler
-        , public ROS2::ClassSegmentationNotificationBus::Handler
     {
     public:
         explicit EntityManager(AZ::EntityId entityId);
@@ -53,15 +52,13 @@ namespace RGL
         //! Updates poses of all RGL entities managed by this EntityManager.
         virtual void UpdatePose();
 
-        //! ROS2::ClassSegmentationNotificationBus overrides
-        void OnSegmentationClassesReady() override;
-
         AZ::EntityId m_entityId;
         AZStd::vector<Wrappers::RglEntity> m_entities;
         AZStd::optional<int32_t> m_packedRglEntityId;
         bool m_isPoseUpdateNeeded{ false };
 
     private:
+        void SetPackedRglEntityId();
         int32_t CalculatePackedRglEntityId() const;
 
         // clang-format off

@@ -58,12 +58,11 @@ namespace RGL
         AZ::NonUniformScaleRequestBus::EventResult(m_nonUniformScale, entityId, &AZ::NonUniformScaleRequests::GetScale);
 
         m_isPoseUpdateNeeded = true;
-        ROS2::ClassSegmentationNotificationBus::Handler::BusConnect();
+        SetPackedRglEntityId();
     }
 
     void EntityManager::OnEntityDeactivated(const AZ::EntityId& entityId)
     {
-        ROS2::ClassSegmentationNotificationBus::Handler::BusDisconnect();
         m_transformChangedHandler.Disconnect();
         m_nonUniformScaleChangedHandler.Disconnect();
     }
@@ -91,7 +90,7 @@ namespace RGL
         m_isPoseUpdateNeeded = false;
     }
 
-    void EntityManager::OnSegmentationClassesReady()
+    void EntityManager::SetPackedRglEntityId()
     {
         m_packedRglEntityId = CalculatePackedRglEntityId();
         for (Wrappers::RglEntity& entity : m_entities)
