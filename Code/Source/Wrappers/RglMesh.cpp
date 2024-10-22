@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <AzCore/Casting/numeric_cast.h>
 #include <Utilities/RGLUtils.h>
 #include <Wrappers/RglMesh.h>
 #include <rgl/api/core.h>

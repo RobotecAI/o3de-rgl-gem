@@ -17,6 +17,7 @@
 #include <Entity/Terrain/TerrainEntityManagerSystemComponent.h>
 #include <RGL/RGLBus.h>
 #include <Utilities/RGLUtils.h>
+#include <ROS2/Lidar/ClassSegmentationBus.h>
 
 namespace RGL
 {
