@@ -14,6 +14,7 @@
  */
 #include <Atom/RPI.Public/BlockCompression.h>
 #include <AzCore/Name/NameDictionary.h>
+#include <Utilities/RGLUtils.h>
 #include <Wrappers/RglTexture.h>
 
 namespace RGL::Wrappers

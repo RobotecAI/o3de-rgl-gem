@@ -17,6 +17,7 @@
 #include <Entity/Terrain/TerrainEntityManagerSystemComponent.h>
 #include <RGL/RGLBus.h>
 #include <Utilities/RGLUtils.h>
+#include <ROS2/Lidar/ClassSegmentationBus.h>
 
 namespace RGL
 {
@@ -33,6 +34,8 @@ namespace RGL
 
     void TerrainEntityManagerSystemComponent::Activate()
     {
+        m_packedRglEntityId = Utils::PackRglEntityId(ROS2::SegmentationIds{ Utils::GenerateSegmentationEntityId(), ROS2::TerrainClassId });
+        AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusConnect();
         RGLNotificationBus::Handler::BusConnect();
     }
 
@@ -156,6 +159,7 @@ namespace RGL
             return;
         }
 
+        m_rglEntity.SetId(m_packedRglEntityId);
         m_rglEntity.SetPose(Utils::IdentityTransform);
         if (m_rglTexture.IsValid())
         {
