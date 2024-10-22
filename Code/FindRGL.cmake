@@ -18,15 +18,8 @@ set(RGL_TAG v${RGL_VERSION})
 set(RGL_VERSION_METADATA_FILE ${CMAKE_CURRENT_BINARY_DIR}/RGL_VERSION)
 set(ROS_DISTRO_METADATA_FILE ${CMAKE_CURRENT_BINARY_DIR}/ROS_DISTRO)
 
-# Determine RGL binary to download based on ROS distro
 set(ROS_DISTRO $ENV{ROS_DISTRO})
-if($ENV{ROS_DISTRO} STREQUAL "humble")
-    set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64-humble)
-elseif($ENV{ROS_DISTRO} STREQUAL "jazzy")
-    set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64-jazzy)
-else()
-    message(FATAL_ERROR "ROS not found or ROS distro not supported. Please use one of {humble, jazzy}.")
-endif ()
+set(RGL_LINUX_ZIP_FILENAME_BASE RGL-core-linux-x64)
 set(RGL_LINUX_ZIP_FILENAME ${RGL_LINUX_ZIP_FILENAME_BASE}.zip)
 
 set(RGL_LINUX_ZIP_URL https://github.com/RobotecAI/RobotecGPULidar/releases/download/${RGL_TAG}/${RGL_LINUX_ZIP_FILENAME})
@@ -53,13 +46,10 @@ if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
     if (EXISTS ${RGL_VERSION_METADATA_FILE})
         file(READ ${RGL_VERSION_METADATA_FILE} RGL_VERSION_METADATA)
     endif ()
-    if (EXISTS ${ROS_DISTRO_METADATA_FILE})
-        file(READ ${ROS_DISTRO_METADATA_FILE} ROS_DISTRO_METADATA)
-    endif ()
 
     # If metadata does not match, download RGL
-    if ((NOT ${RGL_VERSION_METADATA} STREQUAL ${RGL_VERSION}) OR (NOT ${ROS_DISTRO_METADATA} STREQUAL ${ROS_DISTRO}))
-        message("Downloading RGL " ${RGL_VERSION} " for ROS " ${ROS_DISTRO} "...")
+    if ((NOT ${RGL_VERSION_METADATA} STREQUAL ${RGL_VERSION}))
+        message("Downloading RGL " ${RGL_VERSION} "...")
 
         # Download the RGL archive files
         file(DOWNLOAD
@@ -77,19 +67,14 @@ if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
         # Remove the unwanted byproducts
         file(REMOVE ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME})
 
-        # Download API headers
+        # Download API header
         file(DOWNLOAD
                 ${RGL_SRC_ROOT_URL}/include/rgl/api/core.h
                 ${DEST_API_DIR}/core.h
         )
-        file(DOWNLOAD
-                ${RGL_SRC_ROOT_URL}/extensions/ros2/include/rgl/api/extensions/ros2.h
-                ${DEST_API_DIR}/extensions/ros2.h
-        )
 
         # Save current metadata
         file(WRITE ${RGL_VERSION_METADATA_FILE} ${RGL_VERSION})
-        file(WRITE ${ROS_DISTRO_METADATA_FILE} ${ROS_DISTRO})
     endif ()
 
     # Remove the unwanted byproducts
