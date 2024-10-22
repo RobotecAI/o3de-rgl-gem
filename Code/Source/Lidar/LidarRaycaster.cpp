@@ -17,7 +17,6 @@
 #include <RGL/RGLBus.h>
 #include <ROS2/ROS2Bus.h>
 #include <Utilities/RGLUtils.h>
-#include <rgl/api/extensions/ros2.h>
 
 namespace RGL
 {
