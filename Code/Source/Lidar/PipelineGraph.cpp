@@ -14,7 +14,6 @@
  */
 #include <Lidar/PipelineGraph.h>
 #include <Utilities/RGLUtils.h>
-#include <rgl/api/extensions/ros2.h>
 
 namespace RGL
 {
