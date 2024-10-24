@@ -49,11 +49,6 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/DOWNLOAD_RGL)
             ${DEST_API_DIR}/core.h
             )
 
-    file(DOWNLOAD
-            ${RGL_SRC_ROOT_URL}/extensions/ros2/include/rgl/api/extensions/ros2.h
-            ${DEST_API_DIR}/extensions/ros2.h
-    )
-
     # Extract the contents of the downloaded archive files
     file(ARCHIVE_EXTRACT INPUT ${DEST_SO_DIR}/${RGL_LINUX_ZIP_FILENAME}
             DESTINATION ${DEST_SO_DIR}
