@@ -38,6 +38,7 @@ namespace RGL
             AZStd::vector<float> m_distance;
             AZStd::vector<float> m_intensity;
             AZStd::vector<int32_t> m_packedRglEntityId;
+            AZStd::vector<int32_t> m_isHit;
         };
 
         struct Nodes

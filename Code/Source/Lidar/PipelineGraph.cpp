@@ -142,8 +142,9 @@ namespace RGL
             case RGL_FIELD_ENTITY_ID_I32:
                 success = success && GetResult(results.m_packedRglEntityId, RGL_FIELD_ENTITY_ID_I32);
                 break;
-            case RGL_FIELD_IS_HIT_I32: // Not needed.
-                continue;
+            case RGL_FIELD_IS_HIT_I32:
+                success = success && GetResult(results.m_isHit, RGL_FIELD_IS_HIT_I32);
+                break;
             default:
                 success = false;
                 AZ_Assert(false, AZStd::string::format("Invalid result field type with RGL id %i!", field).c_str());

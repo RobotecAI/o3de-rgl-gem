@@ -30,7 +30,7 @@ namespace RGL
 
         using Features = ROS2::LidarSystemFeatures;
         static constexpr auto SupportedFeatures = aznumeric_cast<Features>(
-            Features::EntityExclusion | Features::MaxRangePoints | Features::Noise | Features::Intensity | Features::Segmentation);
+            Features::EntityExclusion | Features::Noise | Features::Intensity | Features::Segmentation);
 
         ROS2::LidarSystemRequestBus::Handler::BusConnect(AZ_CRC(name));
 
