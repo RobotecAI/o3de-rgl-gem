@@ -111,6 +111,11 @@ namespace RGL
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_INTENSITY_F32);
         }
 
+        if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::SegmentationData, flags))
+        {
+            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_ENTITY_ID_I32);
+        }
+
         m_graph.ConfigureYieldNodes(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
 
         m_graph.SetIsCompactEnabled(ShouldEnableCompact());
@@ -162,6 +167,15 @@ namespace RGL
         if (auto intensity = raycastResults.GetFieldSpan<ROS2::RaycastResultFlags::Intensity>(); intensity.has_value())
         {
             AZStd::copy(m_rglRaycastResults.m_intensity.begin(), m_rglRaycastResults.m_intensity.end(), intensity.value().begin());
+        }
+
+        if (auto segmentationData = raycastResults.GetFieldSpan<ROS2::RaycastResultFlags::SegmentationData>(); segmentationData.has_value())
+        {
+            AZStd::transform(
+                m_rglRaycastResults.m_packedRglEntityId.begin(),
+                m_rglRaycastResults.m_packedRglEntityId.end(),
+                segmentationData.value().begin(),
+                Utils::UnpackRglEntityId);
         }
 
         return AZ::Success(m_raycastResults.value());
@@ -223,6 +237,8 @@ namespace RGL
     AZStd::optional<size_t> LidarRaycaster::GetRglResultsSize(
         const PipelineGraph::RaycastResults& rglResults, const ROS2::RaycastResults& results)
     {
+        // Size consistent among all (present) fields.
+        // If no consensus is reached or no fields are present, set to AZStd::nullopt.
         AZStd::optional<size_t> resultsSize;
         if (results.IsFieldPresent<ROS2::RaycastResultFlags::Point>())
         {
@@ -231,19 +247,37 @@ namespace RGL
 
         if (results.IsFieldPresent<ROS2::RaycastResultFlags::Range>())
         {
-            if (resultsSize.has_value() && resultsSize != rglResults.m_distance.size())
+            if (!resultsSize.has_value())
             {
-                return {};
+                resultsSize = rglResults.m_distance.size();
             }
-
-            resultsSize = rglResults.m_distance.size();
+            else if (resultsSize != rglResults.m_distance.size())
+            {
+                return AZStd::nullopt;
+            }
         }
 
         if (results.IsFieldPresent<ROS2::RaycastResultFlags::Intensity>())
         {
-            if (resultsSize.has_value() && resultsSize != rglResults.m_intensity.size())
+            if (!resultsSize.has_value())
             {
-                return {};
+                resultsSize = rglResults.m_intensity.size();
+            }
+            else if (resultsSize != rglResults.m_intensity.size())
+            {
+                return AZStd::nullopt;
+            }
+        }
+
+        if (results.IsFieldPresent<ROS2::RaycastResultFlags::SegmentationData>())
+        {
+            if (!resultsSize.has_value())
+            {
+                resultsSize = rglResults.m_packedRglEntityId.size();
+            }
+            else if (resultsSize != rglResults.m_packedRglEntityId.size())
+            {
+                return AZStd::nullopt;
             }
         }
 

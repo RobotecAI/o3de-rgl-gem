@@ -56,7 +56,8 @@ namespace RGL
 
         if (meshes.empty())
         {
-            AZ_Assert(false, "MeshEntityManager with ID: %s did not receive any mesh from the ModelLibrary.", m_entityId.ToString().c_str());
+            AZ_Assert(
+                false, "MeshEntityManager with ID: %s did not receive any mesh from the ModelLibrary.", m_entityId.ToString().c_str());
             return;
         }
 
@@ -72,6 +73,11 @@ namespace RGL
                 if (texture.IsValid())
                 {
                     entity.SetIntensityTexture(texture);
+                }
+
+                if (m_packedRglEntityId.has_value())
+                {
+                    entity.SetId(m_packedRglEntityId.value());
                 }
 
                 m_entities.emplace_back(AZStd::move(entity));
