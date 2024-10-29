@@ -29,7 +29,7 @@ namespace RGL
 
     LidarRaycaster::LidarRaycaster(LidarRaycaster&& other)
         : m_uuid{ other.m_uuid }
-        , m_isMaxRangeEnabled{ other.m_isMaxRangeEnabled }
+        , m_returnNonHits{ other.m_returnNonHits }
         , m_range{ other.m_range }
         , m_graph{ std::move(other.m_graph) }
         , m_rayTransforms{ AZStd::move(other.m_rayTransforms) }
@@ -169,6 +169,18 @@ namespace RGL
                 Utils::UnpackRglEntityId);
         }
 
+        if (auto isHit = raycastResults.GetFieldSpan<ROS2::RaycastResultFlags::IsHit>(); isHit.has_value())
+        {
+            AZStd::transform(
+                m_rglRaycastResults.m_isHit.begin(),
+                m_rglRaycastResults.m_isHit.end(),
+                isHit.value().begin(),
+                [](int32_t isHit)
+                {
+                    return isHit != 0;
+                });
+        }
+
         return AZ::Success(m_raycastResults.value());
     }
 
@@ -193,7 +205,7 @@ namespace RGL
         float minRangeNonHitValue = -AZStd::numeric_limits<float>::infinity();
         float maxRangeNonHitValue = AZStd::numeric_limits<float>::infinity();
 
-        if (m_isMaxRangeEnabled && m_range.has_value())
+        if (m_returnNonHits && m_range.has_value())
         {
             minRangeNonHitValue = m_range.value().m_min;
             maxRangeNonHitValue = m_range.value().m_max;
@@ -202,10 +214,9 @@ namespace RGL
         m_graph.ConfigureRaytraceNodeNonHits(minRangeNonHitValue, maxRangeNonHitValue);
     }
 
-    void LidarRaycaster::ConfigureMaxRangePointAddition(bool addMaxRangePoints)
+    void LidarRaycaster::ConfigureNonHitReturn(bool returnNonHits)
     {
-        m_isMaxRangeEnabled = addMaxRangePoints;
-
+        m_returnNonHits = returnNonHits;
         UpdateNonHitValues();
 
         // We need to configure if points should be compacted to minimize the CPU operations when retrieving raycast results.
@@ -259,11 +270,23 @@ namespace RGL
             }
         }
 
+        if (results.IsFieldPresent<ROS2::RaycastResultFlags::IsHit>())
+        {
+            if (!resultsSize.has_value())
+            {
+                resultsSize = rglResults.m_isHit.size();
+            }
+            else if (resultsSize != rglResults.m_isHit.size())
+            {
+                return AZStd::nullopt;
+            }
+        }
+
         return resultsSize;
     }
 
     bool LidarRaycaster::ShouldEnableCompact() const
     {
-        return !m_raycastResults->IsFieldPresent<ROS2::RaycastResultFlags::Range>() && !m_isMaxRangeEnabled;
+        return !m_raycastResults->IsFieldPresent<ROS2::RaycastResultFlags::Range>() && !m_returnNonHits;
     }
 } // namespace RGL

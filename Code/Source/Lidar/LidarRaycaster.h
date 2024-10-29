@@ -49,12 +49,12 @@ namespace RGL
             [[maybe_unused]] float distanceNoiseStdDevRisePerMeter) override;
         void ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities) override;
         void UpdateNonHitValues();
-        void ConfigureMaxRangePointAddition(bool addMaxRangePoints) override;
+        void ConfigureNonHitReturn(bool returnNonHits) override;
 
     private:
         AZ::Uuid m_uuid;
 
-        bool m_isMaxRangeEnabled{ false }; //!< Determines whether max range point addition is enabled.
+        bool m_returnNonHits{ false }; //!< Determines whether max range point addition is enabled.
 
         AZStd::optional<ROS2::RayRange> m_range{};
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
