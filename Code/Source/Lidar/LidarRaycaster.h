@@ -63,7 +63,5 @@ namespace RGL
         AZStd::optional<ROS2::RaycastResults> m_raycastResults;
 
         PipelineGraph m_graph;
-
-        [[nodiscard]] bool ShouldEnableCompact() const;
     };
 } // namespace RGL
