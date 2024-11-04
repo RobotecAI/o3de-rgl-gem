@@ -114,8 +114,7 @@ namespace RGL
         }
 
         m_graph.ConfigureFieldNodes(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
-
-        m_graph.SetIsCompactEnabled(ShouldEnableCompact());
+        m_graph.SetIsCompactEnabled(!m_returnNonHits);
     }
 
     AZ::Outcome<ROS2::RaycastResults, const char*> LidarRaycaster::PerformRaycast(const AZ::Transform& lidarTransform)
@@ -220,7 +219,7 @@ namespace RGL
         UpdateNonHitValues();
 
         // We need to configure if points should be compacted to minimize the CPU operations when retrieving raycast results.
-        m_graph.SetIsCompactEnabled(ShouldEnableCompact());
+        m_graph.SetIsCompactEnabled(!returnNonHits);
     }
 
     AZStd::optional<size_t> LidarRaycaster::GetRglResultsSize(
@@ -283,10 +282,5 @@ namespace RGL
         }
 
         return resultsSize;
-    }
-
-    bool LidarRaycaster::ShouldEnableCompact() const
-    {
-        return !m_raycastResults->IsFieldPresent<ROS2::RaycastResultFlags::Range>() && !m_returnNonHits;
     }
 } // namespace RGL
