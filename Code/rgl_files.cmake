@@ -36,6 +36,8 @@ set(FILES
         Source/Model/ModelLibrary.h
         Source/RGLSystemComponent.cpp
         Source/RGLSystemComponent.h
+        Source/Utilities/BlockCompression.cpp
+        Source/Utilities/BlockCompression.h
         Source/Utilities/RGLUtils.cpp
         Source/Utilities/RGLUtils.h
         Source/Wrappers/RglEntity.cpp
