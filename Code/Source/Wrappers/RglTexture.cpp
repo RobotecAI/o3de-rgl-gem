@@ -14,6 +14,7 @@
  */
 #include <Atom/RPI.Public/BlockCompression.h>
 #include <AzCore/Name/NameDictionary.h>
+#include <Utilities/BlockCompression.h>
 #include <Utilities/RGLUtils.h>
 #include <Wrappers/RglTexture.h>
 
@@ -86,7 +87,7 @@ namespace RGL::Wrappers
 
     float RglTexture::CreateGrayFromColor(const AZ::Color& color)
     {
-        return RedGrayMultiplier * color.GetR() + GreenGrayMultiplier * color.GetG() + BlueGrayMultiplier * color.GetB();
+        return (RedGrayMultiplier * color.GetR() + GreenGrayMultiplier * color.GetG() + BlueGrayMultiplier * color.GetB()) * color.GetA();
     }
 
     uint8_t RglTexture::CreateGray8FromColor(const AZ::Color& color)
@@ -119,7 +120,10 @@ namespace RGL::Wrappers
         using Format = AZ::RHI::Format;
         const auto format = imageDescriptor.m_format;
         const auto& size = imageDescriptor.m_size;
-        if (format == Format::BC1_UNORM || format == Format::BC1_UNORM_SRGB || format == Format::BC4_UNORM)
+        static AZStd::set<AZ::RHI::Format> SupportedFormats{
+            Format::BC1_UNORM, Format::BC1_UNORM_SRGB, Format::BC3_UNORM, Format::BC3_UNORM_SRGB, Format::BC4_UNORM,
+        };
+        if (SupportedFormats.contains(format))
         {
             tempRglTextureData.resize(size.m_width * size.m_height);
 
@@ -135,13 +139,18 @@ namespace RGL::Wrappers
                         LoadBlockToGrays(
                             reinterpret_cast<const AZ::RPI::BC4Block*>(imageData.data() + srcIdx), tempRglTextureData, x, y, size.m_width);
                     }
-                    else
+                    else if (format == Format::BC1_UNORM || format == Format::BC1_UNORM_SRGB)
                     {
                         LoadBlockToGrays(
                             reinterpret_cast<const AZ::RPI::BC1Block*>(imageData.data() + srcIdx), tempRglTextureData, x, y, size.m_width);
                     }
+                    else if (format == Format::BC3_UNORM || format == Format::BC3_UNORM_SRGB)
+                    {
+                        LoadBlockToGrays(
+                            reinterpret_cast<const Utils::BC3Block*>(imageData.data() + srcIdx), tempRglTextureData, x, y, size.m_width);
+                    }
 
-                    srcIdx += 8;
+                    srcIdx += GetFormatSize(format);
                     if (srcIdx == imageData.size() && ++sliceIdx < imageDescriptor.m_arraySize)
                     {
                         imageData = imageAsset->GetSubImageData(0, sliceIdx);
@@ -157,7 +166,8 @@ namespace RGL::Wrappers
             AZ_Warning(
                 ConstructTraceWindowName(__func__).c_str(),
                 false,
-                "Image is of unsupported type: %s. Only BC1 and BC4 formats are currently supported. Skipping...",
+                "Image \"%s\" is of unsupported type: %s. Only BC1 and BC4 formats are currently supported. Skipping...",
+                imageAsset.ToString<AZStd::string>().c_str(),
                 ToString(imageDescriptor.m_format));
         }
 
