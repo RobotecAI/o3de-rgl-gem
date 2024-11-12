@@ -166,7 +166,7 @@ namespace RGL::Wrappers
             AZ_Warning(
                 ConstructTraceWindowName(__func__).c_str(),
                 false,
-                "Image \"%s\" is of unsupported type: %s. Only BC1 and BC4 formats are currently supported. Skipping...",
+                "Image \"%s\" is of unsupported type: %s. Only BC1, BC3 and BC4 formats are currently supported. Skipping...",
                 imageAsset.ToString<AZStd::string>().c_str(),
                 ToString(imageDescriptor.m_format));
         }
