@@ -14,12 +14,15 @@
  */
 
 #pragma once
-#include <AzCore/Math/Color.h>
 #include <Atom/RPI.Public/BlockCompression.h>
+#include <AzCore/Math/Color.h>
 #include <AzCore/base.h>
 
 namespace RGL::Utils
 {
+    //! Structure used for decompressing images compressed using BC3.
+    //! To learn more about BC3 compression see
+    //! https://learn.microsoft.com/en-us/windows/win32/direct3d10/d3d10-graphics-programming-guide-resources-block-compression#bc3.
     struct BC3Block
     {
         static AZStd::pair<size_t, size_t> GetBlockIndices(uint32_t width, uint32_t x, uint32_t y);
@@ -27,8 +30,7 @@ namespace RGL::Utils
         [[nodiscard]] AZ::Color GetBlockColor(size_t pixelIndex) const;
         [[nodiscard]] AZ::u8 GetAlpha(size_t pixelIndex) const;
 
-        union
-        {
+        union {
             AZ::u64 m_alphaData;
             struct
             {
