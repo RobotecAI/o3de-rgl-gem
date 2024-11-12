@@ -61,6 +61,7 @@ namespace RGL
             serializeContext->Class<SceneConfiguration>()
                 ->Version(0)
                 ->Field("TerrainIntensityConfig", &SceneConfiguration::m_terrainIntensityConfig)
+                ->Field("excludedTagNames", &SceneConfiguration::m_excludedTagNames)
                 ->Field("SkinnedMeshUpdate", &SceneConfiguration::m_isSkinnedMeshUpdateEnabled);
 
             if (auto* editContext = serializeContext->GetEditContext())
@@ -68,6 +69,11 @@ namespace RGL
                 editContext->Class<SceneConfiguration>("RGL Scene Configuration", "")
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default, &SceneConfiguration::m_terrainIntensityConfig, "Terrain Intensity Configuration", "")
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default,
+                        &SceneConfiguration::m_excludedTagNames,
+                        "Raycast excluded Tag names",
+                        "Entities tagged with names present in this list will not be included in raycasting.")
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default,
                         &SceneConfiguration::m_isSkinnedMeshUpdateEnabled,

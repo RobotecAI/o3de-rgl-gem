@@ -15,11 +15,14 @@
 #pragma once
 
 #include <AzCore/Component/Component.h>
+#include <AzCore/Component/TickBus.h>
 #include <AzCore/Math/Vector3.h>
 #include <AzCore/Script/ScriptTimePoint.h>
 #include <AzFramework/Entity/EntityContextBus.h>
+#include <Entity/EntityTagListener.h>
 #include <Lidar/LidarSystem.h>
 #include <Lidar/LidarSystemNotificationBus.h>
+#include <LmbrCentral/Scripting/TagComponentBus.h>
 #include <Model/ModelLibrary.h>
 #include <RGL/RGLBus.h>
 
@@ -32,6 +35,7 @@ namespace RGL
         , protected RGLRequestBus::Handler
         , protected AzFramework::EntityContextEventBus::Handler
         , protected LidarSystemNotificationBus::Handler
+        , protected AZ::TickBus::Handler
     {
     public:
         AZ_COMPONENT(RGL::RGLSystemComponent, "{dbd5b1c5-249f-4eca-a142-2533ebe7f680}");
@@ -56,6 +60,7 @@ namespace RGL
         void SetSceneConfiguration(const SceneConfiguration& config) override;
         [[nodiscard]] const SceneConfiguration& GetSceneConfiguration() const override;
         void UpdateScene() override;
+        void ReviseEntityPresence(AZ::EntityId entityId) override;
 
         // AzFramework::EntityContextEventBus overrides
         void OnEntityContextCreateEntity(AZ::Entity& entity) override;
@@ -66,18 +71,28 @@ namespace RGL
         void OnLidarCreated() override;
         void OnLidarDestroyed() override;
 
+        // AZ::TickBus overrides
+        void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
+
     private:
+        static bool HasVisuals(const AZ::Entity& entity);
+        bool ShouldEntityBeExcluded(AZ::EntityId entityId) const;
         void ProcessEntity(const AZ::Entity& entity);
+        void UpdateTagExcludedEntities();
 
+        SceneConfiguration m_sceneConfig;
         LidarSystem m_rglLidarSystem;
-
         ModelLibrary m_modelLibrary;
+
         AZStd::set<AZ::EntityId> m_excludedEntities;
         AZStd::set<AZ::EntityId> m_unprocessedEntities;
-        SceneConfiguration m_sceneConfig;
+        AZStd::vector<AZ::EntityId> m_managersToBeRemoved;
         AZStd::unordered_map<AZ::EntityId, AZStd::unique_ptr<EntityManager>> m_entityManagers;
-        AZ::ScriptTimePoint m_sceneUpdateLastTime{};
+        AZStd::vector<EntityTagListener> m_entityTagListeners;
 
+        AZStd::vector<LmbrCentral::Tag> m_excludedTags;
+
+        AZ::ScriptTimePoint m_sceneUpdateLastTime{};
         size_t m_activeLidarCount{};
     };
 } // namespace RGL

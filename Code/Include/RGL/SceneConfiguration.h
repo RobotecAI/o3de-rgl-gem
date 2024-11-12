@@ -16,6 +16,8 @@
 
 #include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
 #include <AzCore/Asset/AssetCommon.h>
+#include <AzCore/std/containers/vector.h>
+#include <AzCore/std/string/string.h>
 
 namespace RGL
 {
@@ -37,6 +39,7 @@ namespace RGL
         static void Reflect(AZ::ReflectContext* context);
 
         TerrainIntensityConfiguration m_terrainIntensityConfig;
+        AZStd::vector<AZStd::string> m_excludedTagNames;
         // clang-format off
         bool m_isSkinnedMeshUpdateEnabled{ true }; //!< If set to true, all skinned meshes will be updated. Otherwise they will remain unchanged.
         // clang-format on
