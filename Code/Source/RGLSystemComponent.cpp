@@ -145,15 +145,13 @@ namespace RGL
             return false;
         }
 
-        for (const auto tag : excludedTags)
-        {
-            if (entityTags.contains(tag))
+        return AZStd::any_of(
+            excludedTags.cbegin(),
+            excludedTags.cend(),
+            [&entityTags](const auto& tag)
             {
-                return true;
-            }
-        }
-
-        return false;
+                return entityTags.contains(tag);
+            });
     }
 
     void RGLSystemComponent::OnEntityContextCreateEntity(AZ::Entity& entity)
