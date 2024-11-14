@@ -161,7 +161,7 @@ namespace RGL
             return;
         }
 
-        m_entityTagListeners.emplace_back(entity.GetId());
+        m_entityTagListeners.emplace(entity.GetId(), entity.GetId());
 
         if (m_activeLidarCount < 1U || ShouldEntityBeExcluded(entity.GetId()))
         {
@@ -176,6 +176,7 @@ namespace RGL
     {
         m_unprocessedEntities.erase(id);
         m_entityManagers.erase(id);
+        m_entityTagListeners.erase(id);
     }
 
     void RGLSystemComponent::OnEntityContextReset()
