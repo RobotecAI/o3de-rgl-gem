@@ -86,9 +86,9 @@ namespace RGL
 
         AZStd::set<AZ::EntityId> m_excludedEntities;
         AZStd::set<AZ::EntityId> m_unprocessedEntities;
+        AZStd::unordered_map<AZ::EntityId, EntityTagListener> m_entityTagListeners;
         AZStd::vector<AZ::EntityId> m_managersToBeRemoved;
         AZStd::unordered_map<AZ::EntityId, AZStd::unique_ptr<EntityManager>> m_entityManagers;
-        AZStd::vector<EntityTagListener> m_entityTagListeners;
 
         AZStd::vector<LmbrCentral::Tag> m_excludedTags;
 
