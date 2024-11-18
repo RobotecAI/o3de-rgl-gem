@@ -21,6 +21,7 @@ namespace RGL
     {
         ConfigureRayPosesNode({ Utils::IdentityTransform });
         ConfigureRayRangesNode(0.0f, 1.0f);
+        ConfigureRayRingIds({ 0 });
         ConfigureLidarTransformNode(AZ::Matrix3x4::CreateIdentity());
         RGL_CHECK(rgl_node_raytrace(&m_nodes.m_rayTrace, nullptr));
         RGL_CHECK(rgl_node_points_compact_by_field(&m_nodes.m_pointsCompact, RGL_FIELD_IS_HIT_I32));
@@ -30,7 +31,8 @@ namespace RGL
 
         // Non-conditional connections
         RGL_CHECK(rgl_graph_node_add_child(m_nodes.m_rayPoses, m_nodes.m_rayRanges));
-        RGL_CHECK(rgl_graph_node_add_child(m_nodes.m_rayRanges, m_nodes.m_lidarTransform));
+        RGL_CHECK(rgl_graph_node_add_child(m_nodes.m_rayRanges, m_nodes.m_rayRingIds));
+        RGL_CHECK(rgl_graph_node_add_child(m_nodes.m_rayRingIds, m_nodes.m_lidarTransform));
 
         InitializeConditionalConnections();
     }
@@ -78,6 +80,11 @@ namespace RGL
     {
         const rgl_vec2f range = { .value = { min, max } };
         RGL_CHECK(rgl_node_rays_set_range(&m_nodes.m_rayRanges, &range, 1));
+    }
+
+    void PipelineGraph::ConfigureRayRingIds(const AZStd::vector<AZ::s32>& rayRingIds)
+    {
+        RGL_CHECK(rgl_node_rays_set_ring_ids(&m_nodes.m_rayRingIds, rayRingIds.data(), rayRingIds.size()));
     }
 
     void PipelineGraph::ConfigureFieldNodes(const rgl_field_t* fields, size_t size)
@@ -144,6 +151,9 @@ namespace RGL
                 break;
             case RGL_FIELD_IS_HIT_I32:
                 success = success && GetResult(results.m_isHit, RGL_FIELD_IS_HIT_I32);
+                break;
+            case RGL_FIELD_RING_ID_U16:
+                success = success && GetResult(results.m_ringId, RGL_FIELD_RING_ID_U16);
                 break;
             default:
                 success = false;

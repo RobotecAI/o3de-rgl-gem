@@ -113,6 +113,11 @@ namespace RGL
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_ENTITY_ID_I32);
         }
 
+        if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::Ring, flags))
+        {
+            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_RING_ID_U16);
+        }
+
         m_graph.ConfigureFieldNodes(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
         m_graph.SetIsCompactEnabled(!m_returnNonHits);
     }
@@ -180,6 +185,11 @@ namespace RGL
                 });
         }
 
+        if (auto ring = raycastResults.GetFieldSpan<ROS2::RaycastResultFlags::Ring>(); ring.has_value())
+        {
+            AZStd::copy(m_rglRaycastResults.m_ringId.begin(), m_rglRaycastResults.m_ringId.end(), ring.value().begin());
+        }
+
         return AZ::Success(m_raycastResults.value());
     }
 
@@ -220,6 +230,11 @@ namespace RGL
 
         // We need to configure if points should be compacted to minimize the CPU operations when retrieving raycast results.
         m_graph.SetIsCompactEnabled(!returnNonHits);
+    }
+
+    void LidarRaycaster::ConfigureRayRingIds(const AZStd::vector<AZ::s32>& ringIds)
+    {
+        m_graph.ConfigureRayRingIds(ringIds);
     }
 
     AZStd::optional<size_t> LidarRaycaster::GetRglResultsSize(
@@ -276,6 +291,18 @@ namespace RGL
                 resultsSize = rglResults.m_isHit.size();
             }
             else if (resultsSize != rglResults.m_isHit.size())
+            {
+                return AZStd::nullopt;
+            }
+        }
+
+        if (results.IsFieldPresent<ROS2::RaycastResultFlags::Ring>())
+        {
+            if (!resultsSize.has_value())
+            {
+                resultsSize = rglResults.m_ringId.size();
+            }
+            else if (resultsSize != rglResults.m_ringId.size())
             {
                 return AZStd::nullopt;
             }
