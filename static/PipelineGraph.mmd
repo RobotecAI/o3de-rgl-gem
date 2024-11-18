@@ -1,6 +1,7 @@
 flowchart TD
     RP[Ray Poses] --> RR[Ray Ranges]
-    RR --> LT[Lidar Transform]
+    RR --> RRI[Ray Ring Ids]
+    RRI --> LT[Lidar Transform]
     LT -->|Noise enabled| AN[Angular Noise]
     LT -->|Noise disabled| RT[Ray Trace]
     AN --> RT
