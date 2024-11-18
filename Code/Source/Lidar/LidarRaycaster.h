@@ -50,6 +50,7 @@ namespace RGL
         void ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities) override;
         void UpdateNonHitValues();
         void ConfigureNonHitReturn(bool returnNonHits) override;
+        void ConfigureRayRingIds(const AZStd::vector<AZ::s32>& ringIds) override;
 
     private:
         AZ::Uuid m_uuid;

@@ -39,13 +39,14 @@ namespace RGL
             AZStd::vector<float> m_intensity;
             AZStd::vector<int32_t> m_packedRglEntityId;
             AZStd::vector<int32_t> m_isHit;
+            AZStd::vector<uint16_t> m_ringId;
         };
 
         struct Nodes
         {
-            rgl_node_t m_rayPoses{ nullptr }, m_rayRanges{ nullptr }, m_lidarTransform{ nullptr }, m_angularNoise{ nullptr },
-                m_rayTrace{ nullptr }, m_distanceNoise{ nullptr }, m_rayTraceYield{ nullptr }, m_pointsCompact{ nullptr },
-                m_pointsYield{ nullptr };
+            rgl_node_t m_rayPoses{ nullptr }, m_rayRanges{ nullptr }, m_rayRingIds{ nullptr }, m_lidarTransform{ nullptr },
+                m_angularNoise{ nullptr }, m_rayTrace{ nullptr }, m_distanceNoise{ nullptr }, m_rayTraceYield{ nullptr },
+                m_pointsCompact{ nullptr }, m_pointsYield{ nullptr };
         };
 
         PipelineGraph();
@@ -58,6 +59,7 @@ namespace RGL
 
         void ConfigureRayPosesNode(const AZStd::vector<rgl_mat3x4f>& rayPoses);
         void ConfigureRayRangesNode(float min, float max);
+        void ConfigureRayRingIds(const AZStd::vector<AZ::s32>& rayRingIds);
         void ConfigureFieldNodes(const rgl_field_t* fields, size_t size);
         void ConfigureLidarTransformNode(const AZ::Matrix3x4& lidarTransform);
         void ConfigureAngularNoiseNode(float angularNoiseStdDev);
