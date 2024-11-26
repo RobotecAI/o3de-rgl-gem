@@ -31,16 +31,8 @@ namespace RGL
 
     MeshEntityManager::~MeshEntityManager()
     {
-        if (AZ::Render::MaterialComponentNotificationBus::Handler::BusIsConnected())
-        {
-            AZ::Render::MaterialComponentNotificationBus::Handler::BusDisconnect();
-        }
-
-        if (AZ::Render::MeshComponentNotificationBus::Handler::BusIsConnected())
-        {
-            AZ::Render::MeshComponentNotificationBus::Handler::BusDisconnect();
-        }
-
+        AZ::Render::MaterialComponentNotificationBus::Handler::BusDisconnect();
+        AZ::Render::MeshComponentNotificationBus::Handler::BusDisconnect();
         AZ::EntityBus::Handler::BusDisconnect();
     }
 
