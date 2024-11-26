@@ -39,16 +39,8 @@ namespace RGL
 
     ActorEntityManager::~ActorEntityManager()
     {
-        if (AZ::Render::MaterialComponentNotificationBus::Handler::BusIsConnected())
-        {
-            AZ::Render::MaterialComponentNotificationBus::Handler::BusDisconnect();
-        }
-
-        if (EMotionFX::Integration::ActorComponentNotificationBus::Handler::BusIsConnected())
-        {
-            EMotionFX::Integration::ActorComponentNotificationBus::Handler::BusDisconnect();
-        }
-
+        AZ::Render::MaterialComponentNotificationBus::Handler::BusDisconnect();
+        EMotionFX::Integration::ActorComponentNotificationBus::Handler::BusDisconnect();
         AZ::EntityBus::Handler::BusDisconnect();
     }
 
