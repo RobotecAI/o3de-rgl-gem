@@ -49,10 +49,10 @@ namespace RGL::Wrappers
         }
     }
 
-    void RglEntity::SetPose(const rgl_mat3x4f& pose)
+    void RglEntity::SetTransform(const rgl_mat3x4f& pose)
     {
         AZ_Assert(IsValid(), "Tried to set pose of an invalid entity.");
-        RGL_CHECK(rgl_entity_set_pose(m_nativePtr, &pose));
+        RGL_CHECK(rgl_entity_set_transform(m_nativePtr, &pose));
     }
 
     void RglEntity::SetId(int32_t id)
@@ -65,6 +65,12 @@ namespace RGL::Wrappers
     {
         AZ_Assert(IsValid(), "Tried to set intensity texture of an invalid entity.");
         RGL_CHECK(rgl_entity_set_intensity_texture(m_nativePtr, texture.m_nativePtr));
+    }
+
+    void RglEntity::ApplyExternalAnimation(const rgl_vec3f* vertices, size_t vertexCount)
+    {
+        AZ_Assert(IsValid(), "Tried to set intensity texture of an invalid entity.");
+        RGL_CHECK(rgl_entity_apply_external_animation(m_nativePtr, vertices, aznumeric_cast<int32_t>(vertexCount)));
     }
 
     RglEntity& RglEntity::operator=(RglEntity&& other)

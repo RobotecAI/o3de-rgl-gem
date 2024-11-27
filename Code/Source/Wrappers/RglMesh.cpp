@@ -55,12 +55,6 @@ namespace RGL::Wrappers
         }
     }
 
-    void RglMesh::UpdateVertices(const rgl_vec3f* vertices, size_t vertexCount)
-    {
-        AZ_Assert(IsValid(), "Tried to update vertices of an invalid mesh.");
-        RGL_CHECK(rgl_mesh_update_vertices(m_nativePtr, vertices, aznumeric_cast<int32_t>(vertexCount)));
-    }
-
     void RglMesh::SetTextureCoordinates(const rgl_vec2f* uvs, size_t uvCount)
     {
         AZ_Assert(IsValid(), "Tried to set texture coordinates of an invalid mesh.");

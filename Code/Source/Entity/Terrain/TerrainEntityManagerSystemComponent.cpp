@@ -160,7 +160,7 @@ namespace RGL
         }
 
         m_rglEntity.SetId(m_packedRglEntityId);
-        m_rglEntity.SetPose(Utils::IdentityTransform);
+        m_rglEntity.SetTransform(Utils::IdentityTransform);
         if (m_rglTexture.IsValid())
         {
             m_rglEntity.SetIntensityTexture(m_rglTexture);
@@ -177,7 +177,7 @@ namespace RGL
         }
 
         m_terrainData.UpdateDirtyRegion(dirtyRegion);
-        m_rglMesh.UpdateVertices(vertices.data(), vertices.size());
+        m_rglEntity.ApplyExternalAnimation(vertices.data(), vertices.size());
     }
 
     void TerrainEntityManagerSystemComponent::OnTerrainDataChanged(const AZ::Aabb& dirtyRegion, TerrainDataChangedMask dataChangedMask)

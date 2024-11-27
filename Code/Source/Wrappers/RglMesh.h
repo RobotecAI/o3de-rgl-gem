@@ -41,7 +41,6 @@ namespace RGL::Wrappers
             return m_nativePtr;
         }
 
-        void UpdateVertices(const rgl_vec3f* vertices, size_t vertexCount);
         void SetTextureCoordinates(const rgl_vec2f* uvs, size_t uvCount);
 
         RglMesh& operator=(const RglMesh& other) = delete;

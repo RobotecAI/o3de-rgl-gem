@@ -191,7 +191,7 @@ namespace RGL
             const size_t vertexBase = subMesh->GetStartVertex();
             const size_t subMeshVertexCount = subMesh->GetNumVertices();
 
-            m_rglSubMeshes[subMeshNr].UpdateVertices(vertexPositions.data() + vertexBase, subMeshVertexCount);
+            m_entities[subMeshNr].ApplyExternalAnimation(vertexPositions.data() + vertexBase, subMeshVertexCount);
         }
     }
 
