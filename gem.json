@@ -22,7 +22,8 @@
     "requirements": "Requires a CUDA-capable GPU with the nvidia drivers specified in the README.md file of the RGL gem github repository.",
     "documentation_url": "",
     "dependencies": [
-        "ROS2<=3.1.0"
+        "ROS2>=3.1.0",
+        "ROS2<3.3.0"
     ],
     "restricted": "RGL"
 }
