@@ -18,6 +18,8 @@ set(FILES
         Source/Entity/MeshEntityManager.h
         Source/Entity/EntityManager.cpp
         Source/Entity/EntityManager.h
+        Source/Entity/EntityTagListener.cpp
+        Source/Entity/EntityTagListener.h
         Source/Entity/MaterialEntityManager.cpp
         Source/Entity/MaterialEntityManager.h
         Source/Entity/Terrain/TerrainData.cpp
@@ -36,6 +38,8 @@ set(FILES
         Source/Model/ModelLibrary.h
         Source/RGLSystemComponent.cpp
         Source/RGLSystemComponent.h
+        Source/Utilities/BlockCompression.cpp
+        Source/Utilities/BlockCompression.h
         Source/Utilities/RGLUtils.cpp
         Source/Utilities/RGLUtils.h
         Source/Wrappers/RglEntity.cpp

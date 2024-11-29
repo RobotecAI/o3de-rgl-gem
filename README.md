@@ -56,17 +56,6 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
   **Runtime requirements** of the Robotec GPU Lidar.
   ](https://github.com/RobotecAI/RobotecGPULidar#runtime-requirements)
 - Any O3DE project with the [O3DE ROS2 Gem](https://github.com/o3de/o3de-extras/tree/development/Gems/ROS2) enabled.
-- The following ROS2 packages installed on your system:
-    - `cyclonedds`,
-    - `fastrtps`,
-    - `radar-msgs`.
-
-  You can install those packages with the following commands:
-  ```bash
-  sudo apt install -y ros-${ROS_DISTRO}-cyclonedds ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
-  sudo apt install -y ros-${ROS_DISTRO}-fastrtps ros-${ROS_DISTRO}-rmw-fastrtps-cpp
-  sudo apt install -y ros-${ROS_DISTRO}-radar-msgs
-  ```
 
 ***IMPORTANT:*** *You do not need to download or set up the RobotecGPULidar library itself and only have to meet
 the **RUNTIME** requirements.*

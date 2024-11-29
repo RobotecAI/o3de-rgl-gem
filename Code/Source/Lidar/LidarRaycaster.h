@@ -34,7 +34,6 @@ namespace RGL
         void ConfigureRayOrientations(const AZStd::vector<AZ::Vector3>& orientations) override;
         void ConfigureRayRange(ROS2::RayRange range) override;
         void ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags) override;
-        bool CanHandlePublishing() override;
 
         // Returns the size of required results.
         // If obtained result sizes do not match,
@@ -50,19 +49,13 @@ namespace RGL
             [[maybe_unused]] float distanceNoiseStdDevRisePerMeter) override;
         void ExcludeEntities(const AZStd::vector<AZ::EntityId>& excludedEntities) override;
         void UpdateNonHitValues();
-        void ConfigureMaxRangePointAddition(bool addMaxRangePoints) override;
-
-        void ConfigurePointCloudPublisher(
-            [[maybe_unused]] const AZStd::string& topicName,
-            [[maybe_unused]] const AZStd::string& frameId,
-            [[maybe_unused]] const ROS2::QoS& qosPolicy) override;
-
-        void UpdatePublisherTimestamp([[maybe_unused]] AZ::u64 timestampNanoseconds) override;
+        void ConfigureNonHitReturn(bool returnNonHits) override;
+        void ConfigureRayRingIds(const AZStd::vector<AZ::s32>& ringIds) override;
 
     private:
         AZ::Uuid m_uuid;
 
-        bool m_isMaxRangeEnabled{ false }; //!< Determines whether max range point addition is enabled.
+        bool m_returnNonHits{ false }; //!< Determines whether max range point addition is enabled.
 
         AZStd::optional<ROS2::RayRange> m_range{};
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
@@ -71,8 +64,5 @@ namespace RGL
         AZStd::optional<ROS2::RaycastResults> m_raycastResults;
 
         PipelineGraph m_graph;
-
-        [[nodiscard]] bool ShouldEnableCompact() const;
-        [[nodiscard]] bool ShouldEnablePcPublishing() const;
     };
 } // namespace RGL

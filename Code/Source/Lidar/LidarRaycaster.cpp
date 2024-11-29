@@ -17,7 +17,6 @@
 #include <RGL/RGLBus.h>
 #include <ROS2/ROS2Bus.h>
 #include <Utilities/RGLUtils.h>
-#include <rgl/api/extensions/ros2.h>
 
 namespace RGL
 {
@@ -30,7 +29,7 @@ namespace RGL
 
     LidarRaycaster::LidarRaycaster(LidarRaycaster&& other)
         : m_uuid{ other.m_uuid }
-        , m_isMaxRangeEnabled{ other.m_isMaxRangeEnabled }
+        , m_returnNonHits{ other.m_returnNonHits }
         , m_range{ other.m_range }
         , m_graph{ std::move(other.m_graph) }
         , m_rayTransforms{ AZStd::move(other.m_rayTransforms) }
@@ -90,12 +89,10 @@ namespace RGL
 
     void LidarRaycaster::ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags)
     {
-        m_rglRaycastResults.m_fields.clear();
-        m_rglRaycastResults.m_xyz.clear();
-        m_rglRaycastResults.m_distance.clear();
-
+        m_rglRaycastResults = {};
         m_raycastResults = ROS2::RaycastResults(flags);
 
+        m_rglRaycastResults.m_fields = { RGL_FIELD_IS_HIT_I32 };
         if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::Point, flags))
         {
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_XYZ_VEC3_F32);
@@ -116,10 +113,13 @@ namespace RGL
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_ENTITY_ID_I32);
         }
 
-        m_graph.ConfigureYieldNodes(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
+        if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::Ring, flags))
+        {
+            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_RING_ID_U16);
+        }
 
-        m_graph.SetIsCompactEnabled(ShouldEnableCompact());
-        m_graph.SetIsPcPublishingEnabled(ShouldEnablePcPublishing());
+        m_graph.ConfigureFieldNodes(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
+        m_graph.SetIsCompactEnabled(!m_returnNonHits);
     }
 
     AZ::Outcome<ROS2::RaycastResults, const char*> LidarRaycaster::PerformRaycast(const AZ::Transform& lidarTransform)
@@ -131,11 +131,6 @@ namespace RGL
         const AZ::Matrix3x4 lidarPose = AZ::Matrix3x4::CreateFromTransform(lidarTransform);
 
         m_graph.ConfigureLidarTransformNode(lidarPose);
-        if (m_graph.IsPcPublishingEnabled())
-        {
-            // Transforms the obtained point-cloud from world to sensor frame of reference.
-            m_graph.ConfigurePcTransformNode(lidarPose.GetInverseFull());
-        }
 
         m_graph.Run();
 
@@ -178,6 +173,23 @@ namespace RGL
                 Utils::UnpackRglEntityId);
         }
 
+        if (auto isHit = raycastResults.GetFieldSpan<ROS2::RaycastResultFlags::IsHit>(); isHit.has_value())
+        {
+            AZStd::transform(
+                m_rglRaycastResults.m_isHit.begin(),
+                m_rglRaycastResults.m_isHit.end(),
+                isHit.value().begin(),
+                [](int32_t isHit)
+                {
+                    return isHit != 0;
+                });
+        }
+
+        if (auto ring = raycastResults.GetFieldSpan<ROS2::RaycastResultFlags::Ring>(); ring.has_value())
+        {
+            AZStd::copy(m_rglRaycastResults.m_ringId.begin(), m_rglRaycastResults.m_ringId.end(), ring.value().begin());
+        }
+
         return AZ::Success(m_raycastResults.value());
     }
 
@@ -202,7 +214,7 @@ namespace RGL
         float minRangeNonHitValue = -AZStd::numeric_limits<float>::infinity();
         float maxRangeNonHitValue = AZStd::numeric_limits<float>::infinity();
 
-        if (m_isMaxRangeEnabled && m_range.has_value())
+        if (m_returnNonHits && m_range.has_value())
         {
             minRangeNonHitValue = m_range.value().m_min;
             maxRangeNonHitValue = m_range.value().m_max;
@@ -211,27 +223,18 @@ namespace RGL
         m_graph.ConfigureRaytraceNodeNonHits(minRangeNonHitValue, maxRangeNonHitValue);
     }
 
-    void LidarRaycaster::ConfigureMaxRangePointAddition(bool addMaxRangePoints)
+    void LidarRaycaster::ConfigureNonHitReturn(bool returnNonHits)
     {
-        m_isMaxRangeEnabled = addMaxRangePoints;
-
+        m_returnNonHits = returnNonHits;
         UpdateNonHitValues();
 
         // We need to configure if points should be compacted to minimize the CPU operations when retrieving raycast results.
-        m_graph.SetIsCompactEnabled(ShouldEnableCompact());
-        m_graph.SetIsPcPublishingEnabled(ShouldEnablePcPublishing());
+        m_graph.SetIsCompactEnabled(!returnNonHits);
     }
 
-    void LidarRaycaster::ConfigurePointCloudPublisher(
-        const AZStd::string& topicName, const AZStd::string& frameId, const ROS2::QoS& qosPolicy)
+    void LidarRaycaster::ConfigureRayRingIds(const AZStd::vector<AZ::s32>& ringIds)
     {
-        m_graph.ConfigurePcPublisherNode(topicName, frameId, qosPolicy);
-        m_graph.SetIsPcPublishingEnabled(ShouldEnablePcPublishing());
-    }
-
-    bool LidarRaycaster::CanHandlePublishing()
-    {
-        return m_graph.IsPcPublishingEnabled();
+        m_graph.ConfigureRayRingIds(ringIds);
     }
 
     AZStd::optional<size_t> LidarRaycaster::GetRglResultsSize(
@@ -281,22 +284,30 @@ namespace RGL
             }
         }
 
+        if (results.IsFieldPresent<ROS2::RaycastResultFlags::IsHit>())
+        {
+            if (!resultsSize.has_value())
+            {
+                resultsSize = rglResults.m_isHit.size();
+            }
+            else if (resultsSize != rglResults.m_isHit.size())
+            {
+                return AZStd::nullopt;
+            }
+        }
+
+        if (results.IsFieldPresent<ROS2::RaycastResultFlags::Ring>())
+        {
+            if (!resultsSize.has_value())
+            {
+                resultsSize = rglResults.m_ringId.size();
+            }
+            else if (resultsSize != rglResults.m_ringId.size())
+            {
+                return AZStd::nullopt;
+            }
+        }
+
         return resultsSize;
-    }
-
-    void LidarRaycaster::UpdatePublisherTimestamp(AZ::u64 timestampNanoseconds)
-    {
-        RGL_CHECK(rgl_scene_set_time(nullptr, timestampNanoseconds));
-    }
-
-    bool LidarRaycaster::ShouldEnableCompact() const
-    {
-        return !m_raycastResults->IsFieldPresent<ROS2::RaycastResultFlags::Range>() && !m_isMaxRangeEnabled;
-    }
-
-    bool LidarRaycaster::ShouldEnablePcPublishing() const
-    {
-        return m_graph.IsPublisherConfigured() && !m_raycastResults->IsFieldPresent<ROS2::RaycastResultFlags::Range>() &&
-            !m_isMaxRangeEnabled;
     }
 } // namespace RGL
