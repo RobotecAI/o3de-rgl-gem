@@ -18,6 +18,7 @@
 #include <AzCore/Module/Module.h>
 #include <Entity/Terrain/TerrainEntityManagerSystemComponent.h>
 #include <RGLSystemComponent.h>
+#include <SceneConfigurationComponent.h>
 
 namespace RGL
 {
@@ -38,6 +39,7 @@ namespace RGL
                 {
                     RGLSystemComponent::CreateDescriptor(),
                     TerrainEntityManagerSystemComponent::CreateDescriptor(),
+                    SceneConfigurationComponent::CreateDescriptor(),
                 });
         }
 
