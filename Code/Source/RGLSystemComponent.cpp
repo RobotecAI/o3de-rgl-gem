@@ -87,6 +87,7 @@ namespace RGL
 
         AzFramework::EntityContextEventBus::Handler::BusConnect(gameEntityContextId);
         LidarSystemNotificationBus::Handler::BusConnect();
+        AZ::TickBus::Handler::BusConnect();
 
         m_rglLidarSystem.Activate();
     }
@@ -94,6 +95,7 @@ namespace RGL
     void RGLSystemComponent::Deactivate()
     {
         m_rglLidarSystem.Deactivate();
+        AZ::TickBus::Handler::BusDisconnect();
         LidarSystemNotificationBus::Handler::BusDisconnect();
         AzFramework::EntityContextEventBus::Handler::BusDisconnect();
 
@@ -113,6 +115,18 @@ namespace RGL
     void RGLSystemComponent::SetSceneConfiguration(const SceneConfiguration& config)
     {
         m_sceneConfig = config;
+
+        m_excludedTags.resize(config.m_excludedTagNames.size());
+        AZStd::transform(
+            config.m_excludedTagNames.begin(),
+            config.m_excludedTagNames.end(),
+            m_excludedTags.begin(),
+            [](const AZStd::string& tagName) -> LmbrCentral::Tag
+            {
+                return LmbrCentral::Tag(tagName);
+            });
+        UpdateTagExcludedEntities();
+
         RGLNotificationBus::Broadcast(&RGLNotifications::OnSceneConfigurationSet, config);
     }
 
@@ -121,14 +135,35 @@ namespace RGL
         return m_sceneConfig;
     }
 
+    static bool HasExcludedTag(AZ::EntityId entityId, const AZStd::vector<LmbrCentral::Tag>& excludedTags)
+    {
+        LmbrCentral::Tags entityTags;
+        LmbrCentral::TagComponentRequestBus::EventResult(entityTags, entityId, &LmbrCentral::TagComponentRequests::GetTags);
+
+        if (entityTags.empty())
+        {
+            return false;
+        }
+
+        return AZStd::any_of(
+            excludedTags.cbegin(),
+            excludedTags.cend(),
+            [&entityTags](const auto& tag)
+            {
+                return entityTags.contains(tag);
+            });
+    }
+
     void RGLSystemComponent::OnEntityContextCreateEntity(AZ::Entity& entity)
     {
-        if (m_excludedEntities.contains(entity.GetId()))
+        if (!HasVisuals(entity))
         {
             return;
         }
 
-        if (m_activeLidarCount < 1U)
+        m_entityTagListeners.emplace(entity.GetId(), entity.GetId());
+
+        if (m_activeLidarCount < 1U || ShouldEntityBeExcluded(entity.GetId()))
         {
             m_unprocessedEntities.emplace(entity.GetId());
             return;
@@ -141,6 +176,7 @@ namespace RGL
     {
         m_unprocessedEntities.erase(id);
         m_entityManagers.erase(id);
+        m_entityTagListeners.erase(id);
     }
 
     void RGLSystemComponent::OnEntityContextReset()
@@ -163,6 +199,12 @@ namespace RGL
         RGLNotificationBus::Broadcast(&RGLNotifications::OnAnyLidarExists);
         for (auto entityIdIt = m_unprocessedEntities.begin(); entityIdIt != m_unprocessedEntities.end();)
         {
+            if (ShouldEntityBeExcluded(*entityIdIt))
+            {
+                ++entityIdIt;
+                continue;
+            }
+
             AZ::Entity* entity = nullptr;
             AZ::ComponentApplicationBus::BroadcastResult(entity, &AZ::ComponentApplicationRequests::FindEntity, *entityIdIt);
             AZ_Assert(entity, "Failed to find entity with provided id!");
@@ -189,6 +231,26 @@ namespace RGL
         m_modelLibrary.Clear();
     }
 
+    void RGLSystemComponent::OnTick(float deltaTime, AZ::ScriptTimePoint time)
+    {
+        for (auto entityId : m_managersToBeRemoved)
+        {
+            m_entityManagers.erase(entityId);
+            m_unprocessedEntities.insert(entityId);
+        }
+        m_managersToBeRemoved.clear();
+    }
+
+    bool RGLSystemComponent::HasVisuals(const AZ::Entity& entity)
+    {
+        return entity.FindComponent<EMotionFX::Integration::ActorComponent>() || entity.FindComponent(AZ::Render::MeshComponentTypeId);
+    }
+
+    bool RGLSystemComponent::ShouldEntityBeExcluded(AZ::EntityId entityId) const
+    {
+        return m_excludedEntities.contains(entityId) || HasExcludedTag(entityId, m_excludedTags);
+    }
+
     void RGLSystemComponent::ProcessEntity(const AZ::Entity& entity)
     {
         AZStd::unique_ptr<EntityManager> entityManager;
@@ -209,6 +271,27 @@ namespace RGL
         AZ_Error(__func__, inserted, "Object with provided entityId already exists.");
     }
 
+    void RGLSystemComponent::UpdateTagExcludedEntities()
+    {
+        if (m_excludedTags.empty())
+        {
+            return;
+        }
+
+        for (auto entityManagerIt = m_entityManagers.begin(); entityManagerIt != m_entityManagers.end();)
+        {
+            if (HasExcludedTag(entityManagerIt->first, m_excludedTags))
+            {
+                m_unprocessedEntities.insert(entityManagerIt->first);
+                entityManagerIt = m_entityManagers.erase(entityManagerIt);
+            }
+            else
+            {
+                ++entityManagerIt;
+            }
+        }
+    }
+
     void RGLSystemComponent::UpdateScene()
     {
         AZ::ScriptTimePoint currentTime;
@@ -223,6 +306,35 @@ namespace RGL
         for (auto&& [entityId, entityManager] : m_entityManagers)
         {
             entityManager->Update();
+        }
+    }
+
+    void RGLSystemComponent::ReviseEntityPresence(AZ::EntityId entityId)
+    {
+        if (m_activeLidarCount < 1U)
+        {
+            return; // No lidars exist. Every entity should stay as unprocessed until they do.
+        }
+
+        if (m_excludedEntities.contains(entityId))
+        {
+            return; // Already not included.
+        }
+
+        if (HasExcludedTag(entityId, m_excludedTags))
+        {
+            if (m_entityManagers.contains(entityId))
+            {
+                m_managersToBeRemoved.push_back(entityId);
+            }
+        }
+        else if (const auto it = m_unprocessedEntities.find(entityId); it != m_unprocessedEntities.end())
+        {
+            m_unprocessedEntities.erase(it);
+            AZ::Entity* entity = nullptr;
+            AZ::ComponentApplicationBus::BroadcastResult(entity, &AZ::ComponentApplicationRequests::FindEntity, entityId);
+            AZ_Assert(entity, "Failed to find entity with provided id!");
+            ProcessEntity(*entity);
         }
     }
 } // namespace RGL

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <AzCore/std/string/regex.h>
 #include <Model/ModelLibrary.h>
 #include <Utilities/RGLUtils.h>
 #include <rgl/api/core.h>
@@ -68,10 +69,19 @@ namespace RGL
         const auto modelLodAsset = lodAssets.begin()->Get();
         const auto meshes = modelLodAsset->GetMeshes();
 
+        const AZStd::regex excludeMeshRegex(".*_nolidar.*");
+
         MeshMaterialSlotPairList modelMeshes;
         modelMeshes.reserve(meshes.size());
         for (auto& mesh : meshes)
         {
+            AZStd::smatch matches;
+            if (AZStd::regex_match(mesh.GetName().GetCStr(), matches, excludeMeshRegex))
+            {
+                AZ_Info("RGL", "Ignoring mesh %s.", mesh.GetName().GetCStr());
+                continue;
+            }
+
             const AZStd::span<const rgl_vec3f> vertices = mesh.GetSemanticBufferTyped<rgl_vec3f>(AZ::Name("POSITION"));
             const AZStd::span<const rgl_vec3i> indices = mesh.GetIndexBufferTyped<rgl_vec3i>();
 

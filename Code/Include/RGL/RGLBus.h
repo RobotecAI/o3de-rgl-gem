@@ -36,6 +36,10 @@ namespace RGL
         //! Updates scene to the RGL
         virtual void UpdateScene() = 0;
 
+        //! Forces a reevaluation of entity presence conditions.
+        //! Results of this condition reevaluation influence entity's inclusion in raycasting.
+        virtual void ReviseEntityPresence(AZ::EntityId entityId) = 0;
+
     protected:
         ~RGLRequests() = default;
     };
