@@ -28,7 +28,7 @@ namespace RGL::Wrappers
 
         RglTexture imageRglTexture = CreateInvalid();
 
-        const AZ::Data::AssetId& id = materialAsset.GetId();
+        [[maybe_unused]] const AZ::Data::AssetId& id = materialAsset.GetId();
         if (!materialAsset.IsReady())
         {
             AZ_Warning(
