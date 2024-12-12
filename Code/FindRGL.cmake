@@ -11,12 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set(RGL_VERSION 0.19.0)
+set(RGL_VERSION 0.20.0)
 set(RGL_TAG v${RGL_VERSION})
 
 # Metadata files used to determine if RGL download is required
 set(RGL_VERSION_METADATA_FILE ${CMAKE_CURRENT_BINARY_DIR}/RGL_VERSION)
-set(ROS_DISTRO_METADATA_FILE ${CMAKE_CURRENT_BINARY_DIR}/ROS_DISTRO)
 
 set(ROS_DISTRO $ENV{ROS_DISTRO})
 set(RGL_LINUX_ZIP_FILENAME_BASE RGL-core-linux-x64)
@@ -42,7 +41,6 @@ if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
 
     # Read metadata
     set(RGL_VERSION_METADATA " ")
-    set(ROS_DISTRO_METADATA " ")
     if (EXISTS ${RGL_VERSION_METADATA_FILE})
         file(READ ${RGL_VERSION_METADATA_FILE} RGL_VERSION_METADATA)
     endif ()
