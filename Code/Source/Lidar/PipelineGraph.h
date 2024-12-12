@@ -40,6 +40,7 @@ namespace RGL
             AZStd::vector<int32_t> m_packedRglEntityId;
             AZStd::vector<int32_t> m_isHit;
             AZStd::vector<uint16_t> m_ringId;
+            AZStd::vector<float> m_reflectivity;
         };
 
         struct Nodes

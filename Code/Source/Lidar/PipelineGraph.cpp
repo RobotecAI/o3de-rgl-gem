@@ -155,6 +155,9 @@ namespace RGL
             case RGL_FIELD_RING_ID_U16:
                 success = success && GetResult(results.m_ringId, RGL_FIELD_RING_ID_U16);
                 break;
+            case RGL_FIELD_REFLECTIVITY_F32:
+                success = success && GetResult(results.m_reflectivity, RGL_FIELD_REFLECTIVITY_F32);
+                break;
             default:
                 success = false;
                 AZ_Assert(false, AZStd::string::format("Invalid result field type with RGL id %i!", field).c_str());

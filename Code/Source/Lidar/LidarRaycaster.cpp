@@ -118,6 +118,11 @@ namespace RGL
             m_rglRaycastResults.m_fields.push_back(RGL_FIELD_RING_ID_U16);
         }
 
+        if (ROS2::IsFlagEnabled(ROS2::RaycastResultFlags::Reflectivity, flags))
+        {
+            m_rglRaycastResults.m_fields.push_back(RGL_FIELD_REFLECTIVITY_F32);
+        }
+
         m_graph.ConfigureFieldNodes(m_rglRaycastResults.m_fields.data(), m_rglRaycastResults.m_fields.size());
         m_graph.SetIsCompactEnabled(!m_returnNonHits);
     }
@@ -188,6 +193,11 @@ namespace RGL
         if (auto ring = raycastResults.GetFieldSpan<ROS2::RaycastResultFlags::Ring>(); ring.has_value())
         {
             AZStd::copy(m_rglRaycastResults.m_ringId.begin(), m_rglRaycastResults.m_ringId.end(), ring.value().begin());
+        }
+
+        if (auto reflectivity = raycastResults.GetFieldSpan<ROS2::RaycastResultFlags::Reflectivity>(); reflectivity.has_value())
+        {
+            AZStd::copy(m_rglRaycastResults.m_reflectivity.begin(), m_rglRaycastResults.m_reflectivity.end(), reflectivity.value().begin());
         }
 
         return AZ::Success(m_raycastResults.value());
@@ -303,6 +313,18 @@ namespace RGL
                 resultsSize = rglResults.m_ringId.size();
             }
             else if (resultsSize != rglResults.m_ringId.size())
+            {
+                return AZStd::nullopt;
+            }
+        }
+
+        if (results.IsFieldPresent<ROS2::RaycastResultFlags::Reflectivity>())
+        {
+            if (!resultsSize.has_value())
+            {
+                resultsSize = rglResults.m_reflectivity.size();
+            }
+            else if (resultsSize != rglResults.m_reflectivity.size())
             {
                 return AZStd::nullopt;
             }
