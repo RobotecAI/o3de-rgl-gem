@@ -224,13 +224,19 @@ namespace RGL
         float minRangeNonHitValue = -AZStd::numeric_limits<float>::infinity();
         float maxRangeNonHitValue = AZStd::numeric_limits<float>::infinity();
 
-        if (m_returnNonHits && m_range.has_value())
+        if (m_returnNonHits && m_nonHitRange.has_value())
         {
-            minRangeNonHitValue = m_range.value().m_min;
-            maxRangeNonHitValue = m_range.value().m_max;
+            minRangeNonHitValue = m_nonHitRange.value().m_min;
+            maxRangeNonHitValue = m_nonHitRange.value().m_max;
         }
 
         m_graph.ConfigureRaytraceNodeNonHits(minRangeNonHitValue, maxRangeNonHitValue);
+    }
+
+    void LidarRaycaster::ConfigureNonHitValues(AZStd::optional<ROS2::RayRange> range)
+    {
+        m_nonHitRange = range;
+        UpdateNonHitValues();
     }
 
     void LidarRaycaster::ConfigureNonHitReturn(bool returnNonHits)
