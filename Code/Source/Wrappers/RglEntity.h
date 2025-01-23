@@ -39,9 +39,10 @@ namespace RGL::Wrappers
             return m_nativePtr;
         }
 
-        void SetPose(const rgl_mat3x4f& pose);
+        void SetTransform(const rgl_mat3x4f& pose);
         void SetId(int32_t id);
         void SetIntensityTexture(const RglTexture& texture);
+        void ApplyExternalAnimation(const rgl_vec3f* vertices, size_t vertexCount);
 
         RglEntity& operator=(const RglEntity& other) = delete;
         RglEntity& operator=(RglEntity&& other);
