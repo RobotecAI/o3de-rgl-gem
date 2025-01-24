@@ -60,6 +60,7 @@ namespace RGL
         void UpdateMeshVertices();
         //! Loads mesh's vertex position data into the m_tempVertexPositions buffer.
         bool ProcessEfxMesh(const EMotionFX::Mesh& mesh);
+        void ClearActorData();
 
         EMotionFX::ActorInstance* m_actorInstance = nullptr;
         // We do not use the ModelLibrary since the actor mesh is

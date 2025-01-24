@@ -79,15 +79,13 @@ namespace RGL
     void ActorEntityManager::OnActorInstanceDestroyed(EMotionFX::ActorInstance* actorInstance)
     {
         AZ::Render::MaterialComponentNotificationBus::Handler::BusDisconnect();
-        ResetMaterialsMapping();
-        m_entities.clear();
-        m_rglSubMeshes.clear();
-        m_emotionFxMesh = nullptr;
+        ClearActorData();
     }
 
     void ActorEntityManager::OnEntityDeactivated(const AZ::EntityId& entityId)
     {
         AZ::Render::MaterialComponentNotificationBus::Handler::BusDisconnect();
+        ClearActorData();
         EMotionFX::Integration::ActorComponentNotificationBus::Handler::BusDisconnect();
         MaterialEntityManager::OnEntityDeactivated(entityId);
     }
@@ -211,8 +209,7 @@ namespace RGL
             const size_t indexBase = subMesh->GetStartIndex() / 3U; // RGL uses index triples.
             const size_t indexCount = subMesh->GetNumIndices() / 3U;
 
-            auto rglMesh =
-                Wrappers::RglMesh(vertexPositions.data() + vertexBase, vertexCount, indices.data() + indexBase, indexCount);
+            auto rglMesh = Wrappers::RglMesh(vertexPositions.data() + vertexBase, vertexCount, indices.data() + indexBase, indexCount);
 
             if (rglMesh.IsValid())
             {
@@ -263,5 +260,13 @@ namespace RGL
         }
 
         return true;
+    }
+
+    void ActorEntityManager::ClearActorData()
+    {
+        ResetMaterialsMapping();
+        m_entities.clear();
+        m_rglSubMeshes.clear();
+        m_emotionFxMesh = nullptr;
     }
 } // namespace RGL
