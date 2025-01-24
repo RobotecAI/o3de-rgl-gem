@@ -174,7 +174,7 @@ namespace RGL
 
     void ActorEntityManager::UpdateMeshVertices()
     {
-        if (!m_emotionFxMesh)
+        if (!m_emotionFxMesh || !m_actorInstance)
         {
             return;
         }
@@ -268,5 +268,6 @@ namespace RGL
         m_entities.clear();
         m_rglSubMeshes.clear();
         m_emotionFxMesh = nullptr;
+        m_actorInstance = nullptr;
     }
 } // namespace RGL
