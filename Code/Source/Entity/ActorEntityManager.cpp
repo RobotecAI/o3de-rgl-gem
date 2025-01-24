@@ -87,7 +87,7 @@ namespace RGL
 
     void ActorEntityManager::OnEntityDeactivated(const AZ::EntityId& entityId)
     {
-        AZ::Render::MaterialComponentNotificationBus::Handler::BusDisconnect();
+        OnActorInstanceDestroyed(nullptr);
         EMotionFX::Integration::ActorComponentNotificationBus::Handler::BusDisconnect();
         MaterialEntityManager::OnEntityDeactivated(entityId);
     }
