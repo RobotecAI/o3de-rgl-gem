@@ -76,7 +76,7 @@ namespace RGL
         }
     }
 
-    void ActorEntityManager::OnActorInstanceDestroyed(EMotionFX::ActorInstance* actorInstance)
+    void ActorEntityManager::OnActorInstanceDestroyed([[maybe_unused]] EMotionFX::ActorInstance* actorInstance)
     {
         AZ::Render::MaterialComponentNotificationBus::Handler::BusDisconnect();
         ClearActorData();
