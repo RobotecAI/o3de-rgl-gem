@@ -15,7 +15,7 @@
 #pragma once
 
 #include <Lidar/PipelineGraph.h>
-#include <ROS2/Lidar/LidarRaycasterBus.h>
+#include <ROS2Sensors/Lidar/LidarRaycasterBus.h>
 #include <Utilities/RGLUtils.h>
 #include <rgl/api/core.h>
 

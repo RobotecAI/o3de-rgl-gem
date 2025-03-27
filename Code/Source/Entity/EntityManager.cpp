@@ -16,7 +16,7 @@
 #include <Entity/EntityManager.h>
 #include <LmbrCentral/Scripting/TagComponentBus.h>
 #include <RGL/RGLBus.h>
-#include <ROS2/Lidar/SegmentationUtils.h>
+#include <ROS2Sensors/Lidar/SegmentationUtils.h>
 #include <Utilities/RGLUtils.h>
 
 namespace RGL

@@ -8,7 +8,7 @@
 #pragma once
 
 #include <AzCore/Math/Matrix3x4.h>
-#include <ROS2/Lidar/RaycastResults.h>
+#include <ROS2Sensors/Lidar/RaycastResults.h>
 #include <rgl/api/core.h>
 
 namespace RGL::Utils

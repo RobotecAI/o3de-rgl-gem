@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include <Lidar/LidarSystem.h>
-#include <ROS2/Lidar/LidarRegistrarBus.h>
+#include <ROS2Sensors/Lidar/LidarRegistrarBus.h>
 
 namespace RGL
 {

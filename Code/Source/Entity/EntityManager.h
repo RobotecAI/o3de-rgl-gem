@@ -20,7 +20,7 @@
 #include <AzCore/Component/TransformBus.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/optional.h>
-#include <ROS2/Lidar/ClassSegmentationBus.h>
+#include <ROS2Sensors/Lidar/ClassSegmentationBus.h>
 #include <Wrappers/RglEntity.h>
 #include <rgl/api/core.h>
 
@@ -31,8 +31,7 @@ namespace RGL
     //! the derived classes have to handle bus connection
     //! through BusConnect and BusDisconnect function calls.
     //! This is to allow for further overrides.
-    class EntityManager
-        : public AZ::EntityBus::Handler
+    class EntityManager : public AZ::EntityBus::Handler
     {
     public:
         explicit EntityManager(AZ::EntityId entityId);

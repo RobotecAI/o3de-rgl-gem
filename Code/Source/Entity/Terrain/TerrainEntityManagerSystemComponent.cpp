@@ -16,8 +16,8 @@
 #include <AzCore/Serialization/SerializeContext.h>
 #include <Entity/Terrain/TerrainEntityManagerSystemComponent.h>
 #include <RGL/RGLBus.h>
+#include <ROS2Sensors/Lidar/ClassSegmentationBus.h>
 #include <Utilities/RGLUtils.h>
-#include <ROS2/Lidar/ClassSegmentationBus.h>
 
 namespace RGL
 {
