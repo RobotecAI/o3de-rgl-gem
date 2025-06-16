@@ -21,7 +21,7 @@
 
 namespace RGL
 {
-    class LidarRaycaster : protected ROS2::LidarRaycasterRequestBus::Handler
+    class LidarRaycaster : protected ROS2Sensors::LidarRaycasterRequestBus::Handler
     {
     public:
         explicit LidarRaycaster(const AZ::Uuid& uuid);
@@ -32,17 +32,17 @@ namespace RGL
     protected:
         // LidarRaycasterRequestBus overrides
         void ConfigureRayOrientations(const AZStd::vector<AZ::Vector3>& orientations) override;
-        void ConfigureRayRange(ROS2::RayRange range) override;
-        void ConfigureRaycastResultFlags(ROS2::RaycastResultFlags flags) override;
+        void ConfigureRayRange(ROS2Sensors::RayRange range) override;
+        void ConfigureRaycastResultFlags(ROS2Sensors::RaycastResultFlags flags) override;
         bool CanHandlePublishing() override;
 
         // Returns the size of required results.
         // If obtained result sizes do not match,
         // the returned optional does not contain a value.
         static AZStd::optional<size_t> GetRglResultsSize(
-            const PipelineGraph::RaycastResults& rglResults, const ROS2::RaycastResults& results);
+            const PipelineGraph::RaycastResults& rglResults, const ROS2Sensors::RaycastResults& results);
 
-        AZ::Outcome<ROS2::RaycastResults, const char*> PerformRaycast(const AZ::Transform& lidarTransform) override;
+        AZ::Outcome<ROS2Sensors::RaycastResults, const char*> PerformRaycast(const AZ::Transform& lidarTransform) override;
 
         void ConfigureNoiseParameters(
             [[maybe_unused]] float angularNoiseStdDev,
@@ -64,11 +64,11 @@ namespace RGL
 
         bool m_isMaxRangeEnabled{ false }; //!< Determines whether max range point addition is enabled.
 
-        AZStd::optional<ROS2::RayRange> m_range{};
+        AZStd::optional<ROS2Sensors::RayRange> m_range{};
         AZStd::vector<AZ::Matrix3x4> m_rayTransforms{ AZ::Matrix3x4::CreateIdentity() };
 
         PipelineGraph::RaycastResults m_rglRaycastResults;
-        AZStd::optional<ROS2::RaycastResults> m_raycastResults;
+        AZStd::optional<ROS2Sensors::RaycastResults> m_raycastResults;
 
         PipelineGraph m_graph;
 

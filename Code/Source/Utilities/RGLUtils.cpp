@@ -18,7 +18,7 @@ namespace RGL::Utils
     static constexpr AZ::u8 ClassIdBits = 8;
     static constexpr AZ::u8 CompressedIdBitDepth = RglEntityIdBits - ClassIdBits;
 
-    int32_t PackRglEntityId(ROS2::SegmentationIds segmentationIds)
+    int32_t PackRglEntityId(ROS2Sensors::SegmentationIds segmentationIds)
     {
         AZ_Assert(segmentationIds.m_entityId < (1 << CompressedIdBitDepth), "Entity ID is too large to be packed into RGL entity ID");
         const int32_t id = (static_cast<int32_t>(segmentationIds.m_classId) << CompressedIdBitDepth) |
@@ -27,7 +27,7 @@ namespace RGL::Utils
         return id;
     }
 
-    ROS2::SegmentationIds UnpackRglEntityId(int32_t rglPackedEntityId)
+    ROS2Sensors::SegmentationIds UnpackRglEntityId(int32_t rglPackedEntityId)
     {
         const uint8_t classId = rglPackedEntityId >> CompressedIdBitDepth;
         const int32_t entityId = rglPackedEntityId & ((1 << CompressedIdBitDepth) - 1);

@@ -34,7 +34,8 @@ namespace RGL
 
     void TerrainEntityManagerSystemComponent::Activate()
     {
-        m_packedRglEntityId = Utils::PackRglEntityId(ROS2::SegmentationIds{ Utils::GenerateSegmentationEntityId(), ROS2::TerrainClassId });
+        m_packedRglEntityId =
+            Utils::PackRglEntityId(ROS2Sensors::SegmentationIds{ Utils::GenerateSegmentationEntityId(), ROS2Sensors::TerrainClassId });
         AzFramework::Terrain::TerrainDataNotificationBus::Handler::BusConnect();
         RGLNotificationBus::Handler::BusConnect();
     }
