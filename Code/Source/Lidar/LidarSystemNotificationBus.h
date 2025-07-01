@@ -16,8 +16,8 @@
 
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/EBus/EBus.h>
-#include <ROS2/Lidar/LidarSystemBus.h>
-#include <ROS2/Lidar/LidarRaycasterBus.h>
+#include <ROS2Sensors/Lidar/LidarRaycasterBus.h>
+#include <ROS2Sensors/Lidar/LidarSystemBus.h>
 
 namespace RGL
 {

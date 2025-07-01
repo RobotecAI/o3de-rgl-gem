@@ -16,7 +16,7 @@
 #include <Entity/EntityManager.h>
 #include <LmbrCentral/Scripting/TagComponentBus.h>
 #include <RGL/RGLBus.h>
-#include <ROS2/Lidar/SegmentationUtils.h>
+#include <ROS2Sensors/Lidar/SegmentationUtils.h>
 #include <Utilities/RGLUtils.h>
 
 namespace RGL
@@ -102,6 +102,6 @@ namespace RGL
     int32_t EntityManager::CalculatePackedRglEntityId() const
     {
         return Utils::PackRglEntityId(
-            ROS2::SegmentationIds{ m_segmentationEntityId, ROS2::SegmentationUtils::FetchClassIdForEntity(m_entityId) });
+            ROS2Sensors::SegmentationIds{ m_segmentationEntityId, ROS2Sensors::SegmentationUtils::FetchClassIdForEntity(m_entityId) });
     }
 } // namespace RGL

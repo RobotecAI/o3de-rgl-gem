@@ -15,11 +15,11 @@
 #pragma once
 
 #include <Lidar/LidarRaycaster.h>
-#include <ROS2/Lidar/LidarSystemBus.h>
+#include <ROS2Sensors/Lidar/LidarSystemBus.h>
 
 namespace RGL
 {
-    class LidarSystem : protected ROS2::LidarSystemRequestBus::Handler
+    class LidarSystem : protected ROS2Sensors::LidarSystemRequestBus::Handler
     {
     public:
         LidarSystem() = default;
@@ -35,10 +35,10 @@ namespace RGL
 
     protected:
         // LidarSystemRequestBus overrides
-        ROS2::LidarId CreateLidar(AZ::EntityId lidarEntityId) override;
-        void DestroyLidar(ROS2::LidarId lidarId) override;
+        ROS2Sensors::LidarId CreateLidar(AZ::EntityId lidarEntityId) override;
+        void DestroyLidar(ROS2Sensors::LidarId lidarId) override;
 
     private:
-        AZStd::unordered_map<ROS2::LidarId, LidarRaycaster> m_lidars;
+        AZStd::unordered_map<ROS2Sensors::LidarId, LidarRaycaster> m_lidars;
     };
 } // namespace RGL

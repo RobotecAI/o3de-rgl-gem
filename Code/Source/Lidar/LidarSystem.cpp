@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include <Lidar/LidarSystem.h>
-#include <ROS2/Lidar/LidarRegistrarBus.h>
+#include <ROS2Sensors/Lidar/LidarRegistrarBus.h>
 
 namespace RGL
 {
@@ -28,21 +28,21 @@ namespace RGL
         const char* name = "RobotecGPULidar";
         const char* description = "Mesh-based lidar implementation that uses the RobotecGPULidar API for GPU-enabled raycasting.";
 
-        using Features = ROS2::LidarSystemFeatures;
+        using Features = ROS2Sensors::LidarSystemFeatures;
         static constexpr auto SupportedFeatures = aznumeric_cast<Features>(
             Features::EntityExclusion | Features::MaxRangePoints | Features::Noise | Features::PointcloudPublishing | Features::Intensity |
             Features::Segmentation);
 
-        ROS2::LidarSystemRequestBus::Handler::BusConnect(AZ_CRC(name));
+        ROS2Sensors::LidarSystemRequestBus::Handler::BusConnect(AZ_CRC(name));
 
-        auto* lidarSystemManagerInterface = ROS2::LidarRegistrarInterface::Get();
+        auto* lidarSystemManagerInterface = ROS2Sensors::LidarRegistrarInterface::Get();
         AZ_Assert(lidarSystemManagerInterface != nullptr, "The ROS2 LidarSystem Manager interface was inaccessible.");
         lidarSystemManagerInterface->RegisterLidarSystem(name, description, SupportedFeatures);
     }
 
     void LidarSystem::Deactivate()
     {
-        ROS2::LidarSystemRequestBus::Handler::BusDisconnect();
+        ROS2Sensors::LidarSystemRequestBus::Handler::BusDisconnect();
     }
 
     void LidarSystem::Clear()
@@ -50,14 +50,14 @@ namespace RGL
         m_lidars.clear();
     }
 
-    ROS2::LidarId LidarSystem::CreateLidar(AZ::EntityId lidarEntityId)
+    ROS2Sensors::LidarId LidarSystem::CreateLidar(AZ::EntityId lidarEntityId)
     {
         const AZ::Uuid lidarUuid = AZ::Uuid::CreateRandom();
         m_lidars.emplace(lidarUuid, LidarRaycaster(lidarUuid));
-        return ROS2::LidarId(lidarUuid);
+        return ROS2Sensors::LidarId(lidarUuid);
     }
 
-    void LidarSystem::DestroyLidar(ROS2::LidarId lidarId)
+    void LidarSystem::DestroyLidar(ROS2Sensors::LidarId lidarId)
     {
         m_lidars.erase(lidarId);
     }

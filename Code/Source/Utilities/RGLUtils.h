@@ -8,7 +8,7 @@
 #pragma once
 
 #include <AzCore/Math/Matrix3x4.h>
-#include <ROS2/Lidar/RaycastResults.h>
+#include <ROS2Sensors/Lidar/RaycastResults.h>
 #include <rgl/api/core.h>
 
 namespace RGL::Utils
@@ -16,11 +16,11 @@ namespace RGL::Utils
     //! Packs an entity ID and a segmentation class ID into an 32-bit integer.
     //! Entity IDs must be generated using the GenerateSegmentationEntityId function.
     //! @see GenerateSegmentationEntityId
-    int32_t PackRglEntityId(ROS2::SegmentationIds);
+    int32_t PackRglEntityId(ROS2Sensors::SegmentationIds);
 
     //! Unpacks a packed RGL entity ID into an entity ID and a segmentation class ID.
     //! @see PackRglEntityId
-    ROS2::SegmentationIds UnpackRglEntityId(int32_t rglPackedEntityId);
+    ROS2Sensors::SegmentationIds UnpackRglEntityId(int32_t rglPackedEntityId);
 
     //! Generates a new unique ID for an entity.
     //! This ID can then be used to generate a packed RGL entity ID.

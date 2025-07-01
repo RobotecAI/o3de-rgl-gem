@@ -34,6 +34,8 @@ ly_add_target(
             Gem::Atom_RPI.Public
             Gem::AtomLyIntegration_CommonFeatures.Static
             Gem::ROS2.Static
+            Gem::ROS2Sensors.API
+            Gem::ROS2Sensors.Lidar.Static
             Gem::EMotionFX.Static
 )
 
