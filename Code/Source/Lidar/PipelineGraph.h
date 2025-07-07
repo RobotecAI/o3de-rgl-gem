@@ -17,8 +17,8 @@
 #include <AzCore/Math/Matrix3x3.h>
 #include <AzCore/std/containers/array.h>
 #include <ROS2/Communication/QoS.h>
-#include <rgl/api/core.h>
 #include <Utilities/RGLUtils.h>
+#include <rgl/api/core.h>
 
 namespace RGL
 {
@@ -28,15 +28,16 @@ namespace RGL
     class PipelineGraph
     {
     private:
-        static constexpr AZStd::array<rgl_field_t, 2> DefaultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_F32 };
+        static constexpr AZStd::array DefaultFields{ RGL_FIELD_IS_HIT_I32, RGL_FIELD_XYZ_VEC3_F32, RGL_FIELD_INTENSITY_F32 };
 
     public:
         struct RaycastResults
         {
             AZStd::vector<rgl_field_t> m_fields{ DefaultFields.data(), DefaultFields.data() + DefaultFields.size() };
-            AZStd::vector<int32_t> m_isHit;
             AZStd::vector<rgl_vec3f> m_xyz;
             AZStd::vector<float> m_distance;
+            AZStd::vector<float> m_intensity;
+            AZStd::vector<int32_t> m_packedRglEntityId;
         };
 
         struct Nodes
@@ -61,13 +62,14 @@ namespace RGL
         }
 
         void ConfigureRayPosesNode(const AZStd::vector<rgl_mat3x4f>& rayPoses);
-        void ConfigureRayRangesNode(float minRange, float maxRange);
+        void ConfigureRayRangesNode(float min, float max);
         void ConfigureYieldNodes(const rgl_field_t* fields, size_t size);
         void ConfigureLidarTransformNode(const AZ::Matrix3x4& lidarTransform);
         void ConfigurePcTransformNode(const AZ::Matrix3x4& pcTransform);
         void ConfigureAngularNoiseNode(float angularNoiseStdDev);
         void ConfigureDistanceNoiseNode(float distanceNoiseStdDevBase, float distanceNoiseStdDevRisePerMeter);
         void ConfigurePcPublisherNode(const AZStd::string& topicName, const AZStd::string& frameId, const ROS2::QoS& qosPolicy);
+        void ConfigureRaytraceNodeNonHits(float minRangeNonHitValue, float maxRangeNonHitValue);
 
         void SetIsCompactEnabled(bool value);
         void SetIsPcPublishingEnabled(bool value);

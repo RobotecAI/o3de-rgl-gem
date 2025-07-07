@@ -27,16 +27,26 @@ namespace RGL
         void UpdateDirtyRegion(const AZ::Aabb& dirtyRegion);
 
         void Clear();
+        void SetIsTiled(bool isTiled);
 
         [[nodiscard]] const AZStd::vector<rgl_vec3f>& GetVertices() const;
         [[nodiscard]] const AZStd::vector<rgl_vec3i>& GetIndices() const;
+        [[nodiscard]] const AZStd::vector<rgl_vec2f>& GetUvs() const;
 
     private:
+        void UpdateUvs();
+
         static constexpr size_t TrianglesPerSector = 2LU;
 
         AZ::Aabb m_currentWorldBounds = { AZ::Aabb::CreateFromPoint(AZ::Vector3::CreateZero()) };
+
         AZStd::vector<rgl_vec3f> m_vertices;
         AZStd::vector<rgl_vec3i> m_indices;
+        AZStd::vector<rgl_vec2f> m_uvs;
+
+        size_t m_gridRows{ 0U }, m_gridColumns{ 0U };
+
+        bool m_isTiled{ true };
     };
 
 } // namespace RGL

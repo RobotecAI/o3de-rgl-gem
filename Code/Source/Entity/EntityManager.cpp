@@ -14,24 +14,22 @@
  */
 
 #include <Entity/EntityManager.h>
+#include <LmbrCentral/Scripting/TagComponentBus.h>
+#include <RGL/RGLBus.h>
+#include <ROS2/Lidar/SegmentationUtils.h>
 #include <Utilities/RGLUtils.h>
 
 namespace RGL
 {
     EntityManager::EntityManager(AZ::EntityId entityId)
         : m_entityId{ entityId }
+        , m_segmentationEntityId{ Utils::GenerateSegmentationEntityId() }
     {
-        AZ::EntityBus::Handler::BusConnect(m_entityId);
     }
 
     EntityManager::~EntityManager()
     {
         AZ::EntityBus::Handler::BusDisconnect();
-
-        for (rgl_entity_t entity : m_entities)
-        {
-            RGL_CHECK(rgl_entity_destroy(entity));
-        }
     }
 
     void EntityManager::Update()
@@ -54,11 +52,13 @@ namespace RGL
 
         //// Non-uniform scale
         // Register non-uniform scale changed event handler
-        AZ::NonUniformScaleRequestBus::Event(entityId, &AZ::NonUniformScaleRequests::RegisterScaleChangedEvent, m_nonUniformScaleChangedHandler);
+        AZ::NonUniformScaleRequestBus::Event(
+            entityId, &AZ::NonUniformScaleRequests::RegisterScaleChangedEvent, m_nonUniformScaleChangedHandler);
         // Get current non-uniform scale (if there is no non-uniform scale added, the value won't be changed (nullopt))
         AZ::NonUniformScaleRequestBus::EventResult(m_nonUniformScale, entityId, &AZ::NonUniformScaleRequests::GetScale);
 
         m_isPoseUpdateNeeded = true;
+        SetPackedRglEntityId();
     }
 
     void EntityManager::OnEntityDeactivated(const AZ::EntityId& entityId)
@@ -80,11 +80,28 @@ namespace RGL
         {
             transform3x4f *= AZ::Matrix3x4::CreateScale(m_nonUniformScale.value());
         }
+
         const rgl_mat3x4f entityPoseRgl = Utils::RglMat3x4FromAzMatrix3x4(transform3x4f);
-        for (rgl_entity_t entity : m_entities)
+        for (Wrappers::RglEntity& entity : m_entities)
         {
-            RGL_CHECK(rgl_entity_set_pose(entity, &entityPoseRgl));
+            entity.SetTransform(entityPoseRgl);
         }
+
         m_isPoseUpdateNeeded = false;
+    }
+
+    void EntityManager::SetPackedRglEntityId()
+    {
+        m_packedRglEntityId = CalculatePackedRglEntityId();
+        for (Wrappers::RglEntity& entity : m_entities)
+        {
+            entity.SetId(m_packedRglEntityId.value());
+        }
+    }
+
+    int32_t EntityManager::CalculatePackedRglEntityId() const
+    {
+        return Utils::PackRglEntityId(
+            ROS2::SegmentationIds{ m_segmentationEntityId, ROS2::SegmentationUtils::FetchClassIdForEntity(m_entityId) });
     }
 } // namespace RGL

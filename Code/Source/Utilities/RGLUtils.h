@@ -7,19 +7,24 @@
  */
 #pragma once
 
-#include <rgl/api/core.h>
 #include <AzCore/Math/Matrix3x4.h>
+#include <ROS2/Lidar/RaycastResults.h>
+#include <rgl/api/core.h>
 
 namespace RGL::Utils
 {
-    //! Creates an RGL mesh ensuring that if it cannot be created the targetMesh is set to nullptr.
-    //! This function should be preferred over the rgl_mesh_create function.
-    void SafeRglMeshCreate(
-        rgl_mesh_t& targetMesh, const rgl_vec3f* vertices, size_t vertexCount, const rgl_vec3i* indices, size_t indexCount);
+    //! Packs an entity ID and a segmentation class ID into an 32-bit integer.
+    //! Entity IDs must be generated using the GenerateSegmentationEntityId function.
+    //! @see GenerateSegmentationEntityId
+    int32_t PackRglEntityId(ROS2::SegmentationIds);
 
-    //! Creates an RGL entity ensuring that if it cannot be created the targetEntity is set to nullptr.
-    //! This function should be preferred over the rgl_entity_create function.
-    void SafeRglEntityCreate(rgl_entity_t& targetEntity, rgl_mesh_t mesh);
+    //! Unpacks a packed RGL entity ID into an entity ID and a segmentation class ID.
+    //! @see PackRglEntityId
+    ROS2::SegmentationIds UnpackRglEntityId(int32_t rglPackedEntityId);
+
+    //! Generates a new unique ID for an entity.
+    //! This ID can then be used to generate a packed RGL entity ID.
+    int32_t GenerateSegmentationEntityId();
 
     //! If the provided status signifies an error, prints the last RGL error message.
     //! @param status Status returned by an API call.
@@ -38,6 +43,7 @@ namespace RGL::Utils
     AZ::Matrix3x4 AzMatrix3x4FromRglMat3x4(const rgl_mat3x4f& rglMatrix);
     AZ::Vector3 AzVector3FromRglVec3f(const rgl_vec3f& rglVector);
     rgl_vec3f RglVector3FromAzVec3f(const AZ::Vector3& azVector);
+    rgl_vec2f RglVec2fFromAzVector2(const AZ::Vector2& azVector);
 
     constexpr rgl_mat3x4f IdentityTransform{
         .value{

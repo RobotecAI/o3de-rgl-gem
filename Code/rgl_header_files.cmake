@@ -13,4 +13,5 @@
 # limitations under the License.
 set(FILES
         Include/RGL/RGLBus.h
+        Include/RGL/SceneConfiguration.h
 )

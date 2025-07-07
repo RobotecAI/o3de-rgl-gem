@@ -17,7 +17,7 @@
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/EBus/EBus.h>
 #include <AzCore/Interface/Interface.h>
-#include <SceneConfigurationComponent.h>
+#include <RGL/SceneConfiguration.h>
 
 namespace RGL
 {
@@ -52,4 +52,28 @@ namespace RGL
 
     using RGLRequestBus = AZ::EBus<RGLRequests, RGLBusTraits>;
     using RGLInterface = AZ::Interface<RGLRequests>;
+
+    class RGLNotifications : public AZ::EBusTraits
+    {
+    public:
+        //////////////////////////////////////////////////////////////////////////
+        // EBusTraits overrides
+        static const AZ::EBusHandlerPolicy HandlerPolicy = AZ::EBusHandlerPolicy::Multiple;
+        static const AZ::EBusAddressPolicy AddressPolicy = AZ::EBusAddressPolicy::Single;
+        //////////////////////////////////////////////////////////////////////////
+
+        virtual void OnSceneConfigurationSet(const SceneConfiguration& config)
+        {
+        }
+
+        //! Signals that at least one lidar that uses RGL implementation exists.
+        //! Used for GPU memory consumption optimizations.
+        virtual void OnAnyLidarExists() {}
+
+        //! Signals that the last lidar that used RGL implementation was destroyed.
+        //! Used for GPU memory consumption optimizations.
+        virtual void OnNoLidarExists() {}
+        //////////////////////////////////////////////////////////////////////////
+    };
+    using RGLNotificationBus = AZ::EBus<RGLNotifications>;
 } // namespace RGL

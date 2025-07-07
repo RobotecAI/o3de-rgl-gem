@@ -30,6 +30,12 @@ following visuals:
 
 - Mesh Component
 - Terrain created using the O3DE Terrain Gem
+- Actor Component
+
+and providing the following features:
+
+- Gaussian Noise
+- Point cloud intensity data
 
 <img src="static/gif/rgl_gem_preview1.gif" alt="drawing" width="500"/>
 
@@ -38,6 +44,7 @@ You can fully customize the LiDAR's settings using the O3DE Level Editor. Those 
 - configurable raycasting pattern
 - lidar range
 - entities excluded from raycasting
+- lidar noise
 
 You can also choose one of the presets provided by the ROS2 Gem to create a LiDAR model that fits your needs.
 
@@ -49,6 +56,17 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
   **Runtime requirements** of the Robotec GPU Lidar.
   ](https://github.com/RobotecAI/RobotecGPULidar#runtime-requirements)
 - Any O3DE project with the [O3DE ROS2 Gem](https://github.com/o3de/o3de-extras/tree/development/Gems/ROS2) enabled.
+- The following ROS2 packages installed on your system:
+    - `cyclonedds`,
+    - `fastrtps`,
+    - `radar-msgs`.
+
+  You can install those packages with the following commands:
+  ```bash
+  sudo apt install -y ros-${ROS_DISTRO}-cyclonedds ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
+  sudo apt install -y ros-${ROS_DISTRO}-fastrtps ros-${ROS_DISTRO}-rmw-fastrtps-cpp
+  sudo apt install -y ros-${ROS_DISTRO}-radar-msgs
+  ```
 
 ***IMPORTANT:*** *You do not need to download or set up the RobotecGPULidar library itself and only have to meet
 the **RUNTIME** requirements.*
@@ -142,7 +160,7 @@ The RGL gem allows for global scene configuration. To achieve this:
 2. **Customize the scene configurations.**
 
    In the Entity Outliner, under the ``RGL Scene configuration`` component parameters,
-   you can customizez the global scene configuration to fit your needs.
+   you can customize the global scene configuration to fit your needs.
 
 ## Troubleshooting
 
@@ -150,9 +168,10 @@ The RGL gem allows for global scene configuration. To achieve this:
 
 If you encounter any issues relating the `libRobotecGPULidar.so` file please follow these steps:
 
-1. Delete the `Code/3rdParty/RobotecGPULidar/` directory.
-2. If you encounter the `DOWNLOAD_RGL` file under the `Code/` directory, delete it.
-3. Reload the CMake project.
+1. Make sure no files named `RGL_DOWNLOAD_IN_PROGRESS` exist inside the build directory of your project. This file prevents the Gem from downloading new binaries and may not be deleted if the O3DE project configuration was unexpectedly stopped.
+2. If this didn't help, try removing the `RGL_VERSION_METADATA` and `ROS_DISTRO_METADATA` metadata files (also located under the build path). This will force the RGL gem to download required native RGL files.
+
+For more details on how the RGL gem handles downloads of the native RGL library binaries and API source code, please refer to the [FindRGL.cmake](Code/FindRGL.cmake) file.
 
 ### Issues related to the in-game lidar behaviour
 
