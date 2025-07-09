@@ -84,7 +84,6 @@ the **RUNTIME** requirements.*
    | o3de-rgl-gem               | [o3de/o3de-extras](https://github.com/o3de/o3de-extras) | [Robotecai/o3de-extras](https://github.com/robotecai/o3de-extras) | [o3de](https://github.com/o3de/o3de) |
    |----------------------------|---------------------------------------------------------| ----------------------------------------------------------------- |--------------------------------------|
    | development branch         | development branch                                      | N/A                                                               | development branch                   |
-   | development branch         | N/A                                                     | rgl/stable-dev branch                                             | Release 2310.3                       |
    | main branch, O3DE_2505 tag | Release 2505.x                                          | N/A                                                               | Release 2505.x                       |
    | main branch, O3DE_2409 tag | Release 2409.x                                          | N/A                                                               | Release 2409.x                       |
    | main branch, O3DE_2310 tag | Release 2310.x                                          | N/A                                                               | Release 2310.x                       |

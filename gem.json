@@ -1,6 +1,6 @@
 {
     "gem_name": "RGL",
-    "version": "1.3.0",
+    "version": "1.2.0",
     "platforms": [
         "Linux"
     ],
@@ -22,8 +22,7 @@
     "requirements": "Requires a CUDA-capable GPU with the nvidia drivers specified in the README.md file of the RGL gem github repository.",
     "documentation_url": "",
     "dependencies": [
-        "ROS2>=3.2.0",
-        "LmbrCentral"
+        "ROS2>=3.3.0"
     ],
     "restricted": "RGL"
 }
