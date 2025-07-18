@@ -39,11 +39,9 @@ namespace RGL
             {
                 if (assignmentId.m_materialSlotStableId == AZ::RPI::ModelMaterialSlot::InvalidStableId)
                 {
-                    AZ_Warning(
-                        "RGL",
-                        false,
-                        "MaterialEntityManager::OnMaterialsUpdated: Invalid stable ID listed in updated materials for entity with id: %s.",
-                        m_entityId.ToString().c_str());
+                    AZStd::string entityName;
+                    AZ::ComponentApplicationBus::BroadcastResult(entityName, &AZ::ComponentApplicationRequests::GetEntityName, m_entityId);
+                    AZ_Warning(__func__, false, "Invalid stable ID listed in list of updated materials in entity %s.", entityName.c_str());
                     continue;
                 }
 
@@ -73,11 +71,14 @@ namespace RGL
         auto it = m_materialSlotMeshIdMap.find(materialSlotId);
         if (it == m_materialSlotMeshIdMap.end())
         {
+            AZStd::string entityName;
+            AZ::ComponentApplicationBus::BroadcastResult(entityName, &AZ::ComponentApplicationRequests::GetEntityName, m_entityId);
             AZ_Error(
                 __func__,
                 false,
-                "Programmer error: Unable to find mesh entity associated with provided material slot id: %u.",
-                materialSlotId);
+                "Programmer error: Unable to find mesh entity associated with provided material slot id: %u in entity %s.",
+                materialSlotId,
+                entityName.c_str());
             return -1;
         }
 
