@@ -81,12 +81,12 @@ the **RUNTIME** requirements.*
    Depending on which version of O3DE and ROS2 gem you use this step may differ.
    Below is a table of supported build combinations:
 
-   | o3de-rgl-gem               | [o3de/o3de-extras](https://github.com/o3de/o3de-extras) | [Robotecai/o3de-extras](https://github.com/robotecai/o3de-extras) | [o3de](https://github.com/o3de/o3de) |
-   |----------------------------|---------------------------------------------------------| ----------------------------------------------------------------- |--------------------------------------|
-   | development branch         | development branch                                      | N/A                                                               | development branch                   |
-   | main branch, O3DE_2505 tag | Release 2505.x                                          | N/A                                                               | Release 2505.x                       |
-   | main branch, O3DE_2409 tag | Release 2409.x                                          | N/A                                                               | Release 2409.x                       |
-   | main branch, O3DE_2310 tag | Release 2310.x                                          | N/A                                                               | Release 2310.x                       |
+   | o3de-rgl-gem               | [o3de/o3de-extras](https://github.com/o3de/o3de-extras) | [o3de](https://github.com/o3de/o3de) |
+   | -------------------------- | ------------------------------------------------------- | ------------------------------------ |
+   | development branch         | development branch                                      | development branch                   |
+   | main branch, O3DE_2505 tag | Release 2505.x                                          | Release 2505.x                       |
+   | main branch, O3DE_2409 tag | Release 2409.x                                          | Release 2409.x                       |
+   | main branch, O3DE_2310 tag | Release 2310.x                                          | Release 2310.x                       |
 
    **_Note:_** _This table describes build combinations that are guaranteed to work. There may exist other working build
    combinations._
