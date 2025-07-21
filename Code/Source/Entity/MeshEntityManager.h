@@ -15,13 +15,13 @@
 #pragma once
 
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentBus.h>
-#include <Entity/EntityManager.h>
+#include <Entity/MaterialEntityManager.h>
 
 namespace RGL
 {
     //! Class used for managing RGL's representation of an Entity with a MeshComponent.
     class MeshEntityManager
-        : public EntityManager
+        : public MaterialEntityManager
         , protected AZ::Render::MeshComponentNotificationBus::Handler
     {
     public:
@@ -30,12 +30,17 @@ namespace RGL
         MeshEntityManager(MeshEntityManager&& other) = delete;
         MeshEntityManager& operator=(MeshEntityManager&& rhs) = delete;
         MeshEntityManager& operator=(const MeshEntityManager&) = delete;
-        ~MeshEntityManager() override;
+        ~MeshEntityManager();
 
     protected:
+        // AZ::EntityBus::Handler implementation overrides
+        void OnEntityActivated(const AZ::EntityId& entityId) override;
+        void OnEntityDeactivated(const AZ::EntityId& entityId) override;
+
         // AZ::Render::MeshComponentNotificationBus overrides
         void OnModelReady(
             const AZ::Data::Asset<AZ::RPI::ModelAsset>& modelAsset,
             [[maybe_unused]] const AZ::Data::Instance<AZ::RPI::Model>& model) override;
+        void OnModelPreDestroy() override;
     };
 } // namespace RGL

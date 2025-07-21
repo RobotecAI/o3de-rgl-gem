@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <AzCore/Component/TickBus.h>
 #include <AtomLyIntegration/CommonFeatures/Mesh/MeshComponentConstants.h>
+#include <AzCore/Component/TickBus.h>
 #include <AzFramework/Entity/EntityContext.h>
 #include <AzFramework/Entity/GameEntityContextBus.h>
 #include <Entity/ActorEntityManager.h>
@@ -86,6 +86,7 @@ namespace RGL
         AZ_Assert(!gameEntityContextId.IsNull(), "Invalid GameEntityContextId");
 
         AzFramework::EntityContextEventBus::Handler::BusConnect(gameEntityContextId);
+        LidarSystemNotificationBus::Handler::BusConnect();
 
         m_rglLidarSystem.Activate();
     }
@@ -93,12 +94,12 @@ namespace RGL
     void RGLSystemComponent::Deactivate()
     {
         m_rglLidarSystem.Deactivate();
+        LidarSystemNotificationBus::Handler::BusDisconnect();
         AzFramework::EntityContextEventBus::Handler::BusDisconnect();
 
         m_entityManagers.clear();
-        m_meshLibrary.Clear();
+        m_modelLibrary.Clear();
         m_rglLidarSystem.Clear();
-        RGL_CHECK(rgl_cleanup());
     }
 
     void RGLSystemComponent::ExcludeEntity(const AZ::EntityId& excludedEntityId)
@@ -109,9 +110,10 @@ namespace RGL
         }
     }
 
-    void RGLSystemComponent::SetSceneConfiguration(const RGL::SceneConfiguration& config)
+    void RGLSystemComponent::SetSceneConfiguration(const SceneConfiguration& config)
     {
         m_sceneConfig = config;
+        RGLNotificationBus::Broadcast(&RGLNotifications::OnSceneConfigurationSet, config);
     }
 
     const SceneConfiguration& RGLSystemComponent::GetSceneConfiguration() const
@@ -126,6 +128,69 @@ namespace RGL
             return;
         }
 
+        if (m_activeLidarCount < 1U)
+        {
+            m_unprocessedEntities.emplace(entity.GetId());
+            return;
+        }
+
+        ProcessEntity(entity);
+    }
+
+    void RGLSystemComponent::OnEntityContextDestroyEntity(const AZ::EntityId& id)
+    {
+        m_unprocessedEntities.erase(id);
+        m_entityManagers.erase(id);
+    }
+
+    void RGLSystemComponent::OnEntityContextReset()
+    {
+        m_entityManagers.clear();
+        m_unprocessedEntities.clear();
+        m_modelLibrary.Clear();
+        m_rglLidarSystem.Clear();
+    }
+
+    void RGLSystemComponent::OnLidarCreated()
+    {
+        ++m_activeLidarCount;
+
+        if (m_activeLidarCount > 1U)
+        {
+            return;
+        }
+
+        RGLNotificationBus::Broadcast(&RGLNotifications::OnAnyLidarExists);
+        for (auto entityIdIt = m_unprocessedEntities.begin(); entityIdIt != m_unprocessedEntities.end();)
+        {
+            AZ::Entity* entity = nullptr;
+            AZ::ComponentApplicationBus::BroadcastResult(entity, &AZ::ComponentApplicationRequests::FindEntity, *entityIdIt);
+            AZ_Assert(entity, "Failed to find entity with provided id!");
+            ProcessEntity(*entity);
+            entityIdIt = m_unprocessedEntities.erase(entityIdIt);
+        }
+    }
+
+    void RGLSystemComponent::OnLidarDestroyed()
+    {
+        --m_activeLidarCount;
+
+        if (m_activeLidarCount > 0U)
+        {
+            return;
+        }
+
+        RGLNotificationBus::Broadcast(&RGLNotifications::OnNoLidarExists);
+        for (auto& m_entityManager : m_entityManagers)
+        {
+            m_unprocessedEntities.emplace(m_entityManager.first);
+        }
+        m_entityManagers.clear();
+        m_modelLibrary.Clear();
+    }
+
+    void RGLSystemComponent::ProcessEntity(const AZ::Entity& entity)
+    {
         AZStd::unique_ptr<EntityManager> entityManager;
         if (entity.FindComponent<EMotionFX::Integration::ActorComponent>())
         {
@@ -142,19 +207,6 @@ namespace RGL
 
         [[maybe_unused]] bool inserted = m_entityManagers.emplace(entity.GetId(), AZStd::move(entityManager)).second;
         AZ_Error(__func__, inserted, "Object with provided entityId already exists.");
-    }
-
-    void RGLSystemComponent::OnEntityContextDestroyEntity(const AZ::EntityId& id)
-    {
-        m_entityManagers.erase(id);
-    }
-
-    void RGLSystemComponent::OnEntityContextReset()
-    {
-        m_entityManagers.clear();
-        m_meshLibrary.Clear();
-        m_rglLidarSystem.Clear();
-        RGL_CHECK(rgl_cleanup());
     }
 
     void RGLSystemComponent::UpdateScene()

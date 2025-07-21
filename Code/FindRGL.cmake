@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-set(RGL_VERSION 0.15.0)
+set(RGL_VERSION 0.19.0)
 set(RGL_TAG v${RGL_VERSION})
 
 # Metadata files used to determine if RGL download is required
@@ -21,11 +20,11 @@ set(ROS_DISTRO_METADATA_FILE ${CMAKE_CURRENT_BINARY_DIR}/ROS_DISTRO)
 
 # Determine RGL binary to download based on ROS distro
 set(ROS_DISTRO $ENV{ROS_DISTRO})
-if (ROS_DISTRO STREQUAL "humble")
-    set(RGL_LINUX_ZIP_FILENAME_BASE Linux-x64)
-elseif (ROS_DISTRO STREQUAL "jazzy")
-    set(RGL_LINUX_ZIP_FILENAME_BASE Linux-x64-jazzy)
-else ()
+if($ENV{ROS_DISTRO} STREQUAL "humble")
+    set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64-humble)
+elseif($ENV{ROS_DISTRO} STREQUAL "jazzy")
+    set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64-jazzy)
+else()
     message(FATAL_ERROR "ROS not found or ROS distro not supported. Please use one of {humble, jazzy}.")
 endif ()
 set(RGL_LINUX_ZIP_FILENAME ${RGL_LINUX_ZIP_FILENAME_BASE}.zip)
@@ -84,7 +83,7 @@ if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
                 ${DEST_API_DIR}/core.h
         )
         file(DOWNLOAD
-                ${RGL_SRC_ROOT_URL}/include/rgl/api/extensions/ros2.h
+                ${RGL_SRC_ROOT_URL}/extensions/ros2/include/rgl/api/extensions/ros2.h
                 ${DEST_API_DIR}/extensions/ros2.h
         )
 
@@ -98,8 +97,7 @@ if (NOT EXISTS ${RGL_DOWNLOAD_IN_PROGRESS_FILE})
 else ()
     message(WARNING "Omitting the RobotecGPULidar library download. This is intended when using the Clion multi-profile"
             " project reload. This may also happen due to interruption of previous project configurations. If you have"
-            " any issues related to the libRobotecGPULidar.so file please clear cmake cache for this gem"
-            " ({build_dir}/External/o3de-rgl-gem-*) before next build attempt."
+            " any issues related to the libRobotecGPULidar.so file please clear cmake cache before next build attempt."
     )
 endif ()
 

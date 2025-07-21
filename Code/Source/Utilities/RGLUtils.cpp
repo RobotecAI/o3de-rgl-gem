@@ -14,32 +14,34 @@
 
 namespace RGL::Utils
 {
-    void SafeRglMeshCreate(
-        rgl_mesh_t& targetMesh, const rgl_vec3f* vertices, size_t vertexCount, const rgl_vec3i* indices, size_t indexCount)
-    {
-        bool success = false;
-        ErrorCheck(
-            rgl_mesh_create(&targetMesh, vertices, aznumeric_cast<int32_t>(vertexCount), indices, aznumeric_cast<int32_t>(indexCount)),
-            __FILE__,
-            __LINE__,
-            &success);
+    static constexpr AZ::u8 RglEntityIdBits = 28;
+    static constexpr AZ::u8 ClassIdBits = 8;
+    static constexpr AZ::u8 CompressedIdBitDepth = RglEntityIdBits - ClassIdBits;
 
-        if (!success && !targetMesh)
-        {
-            RGL_CHECK(rgl_mesh_destroy(targetMesh));
-            targetMesh = nullptr;
-        }
+    int32_t PackRglEntityId(ROS2::SegmentationIds segmentationIds)
+    {
+        AZ_Assert(segmentationIds.m_entityId < (1 << CompressedIdBitDepth), "Entity ID is too large to be packed into RGL entity ID");
+        const int32_t id = (static_cast<int32_t>(segmentationIds.m_classId) << CompressedIdBitDepth) |
+            (segmentationIds.m_entityId & ((1 << CompressedIdBitDepth) - 1));
+
+        return id;
     }
 
-    void SafeRglEntityCreate(rgl_entity_t& targetEntity, rgl_mesh_t mesh)
+    ROS2::SegmentationIds UnpackRglEntityId(int32_t rglPackedEntityId)
     {
-        bool success = false;
-        ErrorCheck(rgl_entity_create(&targetEntity, nullptr, mesh), __FILE__, __LINE__, &success);
-        if (!success && !targetEntity)
-        {
-            RGL_CHECK(rgl_entity_destroy(targetEntity));
-            targetEntity = nullptr;
-        }
+        const uint8_t classId = rglPackedEntityId >> CompressedIdBitDepth;
+        const int32_t entityId = rglPackedEntityId & ((1 << CompressedIdBitDepth) - 1);
+        return { entityId, classId };
+    }
+
+    int32_t GenerateSegmentationEntityId()
+    {
+        static_assert(CompressedIdBitDepth <= 31, "CompressedIdBitDepth must be less than or equal to 31");
+        static uint32_t compressedIdCounter = 1U;
+
+        const auto generatedId = aznumeric_cast<int32_t>(++compressedIdCounter % (1 << RGL::Utils::CompressedIdBitDepth));
+
+        return generatedId;
     }
 
     void ErrorCheck(const rgl_status_t& status, const char* file, int line, bool* successDest)
@@ -125,5 +127,10 @@ namespace RGL::Utils
     rgl_vec3f RglVector3FromAzVec3f(const AZ::Vector3& azVector)
     {
         return { azVector.GetX(), azVector.GetY(), azVector.GetZ() };
+    }
+
+    rgl_vec2f RglVec2fFromAzVector2(const AZ::Vector2& azVector)
+    {
+        return { azVector.GetX(), azVector.GetY() };
     }
 } // namespace RGL::Utils

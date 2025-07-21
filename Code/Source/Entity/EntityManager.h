@@ -20,11 +20,19 @@
 #include <AzCore/Component/TransformBus.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/optional.h>
+#include <ROS2/Lidar/ClassSegmentationBus.h>
+#include <Wrappers/RglEntity.h>
 #include <rgl/api/core.h>
 
 namespace RGL
 {
-    class EntityManager : public AZ::EntityBus::Handler
+    //! Base class for Entity Manager.
+    //! Although it already implements the EntityBus handler,
+    //! the derived classes have to handle bus connection
+    //! through BusConnect and BusDisconnect function calls.
+    //! This is to allow for further overrides.
+    class EntityManager
+        : public AZ::EntityBus::Handler
     {
     public:
         explicit EntityManager(AZ::EntityId entityId);
@@ -37,7 +45,6 @@ namespace RGL
         virtual void Update();
 
     protected:
-
         // AZ::EntityBus::Handler implementation overrides
         void OnEntityActivated(const AZ::EntityId& entityId) override;
         void OnEntityDeactivated(const AZ::EntityId& entityId) override;
@@ -46,10 +53,15 @@ namespace RGL
         virtual void UpdatePose();
 
         AZ::EntityId m_entityId;
-        AZStd::vector<rgl_entity_t> m_entities;
+        AZStd::vector<Wrappers::RglEntity> m_entities;
+        AZStd::optional<int32_t> m_packedRglEntityId;
         bool m_isPoseUpdateNeeded{ false };
-    private:
 
+    private:
+        void SetPackedRglEntityId();
+        int32_t CalculatePackedRglEntityId() const;
+
+        // clang-format off
         AZ::TransformChangedEvent::Handler m_transformChangedHandler{[this](
             [[maybe_unused]] const AZ::Transform& local, const AZ::Transform& world)
             {
@@ -63,8 +75,10 @@ namespace RGL
                 m_nonUniformScale = scale;
                 m_isPoseUpdateNeeded = true;
             }};
+        // clang-format on
 
         AZ::Transform m_worldTm{ AZ::Transform::CreateIdentity() };
         AZStd::optional<AZ::Vector3> m_nonUniformScale{ AZStd::nullopt };
+        int32_t m_segmentationEntityId{ 0 };
     };
 } // namespace RGL

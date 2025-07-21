@@ -18,6 +18,8 @@ set(FILES
         Source/Entity/MeshEntityManager.h
         Source/Entity/EntityManager.cpp
         Source/Entity/EntityManager.h
+        Source/Entity/MaterialEntityManager.cpp
+        Source/Entity/MaterialEntityManager.h
         Source/Entity/Terrain/TerrainData.cpp
         Source/Entity/Terrain/TerrainData.h
         Source/Entity/Terrain/TerrainEntityManagerSystemComponent.cpp
@@ -26,14 +28,23 @@ set(FILES
         Source/Lidar/LidarRaycaster.h
         Source/Lidar/LidarSystem.cpp
         Source/Lidar/LidarSystem.h
+        Source/Lidar/LidarSystemNotificationBus.h
         Source/Lidar/PipelineGraph.cpp
         Source/Lidar/PipelineGraph.h
-        Source/Mesh/MeshLibrary.cpp
-        Source/Mesh/MeshLibrary.h
+        Source/Model/ModelLibraryBus.h
+        Source/Model/ModelLibrary.cpp
+        Source/Model/ModelLibrary.h
         Source/RGLSystemComponent.cpp
         Source/RGLSystemComponent.h
         Source/Utilities/RGLUtils.cpp
         Source/Utilities/RGLUtils.h
+        Source/Wrappers/RglEntity.cpp
+        Source/Wrappers/RglEntity.h
+        Source/Wrappers/RglMesh.cpp
+        Source/Wrappers/RglMesh.h
+        Source/Wrappers/RglTexture.cpp
+        Source/Wrappers/RglTexture.h
+        Source/SceneConfiguration.cpp
         Source/SceneConfigurationComponent.cpp
         Source/SceneConfigurationComponent.h
 )

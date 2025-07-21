@@ -20,11 +20,11 @@ namespace RGL
 {
     PipelineGraph::PipelineGraph()
     {
-        ConfigureRayPosesNode({Utils::IdentityTransform});
+        ConfigureRayPosesNode({ Utils::IdentityTransform });
         ConfigureRayRangesNode(0.0f, 1.0f);
         ConfigureLidarTransformNode(AZ::Matrix3x4::CreateIdentity());
         RGL_CHECK(rgl_node_raytrace(&m_nodes.m_rayTrace, nullptr));
-        RGL_CHECK(rgl_node_points_compact(&m_nodes.m_pointsCompact));
+        RGL_CHECK(rgl_node_points_compact_by_field(&m_nodes.m_pointsCompact, RGL_FIELD_IS_HIT_I32));
         ConfigureAngularNoiseNode(0.0f);
         ConfigureDistanceNoiseNode(0.0f, 0.0f);
         ConfigureYieldNodes(DefaultFields.data(), DefaultFields.size());
@@ -91,9 +91,9 @@ namespace RGL
         RGL_CHECK(rgl_node_rays_from_mat3x4f(&m_nodes.m_rayPoses, rayPoses.data(), aznumeric_cast<int32_t>(rayPoses.size())));
     }
 
-    void PipelineGraph::ConfigureRayRangesNode(float minRange, float maxRange)
+    void PipelineGraph::ConfigureRayRangesNode(float min, float max)
     {
-        rgl_vec2f range = { .value = { minRange, maxRange } };
+        const rgl_vec2f range = { .value = { min, max } };
         RGL_CHECK(rgl_node_rays_set_range(&m_nodes.m_rayRanges, &range, 1));
     }
 
@@ -148,6 +148,11 @@ namespace RGL
         }
     }
 
+    void PipelineGraph::ConfigureRaytraceNodeNonHits(float minRangeNonHitValue, float maxRangeNonHitValue)
+    {
+        RGL_CHECK(rgl_node_raytrace_configure_non_hits(m_nodes.m_rayTrace, minRangeNonHitValue, maxRangeNonHitValue));
+    }
+
     void PipelineGraph::SetIsCompactEnabled(bool value)
     {
         SetIsFeatureEnabled(PipelineFeatureFlags::PointsCompact, value);
@@ -180,14 +185,17 @@ namespace RGL
         {
             switch (field)
             {
-            case RGL_FIELD_IS_HIT_I32:
-                success = success && GetResult(results.m_isHit, RGL_FIELD_IS_HIT_I32);
-                break;
-            case RGL_FIELD_XYZ_F32:
-                success = success && GetResult(results.m_xyz, RGL_FIELD_XYZ_F32);
+            case RGL_FIELD_XYZ_VEC3_F32:
+                success = success && GetResult(results.m_xyz, RGL_FIELD_XYZ_VEC3_F32);
                 break;
             case RGL_FIELD_DISTANCE_F32:
                 success = success && GetResult(results.m_distance, RGL_FIELD_DISTANCE_F32);
+                break;
+            case RGL_FIELD_INTENSITY_F32:
+                success = success && GetResult(results.m_intensity, RGL_FIELD_INTENSITY_F32);
+                break;
+            case RGL_FIELD_ENTITY_ID_I32:
+                success = success && GetResult(results.m_packedRglEntityId, RGL_FIELD_ENTITY_ID_I32);
                 break;
             default:
                 success = false;
