@@ -34,17 +34,21 @@ namespace RGL
 
         for (const auto& [assignmentId, assignment] : materials)
         {
+            if (assignmentId.m_materialSlotStableId == AZ::RPI::ModelMaterialSlot::InvalidStableId)
+            {
+                AZStd::string entityName;
+                AZ::ComponentApplicationBus::BroadcastResult(entityName, &AZ::ComponentApplicationRequests::GetEntityName, m_entityId);
+                AZ_Warning(
+                    __func__,
+                    false,
+                    "Invalid stable ID listed in list of updated materials in entity %s.",
+                    entityName.c_str());
+                continue;
+            }
+
             const Wrappers::RglTexture& materialTexture = ModelLibraryInterface::Get()->StoreMaterialAsset(assignment.m_materialAsset);
             if (materialTexture.IsValid())
             {
-                if (assignmentId.m_materialSlotStableId == AZ::RPI::ModelMaterialSlot::InvalidStableId)
-                {
-                    AZStd::string entityName;
-                    AZ::ComponentApplicationBus::BroadcastResult(entityName, &AZ::ComponentApplicationRequests::GetEntityName, m_entityId);
-                    AZ_Warning(__func__, false, "Invalid stable ID listed in list of updated materials in entity %s.", entityName.c_str());
-                    continue;
-                }
-
                 size_t meshEntityIdx = GetMeshEntityIdxForMaterialSlotId(assignmentId.m_materialSlotStableId);
                 if (meshEntityIdx == -1)
                 {
