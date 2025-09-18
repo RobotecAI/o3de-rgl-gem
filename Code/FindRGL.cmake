@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 set(RGL_VERSION 0.15.0)
 set(RGL_TAG v${RGL_VERSION})
 
@@ -38,7 +39,7 @@ set(DEST_API_DIR ${DEST_SO_DIR}/include/rgl/api)
 
 set(SO_FILENAME libRobotecGPULidar.so)
 
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
 
 # This check is performed to mitigate Clion multi-profile project reload issues
 # (each profile would execute the file download, extraction and removal without it).
