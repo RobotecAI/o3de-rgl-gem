@@ -24,6 +24,8 @@ if($ENV{ROS_DISTRO} STREQUAL "humble")
     set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64-humble)
 elseif($ENV{ROS_DISTRO} STREQUAL "jazzy")
     set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64-jazzy)
+elseif($ENV{ROS_DISTRO} STREQUAL "kilted") # there is no release for kilted but jazzy one work properly
+    set(RGL_LINUX_ZIP_FILENAME_BASE RGL-full-linux-x64-jazzy)
 else()
     message(FATAL_ERROR "ROS not found or ROS distro not supported. Please use one of {humble, jazzy}.")
 endif ()
