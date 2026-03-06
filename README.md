@@ -89,7 +89,7 @@ the **RUNTIME** requirements.*
 
   The latest versions of the Gem (`development` branch) are expected to work with the latest versions of O3DE and ROS2 Gem (Release 2510.x and newer), but they have not been fully tested yet.
 
-   **_Note:_** _This table describes build combinations that are guaranteed to work. There may exist other working build combinations._
+   ***Note:*** *This table describes build combinations that are guaranteed to work. There may exist other working build combinations.*
 
 3. **Register the Gem.** \
    You can either register the Gem through the Command Line Interface or the O3DE Project Manager:
