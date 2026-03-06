@@ -39,6 +39,8 @@ ly_add_target(
             Gem::EMotionFX.Static
 )
 
+target_depends_on_ros2_packages(RGL.Static rclcpp)
+
 ly_target_link_libraries(RGL.Static PUBLIC ${RGL_SO_DIR})
 
 ly_add_target_files(

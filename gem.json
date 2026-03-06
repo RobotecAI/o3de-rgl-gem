@@ -19,12 +19,11 @@
         "ROS2"
     ],
     "icon_path": "preview.png",
-    "requirements": "Requires a CUDA-capable GPU with the nvidia drivers specified in the README.md file of the RGL gem github repository.",
+    "requirements": "Requires ROS2 and ROS2Sensors Gems, requires a CUDA-capable GPU.",
     "documentation_url": "",
     "dependencies": [
-        "ROS2>=3.2.0",
-        "ROS2Sensors",
-        "LmbrCentral"
+        "ROS2>=4.0.0",
+        "ROS2Sensors"
     ],
     "restricted": "RGL"
 }

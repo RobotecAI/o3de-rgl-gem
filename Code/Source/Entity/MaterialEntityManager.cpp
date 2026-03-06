@@ -41,7 +41,7 @@ namespace RGL
                 AZ_Warning(
                     __func__,
                     false,
-                    "MaterialEntityManager::OnMaterialsUpdated: Invalid stable ID listed in list of updated materials in entity %s.",
+                    "Invalid stable ID listed in list of updated materials in entity %s.",
                     entityName.c_str());
                 continue;
             }

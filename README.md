@@ -56,7 +56,7 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
   **Runtime requirements** of the Robotec GPU Lidar.
   ](https://github.com/RobotecAI/RobotecGPULidar#runtime-requirements)
 - Any O3DE project with the [O3DE ROS2 Gem](https://github.com/o3de/o3de-extras/tree/development/Gems/ROS2) enabled.
-- The following ROS2 packages installed on your system:
+- The following ROS 2 packages installed on your system:
     - `cyclonedds`,
     - `fastrtps`,
     - `radar-msgs`.
@@ -78,23 +78,23 @@ the **RUNTIME** requirements.*
     git clone https://github.com/RobotecAI/o3de-rgl-gem.git
     ```
 2. **Switch to the correct branch.** \
-   Depending on which version of O3DE and ROS2 gem you use this step may differ.
+   Depending on which version of O3DE and ROS2 Gem you use this step may differ.
    Below is a table of supported build combinations:
 
-   | o3de-rgl-gem               | [o3de/o3de-extras](https://github.com/o3de/o3de-extras) | [Robotecai/o3de-extras](https://github.com/robotecai/o3de-extras) | [o3de](https://github.com/o3de/o3de) |
-   | -------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------ |
-   | development branch         | development branch                                      | N/A                                                               | development branch                   |
-   | development branch         | N/A                                                     | rgl/stable-dev branch                                             | Release 2310.3                       |
-   | main branch, O3DE_2409 tag | Release 2409.x                                          | N/A                                                               | Release 2409.x                       |
-   | main branch, O3DE_2310 tag | Release 2310.x                                          | N/A                                                               | Release 2310.x                       |
+   | o3de-rgl-gem                   | [o3de/o3de-extras](https://github.com/o3de/o3de-extras) | [o3de](https://github.com/o3de/o3de) |
+   | ------------------------------ | ------------------------------------------------------- | ------------------------------------ |
+   | `o3de-2505` branch             | Release 2505.x                                          | Release 2505.x                       |
+   | `main` branch, `O3DE_2409` tag | Release 2409.x                                          | Release 2409.x                       |
+   | `main` branch, `O3DE_2310` tag | Release 2310.x                                          | Release 2310.x                       |
 
-   **_Note:_** _This table describes build combinations that are guaranteed to work. There may exist other working build
-   combinations._
+  The latest versions of the Gem (`development` branch) are expected to work with the latest versions of O3DE and ROS2 Gem (Release 2510.x and newer), but they have not been fully tested yet.
+
+   ***Note:*** *This table describes build combinations that are guaranteed to work. There may exist other working build combinations.*
 
 3. **Register the Gem.** \
-   You can either register the gem through the Command Line Interface or the O3DE Project Manager:
+   You can either register the Gem through the Command Line Interface or the O3DE Project Manager:
     - **CLI** \
-      Head to your local O3DE engine directory (*o3de-dir*) and register the gem using its path (*gem-path*).
+      Head to your local O3DE engine directory (*o3de-dir*) and register the Gem using its path (*gem-path*).
         ```bash
         cd <o3de-dir>
         ./scripts/o3de.sh register --gem-path <gem-path>
@@ -150,16 +150,16 @@ the **RUNTIME** requirements.*
 
 ### Scene configuration
 
-The RGL gem allows for global scene configuration. To achieve this:
+The RGL Gem allows for global scene configuration. To achieve this:
 
 1. **Add the ``RGL Scene Configuration`` component to the ``Level`` entity.**
 
    The Level entity is the root entity, and it can be found in the uppermost section of the Entity Outliner.
-   In the Entity Inspector select **Add Component** . Then search for the ``RGL Scene Configuration`` component and add
+   In the Entity Inspector select **Add Component**. Then search for the ``RGL Scene Configuration`` component and add
    it to the entity.
 2. **Customize the scene configurations.**
 
-   In the Entity Outliner, under the ``RGL Scene configuration`` component parameters,
+   In the Entity Outliner, under the ``RGL Scene Configuration`` component parameters,
    you can customize the global scene configuration to fit your needs.
 
 ## Troubleshooting
@@ -169,11 +169,11 @@ The RGL gem allows for global scene configuration. To achieve this:
 If you encounter any issues relating the `libRobotecGPULidar.so` file please follow these steps:
 
 1. Make sure no files named `RGL_DOWNLOAD_IN_PROGRESS` exist inside the build directory of your project. This file prevents the Gem from downloading new binaries and may not be deleted if the O3DE project configuration was unexpectedly stopped.
-2. If this didn't help, try removing the `RGL_VERSION_METADATA` and `ROS_DISTRO_METADATA` metadata files (also located under the build path). This will force the RGL gem to download required native RGL files.
+2. If this didn't help, try removing the `RGL_VERSION_METADATA` and `ROS_DISTRO_METADATA` metadata files (also located under the build path). This will force the RGL Gem to download required native RGL files.
 
-For more details on how the RGL gem handles downloads of the native RGL library binaries and API source code, please refer to the [FindRGL.cmake](Code/FindRGL.cmake) file.
+For more details on how the RGL Gem handles downloads of the native RGL library binaries and API source code, please refer to the [FindRGL.cmake](Code/FindRGL.cmake) file.
 
-### Issues related to the in-game lidar behaviour
+### Issues related to the in-game lidar behavior
 
 One common issue is when the lidar detects unwanted geometry as shown below.
 
@@ -195,5 +195,5 @@ The entity's name should appear in the Excluded Entities list (as seen on the im
 
 ### Other issues
 
-If this section does not seem to help, feel free to post an issue on the gem's github
+If this section does not seem to help, feel free to post an issue on the Gem's GitHub
 repository in which you describe the problem you are facing.
