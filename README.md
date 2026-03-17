@@ -54,7 +54,7 @@ You can also choose one of the presets provided by the ROS2 Gem to create a LiDA
 
 - [
   **Runtime requirements** of the Robotec GPU Lidar.
-  ](https://github.com/RobotecAI/RobotecGPULidar#runtime-requirements)
+  ](https://github.com/RobotecAI/RobotecGPULidar/tree/v0.21.0#runtime-requirements)
 - Any O3DE project with the [O3DE ROS2 Gem](https://github.com/o3de/o3de-extras/tree/development/Gems/ROS2) enabled.
 - The following ROS 2 packages installed on your system:
     - `cyclonedds`,
