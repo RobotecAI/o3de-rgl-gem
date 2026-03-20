@@ -89,7 +89,7 @@ the **RUNTIME** requirements.*
 
   The latest versions of the Gem (`development` branch) are expected to work with the latest versions of O3DE and ROS2 Gem (Release 2510.x and newer), but they have not been fully tested yet.
 
-   ***Note:*** *This table describes build combinations that are guaranteed to work. There may exist other working build combinations.*
+   **_Note:_** _This table describes build combinations that are guaranteed to work. There may exist other working build combinations._
 
 3. **Register the Gem.** \
    You can either register the Gem through the Command Line Interface or the O3DE Project Manager:
@@ -100,7 +100,7 @@ the **RUNTIME** requirements.*
         ./scripts/o3de.sh register --gem-path <gem-path>
         ```
     - **Project Manager** \
-      Open the Project Manager. Select **Gems -> Add Existing Gem**. Locate the gem's directory and select **Choose**.
+      Open the Project Manager. Select **Gems -> Add Existing Gem**. Locate the Gem's directory and select **Choose**.
 
 4. **Enable the Gem in your project.** \
    Once again you can either enable it through the Command Line Interface or the O3DE Project Manager:
@@ -108,7 +108,7 @@ the **RUNTIME** requirements.*
    ***Note:*** *Please, make sure to enable the ROS2 Gem first.*
 
     - **CLI** \
-      In your local o3de engine directory you can enable the gem for your project (*project-path*).
+      In your local O3DE engine directory you can enable the Gem for your project (*project-path*).
         ```bash
         ./scripts/o3de.sh enable-gem -gn RGL -pp <project-path>
         ```
