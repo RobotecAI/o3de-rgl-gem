@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-set(RGL_VERSION 0.19.0)
+set(RGL_VERSION 0.21.0)
 set(RGL_TAG v${RGL_VERSION})
 
 # Metadata files used to determine if RGL download is required
