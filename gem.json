@@ -8,7 +8,7 @@
     "license": "Apache-2.0",
     "license_url": "https://opensource.org/licenses/Apache-2.0",
     "origin": "RobotecAI",
-    "origin_url": "",
+    "origin_url": "https://robotec.ai",
     "type": "Code",
     "summary": "Extension to the ROS2 Gem that provides it with the RobotecGPULidar lidar implementation.",
     "canonical_tags": [
